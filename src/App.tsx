@@ -1,9 +1,12 @@
+import Routes from './Routes';
+import './index.css';
 
 function App() {
-
   return (
-    <h1>Hello World</h1>
-  )
+    <div className="min-h-screen bg-accent">
+      <Routes />
+    </div>
+  );
 }
 
-export default App
+export default App;
