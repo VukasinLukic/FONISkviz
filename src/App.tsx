@@ -1,13 +1,14 @@
-import Routes from './Routes';
-import './index.css';
+import React from 'react';
+import { RouterProvider } from 'react-router-dom';
 import { GameProvider } from './context/GameContext';
+import { router } from './Routes';
+import './index.css';
 
 function App() {
   return (
     <GameProvider>
-      <div className="min-h-screen max-h-screen h-screen overflow-hidden bg-accent">
-        <Routes />
-      </div>
+      {/* Use RouterProvider directly with the imported router */}
+      <RouterProvider router={router} /> 
     </GameProvider>
   );
 }

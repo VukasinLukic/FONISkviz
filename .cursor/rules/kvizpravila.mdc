@@ -1,13 +1,9 @@
 ---
 description: 
 globs: 
-alwaysApply: false
----
----
-description: 
-globs: 
 alwaysApply: true
 ---
+
 
 # FONIS Kviz - Cursor Development Guidelines
 

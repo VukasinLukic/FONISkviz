@@ -27,6 +27,7 @@ interface GameContextType {
   registerTeam: (name: string) => Promise<Team>;
   updateTeamPoints: (teamId: string, points: number) => Promise<void>;
   updateTeamMascot: (teamId: string, mascotId: number) => Promise<void>;
+  updateCurrentCategory: (category: string) => Promise<void>;
 }
 
 // Kreiranje konteksta
@@ -140,6 +141,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  // Funkcija za ažuriranje trenutne kategorije
+  const updateCurrentCategory = async (category: string) => {
+    // TODO: Dodati Firebase kod ovde
+    // await updateDoc(doc(db, 'game', 'currentGame'), {
+    //   currentCategory: category
+    // });
+
+    setGameState(prev => ({
+      ...prev,
+      currentCategory: category,
+    }));
+  };
+
   // Listener za promene u Firebase-u
   useEffect(() => {
     // TODO: Dodati Firebase listener ovde
@@ -163,6 +177,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     registerTeam,
     updateTeamPoints,
     updateTeamMascot,
+    updateCurrentCategory,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
