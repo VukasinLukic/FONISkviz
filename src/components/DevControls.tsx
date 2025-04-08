@@ -30,7 +30,16 @@ const DevControls: React.FC<DevControlsProps> = ({ visible = true }) => {
   ];
 
   // Admin rute za lakšu navigaciju
+  // Admin rute za lakšu navigaciju
   const adminRoutes = [
+    { path: '/admin', label: 'Splash' },
+    { path: '/admin/qrcode', label: 'QR Code' },
+    { path: '/admin/lobby', label: 'Lobby' },
+    { path: '/admin/category', label: 'Category' },
+    { path: '/admin/answers', label: 'Answers' },
+    { path: '/admin/tension', label: 'Tension' },
+    { path: '/admin/points', label: 'Points' },
+    { path: '/admin/winners', label: 'Winners' },
     { path: '/admin', label: 'Splash' },
     { path: '/admin/qrcode', label: 'QR Code' },
     { path: '/admin/lobby', label: 'Lobby' },

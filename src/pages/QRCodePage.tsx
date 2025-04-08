@@ -135,7 +135,7 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
       <div className="mb-8">
         <TextReveal
           text="Join FONIS Quiz"
-          className="text-4xl md:text-5xl font-bold text-accent font-basteleur"
+          className="text-4xl md:text-5xl font-bold text-accent font-mainstay"
           duration={0.8}
           delay={0.3}
         />

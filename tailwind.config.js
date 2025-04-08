@@ -20,6 +20,10 @@ module.exports = {
         'basteleur': ['Basteleur', 'serif'],
         'caviar': ['Caviar Dreams', 'sans-serif']
       },
+      fontFamily: {
+        'mainstay': ['Mainstay', 'serif'],
+        'caviar': ['Caviar Dreams', 'sans-serif']
+      },
       animation: {
         timer: 'timer 30s linear forwards'
       },

@@ -211,7 +211,7 @@ const LobbyPage: React.FC<LobbyPageProps> = () => {
 
       {/* Header with quiz name and timer */}
       <div className="lobby-header flex justify-between items-center mb-12 mt-6">
-        <h1 className="text-4xl font-bold text-accent font-basteleur">FONIS Quiz</h1>
+        <h1 className="text-4xl font-bold text-accent font-mainstay">FONIS Quiz</h1>
         <div 
           ref={timeRef} 
           className="timer bg-secondary bg-opacity-90 text-white px-6 py-2 rounded-md text-2xl font-bold shadow-md"

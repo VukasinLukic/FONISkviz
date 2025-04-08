@@ -83,6 +83,20 @@ const AdminLayout = () => {
   );
 };
 
+// Admin Layout sa DevControls i za admin stranice
+const AdminLayout = () => {
+  const isDev = import.meta.env.DEV;
+  
+  return (
+    <>
+      {isDev && <DevControls visible={true} />}
+      <div className="pt-20"> {/* Padding za DevControls */}
+        <Outlet />
+      </div>
+    </>
+  );
+};
+
 const router = createBrowserRouter([
   {
     element: <Layout />,
