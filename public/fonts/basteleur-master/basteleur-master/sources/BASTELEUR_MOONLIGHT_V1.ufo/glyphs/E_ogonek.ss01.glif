@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="Eogonek.ss01" format="2">
+	<advance width="754"/>
+	<outline>
+		<contour>
+			<point x="561" y="-182" type="curve" smooth="yes"/>
+			<point x="632" y="-182"/>
+			<point x="680" y="-121"/>
+			<point x="697" y="-92" type="curve"/>
+			<point x="680" y="-75" type="line"/>
+			<point x="648" y="-105"/>
+			<point x="617" y="-121"/>
+			<point x="592" y="-121" type="curve" smooth="yes"/>
+			<point x="553" y="-121"/>
+			<point x="529" y="-99"/>
+			<point x="529" y="-68" type="curve" smooth="yes"/>
+			<point x="529" y="-27"/>
+			<point x="563" y="-2"/>
+			<point x="615" y="-3" type="curve"/>
+			<point x="574" y="6" type="line"/>
+			<point x="510" y="-3"/>
+			<point x="468" y="-41"/>
+			<point x="467" y="-91" type="curve" smooth="yes"/>
+			<point x="466" y="-138"/>
+			<point x="503" y="-182"/>
+		</contour>
+		<component base="E.ss01"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>E.ss01</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>E.ss01</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Outlet, isRouteErrorResponse } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, useRouteError, isRouteErrorResponse } from 'react-router-dom';
 import JoinPage from './pages/JoinPage';
 import WaitingForPlayers from './pages/WaitingForPlayers';
 import QuizStarting from './pages/QuizStarting';
@@ -12,27 +12,48 @@ import TensionPage from './pages/TensionPage';
 import WinnersPage from './pages/WinnersPage';
 import MascotSelection from './pages/MascotSelection';
 import DevControls from './components/DevControls';
+import SplashScreen from './pages/SplashScreen';
+import QRCodePage from './pages/QRCodePage';
+import LobbyPage from './pages/LobbyPage';
 
-// Admin stranice će doći kasnije
-const AdminHome = () => <div className="min-h-screen bg-accent p-4 flex items-center justify-center">
-  <h1 className="text-primary text-2xl font-bold">Admin Home (Coming Soon)</h1>
-</div>;
+// Error boundary component
+function ErrorBoundary() {
+  const error = useRouteError();
+  console.error('Route error:', error);
+  
+  // You can render different error messages based on the error type
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4">
+        <div className="bg-accent p-6 rounded-lg shadow-lg max-w-md w-full">
+          <h1 className="text-3xl font-bold text-primary mb-4 font-mainstay">Error {error.status}</h1>
+          <p className="text-primary mb-6">{error.statusText || error.data.message}</p>
+          <button 
+            onClick={() => window.location.href = '/admin'} 
+            className="bg-secondary text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-all"
+          >
+            Go to Start Screen
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-// Error Boundary komponenta
-const ErrorBoundary = () => {
   return (
-    <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">
-      <h1 className="text-primary text-2xl font-bold mb-4">Oops! Nešto nije u redu.</h1>
-      <p className="text-primary mb-4">Molimo vas da osvežite stranicu ili se vratite nazad.</p>
-      <button 
-        onClick={() => window.location.href = '/'}
-        className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-opacity-90"
-      >
-        Nazad na početnu
-      </button>
+    <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4">
+      <div className="bg-accent p-6 rounded-lg shadow-lg max-w-md w-full">
+        <h1 className="text-3xl font-bold text-primary mb-4 font-mainstay">Oops!</h1>
+        <p className="text-primary mb-6">Something went wrong.</p>
+        <button 
+          onClick={() => window.location.href = '/admin'} 
+          className="bg-secondary text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-all"
+        >
+          Go to Start Screen
+        </button>
+      </div>
     </div>
   );
-};
+}
 
 // Layout komponenta koja sadrži DevControls
 const Layout = () => {
@@ -41,6 +62,20 @@ const Layout = () => {
   return (
     <>
       {isDev && <DevControls />}
+      <div className="h-screen overflow-hidden"> {/* Uklonjen padding-top */}
+        <Outlet />
+      </div>
+    </>
+  );
+};
+
+// Admin Layout sa DevControls i za admin stranice
+const AdminLayout = () => {
+  const isDev = import.meta.env.DEV;
+  
+  return (
+    <>
+      {isDev && <DevControls visible={true} />}
       <div className="pt-20"> {/* Padding za DevControls */}
         <Outlet />
       </div>
@@ -103,12 +138,6 @@ const router = createBrowserRouter([
         element: <WinnersPage />,
       },
       
-      // Admin Routes (rezervisano za kasnije)
-      {
-        path: '/admin',
-        element: <AdminHome />,
-      },
-      
       // Fallback i legacy rute (za kompatibilnost sa već napisanim kodom)
       {
         path: '/',
@@ -156,6 +185,46 @@ const router = createBrowserRouter([
       },
       {
         path: '/winners',
+        element: <WinnersPage />,
+      },
+    ],
+  },
+  // Admin Routes u posebnom layoutu
+  {
+    path: '/admin',
+    element: <AdminLayout />,
+    errorElement: <ErrorBoundary />,
+    children: [
+      {
+        index: true,
+        element: <SplashScreen />,
+      },
+      {
+        path: 'qrcode',
+        element: <QRCodePage />,
+      },
+      {
+        path: 'lobby',
+        element: <LobbyPage />,
+      },
+      {
+        path: 'category',
+        element: <CategoryName />,
+      },
+      {
+        path: 'answers',
+        element: <AnswersPage />,
+      },
+      {
+        path: 'tension',
+        element: <TensionPage />,
+      },
+      {
+        path: 'points',
+        element: <TeamPoints />,
+      },
+      {
+        path: 'winners',
         element: <WinnersPage />,
       },
     ],

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AnswerButton from '../components/AnswerButton';
 
@@ -25,6 +25,18 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
     }, 500);
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isPlayerRoute) {
+        navigate('/player/points');
+      } else {
+        navigate('/points');
+      }
+    }, 30000); // 30 seconds to match the timer animation
+
+    return () => clearTimeout(timer);
+  }, [navigate, isPlayerRoute]);
+
   return (
     <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">
       <div className="mb-8 w-full">
@@ -38,21 +50,25 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
           answer="A" 
           selected={selectedAnswer === 'A'} 
           onClick={() => handleAnswerSelect('A')}
+          color="highlight"
         />
         <AnswerButton 
           answer="B" 
           selected={selectedAnswer === 'B'} 
           onClick={() => handleAnswerSelect('B')}
+          color="special"
         />
         <AnswerButton 
           answer="C" 
           selected={selectedAnswer === 'C'} 
           onClick={() => handleAnswerSelect('C')}
+          color="secondary"
         />
         <AnswerButton 
           answer="D" 
           selected={selectedAnswer === 'D'} 
           onClick={() => handleAnswerSelect('D')}
+          color="primary"
         />
       </div>
     </div>

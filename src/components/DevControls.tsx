@@ -8,7 +8,8 @@ interface DevControlsProps {
 const DevControls: React.FC<DevControlsProps> = ({ visible = true }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [viewType, setViewType] = useState<'mobile' | 'laptop'>('mobile');
+  const [viewType, setViewType] = useState<'mobile' | 'admin'>('mobile');
+  const [isOpen, setIsOpen] = useState(false);
   
   if (!visible) return null;
   
@@ -28,42 +29,59 @@ const DevControls: React.FC<DevControlsProps> = ({ visible = true }) => {
     { path: '/player/winners', label: 'Winners' }
   ];
 
-  // Ovde ćemo kasnije dodati admin rute
+  // Admin rute za lakšu navigaciju
   const adminRoutes = [
-    { path: '/admin', label: 'Admin Home' },
+    { path: '/admin', label: 'Splash' },
+    { path: '/admin/qrcode', label: 'QR Code' },
+    { path: '/admin/lobby', label: 'Lobby' },
+    { path: '/admin/category', label: 'Category' },
+    { path: '/admin/answers', label: 'Answers' },
+    { path: '/admin/tension', label: 'Tension' },
+    { path: '/admin/points', label: 'Points' },
+    { path: '/admin/winners', label: 'Winners' }
   ];
 
   // Odabir koje rute prikazujemo bazirano na viewType
   const routesToShow = viewType === 'mobile' ? playerRoutes : adminRoutes;
 
   return (
-    <div className="fixed top-0 left-0 right-0 bg-gray-800 text-white p-2 z-50">
-      <div className="flex flex-col space-y-2">
-        <div className="flex justify-between items-center">
-          <p className="text-xs">Dev Controls (samo za testiranje)</p>
-          <div className="flex space-x-2">
-            <button 
-              onClick={() => setViewType('mobile')}
-              className={`text-xs px-2 py-1 rounded ${viewType === 'mobile' ? 'bg-secondary' : 'bg-gray-600'}`}
-            >
-              📱 Mobilni
-            </button>
-            <button 
-              onClick={() => setViewType('laptop')}
-              className={`text-xs px-2 py-1 rounded ${viewType === 'laptop' ? 'bg-secondary' : 'bg-gray-600'}`}
-            >
-              💻 Admin
-            </button>
+    <>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed top-2 right-2 z-50 bg-gray-800 text-white p-2 rounded-full shadow-lg"
+      >
+        {isOpen ? '✕' : '☰'}
+      </button>
+
+      {isOpen && (
+        <div className="fixed inset-0 bg-gray-800 text-white p-4 z-40 overflow-auto">
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-sm">Dev Controls</p>
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => setViewType('mobile')}
+                className={`text-xs px-2 py-1 rounded ${viewType === 'mobile' ? 'bg-secondary' : 'bg-gray-600'}`}
+              >
+                📱 Mobilni
+              </button>
+              <button 
+                onClick={() => setViewType('admin')}
+                className={`text-xs px-2 py-1 rounded ${viewType === 'admin' ? 'bg-secondary' : 'bg-gray-600'}`}
+              >
+                💻 Admin
+              </button>
+            </div>
           </div>
-        </div>
-        
-        <div className="overflow-x-auto whitespace-nowrap pb-2">
-          <div className="flex space-x-2">
+          
+          <div className="grid grid-cols-2 gap-2">
             {routesToShow.map((route) => (
               <button
                 key={route.path}
-                onClick={() => navigate(route.path)}
-                className={`text-xs px-2 py-1 rounded whitespace-nowrap ${
+                onClick={() => {
+                  navigate(route.path);
+                  setIsOpen(false);
+                }}
+                className={`text-xs px-2 py-1 rounded ${
                   location.pathname === route.path 
                     ? 'bg-secondary' 
                     : 'bg-gray-600'
@@ -74,8 +92,8 @@ const DevControls: React.FC<DevControlsProps> = ({ visible = true }) => {
             ))}
           </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };
 

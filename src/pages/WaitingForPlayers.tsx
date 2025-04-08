@@ -41,13 +41,13 @@ const WaitingForPlayers: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">
-      <h1 className="text-primary text-5xl font-bold mb-4">
+    <div className="min-h-screen bg-tertiarypink p-4 flex flex-col items-center justify-center">
+      <h1 className="text-primary text-5xl font-bold mb-4 font-basteleur">
         {currentTeam.name}
       </h1>
       
       <div className="mb-8 text-center">
-        <p className="text-primary text-xl">
+        <p className="text-primary text-xl font-caviar">
           čekamo ostale timove{dots}
         </p>
       </div>
@@ -61,12 +61,12 @@ const WaitingForPlayers: React.FC = () => {
         />
       ) : (
         <div className="w-64 h-64 bg-secondary bg-opacity-20 rounded-full flex items-center justify-center">
-          <p className="text-primary text-xl">?</p>
+          <p className="text-primary text-xl font-caviar">?</p>
         </div>
       )}
       
       {import.meta.env.DEV && (
-        <p className="text-sm text-gray-500 mt-4">
+        <p className="text-sm text-primary mt-4 font-caviar">
           Debug: Mascot ID = {currentTeam.mascotId}
         </p>
       )}

@@ -43,7 +43,7 @@ const JoinPage: React.FC = () => {
       
       <form onSubmit={handleSubmit} className="w-full max-w-md">
         <div className="mb-6">
-          <label htmlFor="teamName" className="block text-primary mb-2 font-bold text-3xl text-center">
+          <label htmlFor="teamName" className="block text-primary mb-2 font-bold text-3xl text-center font-basteleur">
             unesite ime tima:
           </label>
           <input
@@ -51,7 +51,7 @@ const JoinPage: React.FC = () => {
             id="teamName"
             value={teamName}
             onChange={(e) => setTeamName(e.target.value)}
-            className="w-full p-3 border-2 border-secondary rounded-lg focus:outline-none focus:border-primary"
+            className="w-full p-3 border-2 border-secondary rounded-lg focus:outline-none focus:border-primary bg-accent text-primary font-caviar"
             placeholder="ime tima..."
             required
             disabled={isLoading}
@@ -59,7 +59,7 @@ const JoinPage: React.FC = () => {
         </div>
         
         <MainButton type="submit" disabled={!teamName.trim() || isLoading}>
-          {isLoading ? 'učitavanje...' : 'pridruži se kvizu'}
+          <span className="font-caviar">{isLoading ? 'učitavanje...' : 'pridruži se kvizu'}</span>
         </MainButton>
       </form>
     </div>

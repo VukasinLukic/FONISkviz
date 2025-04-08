@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="iogonek" format="2">
+	<advance width="372"/>
+	<unicode hex="012F"/>
+	<outline>
+		<component base="dotlessi"/>
+		<component base="period" xScale="0.9573" yScale="0.9573" xOffset="42" yOffset="645"/>
+		<contour>
+			<point x="202" y="-192" type="curve" smooth="yes"/>
+			<point x="273" y="-192"/>
+			<point x="321" y="-131"/>
+			<point x="338" y="-102" type="curve"/>
+			<point x="321" y="-85" type="line"/>
+			<point x="289" y="-115"/>
+			<point x="258" y="-131"/>
+			<point x="233" y="-131" type="curve" smooth="yes"/>
+			<point x="194" y="-131"/>
+			<point x="170" y="-109"/>
+			<point x="170" y="-78" type="curve" smooth="yes"/>
+			<point x="170" y="-44"/>
+			<point x="196" y="1"/>
+			<point x="243" y="-1" type="curve"/>
+			<point x="217" y="15" type="line"/>
+			<point x="179" y="11"/>
+			<point x="109" y="-42"/>
+			<point x="108" y="-101" type="curve" smooth="yes"/>
+			<point x="107" y="-148"/>
+			<point x="144" y="-192"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>i</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>i</string>
+		</dict>
+	</lib>
+</glyph>

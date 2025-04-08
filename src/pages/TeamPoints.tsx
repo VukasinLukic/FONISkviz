@@ -30,12 +30,12 @@ const TeamPoints: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-tertiarygreen p-4 flex flex-col items-center justify-center">
       <div className="mb-8 text-center">
-        <h1 className="text-primary text-2xl font-bold mb-2">
+        <h1 className="text-primary text-2xl font-bold mb-2 font-basteleur">
           {currentTeam.name}
         </h1>
-        <p className="text-primary text-xl">
+        <p className="text-primary text-xl font-caviar">
           Osvojili ste {currentTeam.points} poena!
         </p>
       </div>
@@ -49,14 +49,14 @@ const TeamPoints: React.FC = () => {
         />
       ) : (
         <div className="w-64 h-64 bg-secondary bg-opacity-20 rounded-full flex items-center justify-center">
-          <p className="text-primary text-xl">?</p>
+          <p className="text-primary text-xl font-caviar">?</p>
         </div>
       )}
       
       <div className="mt-8 text-primary">
-        <p>Ukupno poena: {currentTeam.points}</p>
+        <p className="font-caviar">Ukupno poena: {currentTeam.points}</p>
         {import.meta.env.DEV && (
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-primary mt-2 font-caviar">
             Debug: Mascot ID = {currentTeam.mascotId}
           </p>
         )}

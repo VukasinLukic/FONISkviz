@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="uni030B.case" format="2">
+	<advance width="0"/>
+	<anchor x="199" y="745" name="_top"/>
+	<anchor x="257" y="991" name="top"/>
+	<outline>
+		<component base="acute" xScale="0.9182" xyScale="0.3735" yScale="0.8207" yxScale="-0.3338" xOffset="262" yOffset="264"/>
+		<component base="acutecomb" xScale="0.9182" xyScale="0.3735" yScale="0.8207" yxScale="-0.3338" xOffset="470" yOffset="264"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>alignment</key>
+					<integer>-1</integer>
+					<key>index</key>
+					<integer>0</integer>
+					<key>name</key>
+					<string>acute</string>
+				</dict>
+				<dict>
+					<key>alignment</key>
+					<integer>-1</integer>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>acutecomb</string>
+				</dict>
+			</array>
+		</dict>
+	</lib>
+</glyph>

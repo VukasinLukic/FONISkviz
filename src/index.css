@@ -2,8 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Caviar Dreams';
+  src: url('/fonts/CaviarDreams-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Caviar Dreams';
+  src: url('/fonts/CaviarDreams-Italic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Basteleur';
+  src: url('/fonts/Basteleur-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Basteleur';
+  src: url('/fonts/Basteleur-Moonlight.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Mainstay';
+  src: url('/fonts/Mainstay.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Caviar Dreams', system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -35,6 +75,7 @@ body {
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+  font-family: 'Mainstay', serif;
 }
 
 button {
@@ -71,10 +112,44 @@ button:focus-visible {
 
 @media (max-width: 768px) {
   html, body {
-    overflow-x: hidden;
+    font-size: 14px;
   }
   
   body {
-    position: relative;
+    padding: 1rem;
   }
+}
+
+/* Custom utility classes */
+.font-caviar {
+  font-family: 'Caviar Dreams', sans-serif;
+}
+
+/* Fix for mobile viewport and background */
+html, body, #root {
+  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Fix for mobile Safari */
+html {
+  height: -webkit-fill-available;
+}
+
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  margin: 0;
+  width: 100%;
+}
+
+.overflow-fix {
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="tildecomb.case" format="2">
+	<advance width="0"/>
+	<anchor x="210" y="745" name="_top"/>
+	<anchor x="82" y="0" name="top"/>
+	<outline>
+		<component base="tildecomb" yOffset="137"/>
+	</outline>
+</glyph>

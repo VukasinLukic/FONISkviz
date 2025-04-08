@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AE</key>
+	<string>A_E_.glif</string>
+	<key>B</key>
+	<string>B_.glif</string>
+	<key>D</key>
+	<string>D_.glif</string>
+	<key>K</key>
+	<string>K_.glif</string>
+	<key>M</key>
+	<string>M_.glif</string>
+	<key>O</key>
+	<string>O_.glif</string>
+	<key>T</key>
+	<string>T_.glif</string>
+	<key>W</key>
+	<string>W_.glif</string>
+	<key>Y</key>
+	<string>Y_.glif</string>
+	<key>brokenbar</key>
+	<string>brokenbar.glif</string>
+	<key>c</key>
+	<string>c.glif</string>
+	<key>club</key>
+	<string>club.glif</string>
+	<key>colon</key>
+	<string>colon.glif</string>
+	<key>e</key>
+	<string>e.glif</string>
+	<key>five</key>
+	<string>five.glif</string>
+	<key>four</key>
+	<string>four.glif</string>
+	<key>h</key>
+	<string>h.glif</string>
+	<key>i</key>
+	<string>i.glif</string>
+	<key>l</key>
+	<string>l.glif</string>
+	<key>q</key>
+	<string>q.glif</string>
+	<key>semicolon</key>
+	<string>semicolon.glif</string>
+	<key>three</key>
+	<string>three.glif</string>
+	<key>uni2605</key>
+	<string>uni2605.glif</string>
+	<key>uni263D</key>
+	<string>uni263D_.glif</string>
+	<key>uni2664</key>
+	<string>uni2664.glif</string>
+	<key>x</key>
+	<string>x.glif</string>
+</dict>
+</plist>

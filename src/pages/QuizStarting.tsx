@@ -25,18 +25,18 @@ const QuizStarting: React.FC<QuizStartingProps> = () => {
   }, [navigate, isPlayerRoute]);
 
   return (
-    <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">
-      <h1 className="text-primary text-3xl font-bold mb-8 text-center">
+    <div className="min-h-screen bg-tertiarypink p-4 flex flex-col items-center justify-center">
+      <h1 className="text-primary text-3xl font-bold mb-8 text-center font-basteleur">
         Kviz počinje!
       </h1>
       
       <div className="w-72 h-72 bg-secondary bg-opacity-20 rounded-full flex items-center justify-center mb-8">
         <div className="w-56 h-56 bg-secondary bg-opacity-30 rounded-full flex items-center justify-center animate-pulse">
-          <p className="text-primary text-5xl font-bold">FON</p>
+          <p className="text-primary text-5xl font-bold font-basteleur">FON</p>
         </div>
       </div>
       
-      <p className="text-primary text-xl">
+      <p className="text-primary text-xl font-caviar">
         Pripremite se...
       </p>
     </div>

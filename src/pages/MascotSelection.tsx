@@ -45,8 +45,8 @@ const MascotSelection: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">
-      <h1 className="text-primary text-3xl font-bold mb-8 text-center">
+    <div className="min-h-screen bg-tertiarygreen p-4 flex flex-col items-center justify-center">
+      <h1 className="text-primary text-3xl font-bold mb-8 text-center font-basteleur">
         {currentTeam.name}, izaberite maskotu:
       </h1>
       
@@ -59,7 +59,7 @@ const MascotSelection: React.FC = () => {
               className={`p-4 rounded-lg transition-all ${
                 selectedMascot === mascotId
                   ? 'ring-4 ring-secondary bg-secondary bg-opacity-20'
-                  : 'hover:bg-secondary hover:bg-opacity-10'
+                  : 'hover:bg-secondary hover:bg-opacity-10 bg-tertiarygreen'
               }`}
             >
               <img
@@ -73,15 +73,18 @@ const MascotSelection: React.FC = () => {
         ))}
       </div>
       
-      <MainButton 
+      <button
         onClick={handleSubmit}
-        disabled={selectedMascot === null}
+        disabled={!selectedMascot}
+        className="w-full max-w-md py-3 px-6 text-lg font-bold bg-highlight text-white rounded-lg 
+        shadow-md hover:bg-opacity-90 transition-all disabled:opacity-50 
+        disabled:cursor-not-allowed"
       >
         može!
-      </MainButton>
+      </button>
 
       {import.meta.env.DEV && selectedMascot && (
-        <p className="text-sm text-gray-500 mt-4">
+        <p className="text-sm text-primary mt-4 font-caviar">
           Debug: Izabrana maskota ID = {selectedMascot}
         </p>
       )}

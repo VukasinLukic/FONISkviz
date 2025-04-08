@@ -12,7 +12,7 @@ Vi ste Senior Front-End Developer specijalizovan za:
 
 ## Brand Identitet
 ### Tipografija
-- Primarni font: "Mainstay"
+- Primarni font: "Basteleur"
 - Sekundarni font: "Caviar Dreams"
 
 ### Boje
