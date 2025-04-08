@@ -1,11 +1,14 @@
 import Routes from './Routes';
 import './index.css';
+import { GameProvider } from './context/GameContext';
 
 function App() {
   return (
-    <div className="min-h-screen bg-accent">
-      <Routes />
-    </div>
+    <GameProvider>
+      <div className="min-h-screen bg-accent">
+        <Routes />
+      </div>
+    </GameProvider>
   );
 }
 

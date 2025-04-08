@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useGameContext } from '../context/GameContext';
 
-interface WaitingForPlayersProps {}
-
-const WaitingForPlayers: React.FC<WaitingForPlayersProps> = () => {
-  const [teamName] = useState('Vaš Tim'); // Ovo bi trebalo da dođe iz konteksta ili URL-a
+const WaitingForPlayers: React.FC = () => {
   const [dots, setDots] = useState('');
+  const [imageError, setImageError] = useState(false);
+  const { gameState } = useGameContext();
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Detektujemo da li smo na player/* ruti
   const isPlayerRoute = location.pathname.startsWith('/player');
+  const currentTeam = gameState.currentTeam;
 
   // Simuliramo animaciju tačkica za čekanje
   useEffect(() => {
@@ -21,35 +21,55 @@ const WaitingForPlayers: React.FC<WaitingForPlayersProps> = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Simulacija auto-navigacije kada "admin" pokrene kviz
+  // Auto-navigacija nakon što su svi timovi spremni (simulacija)
   useEffect(() => {
-    // Ovo bi u stvarnosti bilo triggterovano od strane Firebase-a ili nekog drugog servisa
     const timer = setTimeout(() => {
       if (isPlayerRoute) {
         navigate('/player/quiz-starting');
       } else {
         navigate('/quiz-starting');
       }
-    }, 10000); // 10 sekundi za demo, u stvarnosti bi bilo kada admin pokrene kviz
+    }, 10000); // 10 sekundi čekanja
     
     return () => clearTimeout(timer);
   }, [navigate, isPlayerRoute]);
 
+  // Ako nema izabranog tima, preusmeravamo na početnu stranicu
+  if (!currentTeam) {
+    navigate(isPlayerRoute ? '/player' : '/');
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">
+      <h1 className="text-primary text-5xl font-bold mb-4">
+        {currentTeam.name}
+      </h1>
+      
       <div className="mb-8 text-center">
-        <h1 className="text-primary text-2xl font-bold mb-2">
-          {teamName}
-        </h1>
         <p className="text-primary text-xl">
-          Čekamo da svi timovi budu spremni{dots}
+          čekamo ostale timove{dots}
         </p>
       </div>
       
-      {/* Ovde bi trebalo da bude prikaz maskote tima */}
-      <div className="w-64 h-64 bg-secondary bg-opacity-20 rounded-full flex items-center justify-center">
-        <p className="text-primary">Maskota tima</p>
-      </div>
+      {currentTeam.mascotId > 0 && !imageError ? (
+        <img 
+          src={`/assets/maskota${currentTeam.mascotId} 1.svg`}
+          alt={`Maskota tima ${currentTeam.name}`}
+          className="w-64 h-64 object-contain"
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        <div className="w-64 h-64 bg-secondary bg-opacity-20 rounded-full flex items-center justify-center">
+          <p className="text-primary text-xl">?</p>
+        </div>
+      )}
+      
+      {import.meta.env.DEV && (
+        <p className="text-sm text-gray-500 mt-4">
+          Debug: Mascot ID = {currentTeam.mascotId}
+        </p>
+      )}
     </div>
   );
 };

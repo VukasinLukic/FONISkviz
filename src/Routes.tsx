@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, isRouteErrorResponse } from 'react-router-dom';
 import JoinPage from './pages/JoinPage';
 import WaitingForPlayers from './pages/WaitingForPlayers';
 import QuizStarting from './pages/QuizStarting';
@@ -10,12 +10,29 @@ import TeamPoints from './pages/TeamPoints';
 import FinalTeamPoints from './pages/FinalTeamPoints';
 import TensionPage from './pages/TensionPage';
 import WinnersPage from './pages/WinnersPage';
+import MascotSelection from './pages/MascotSelection';
 import DevControls from './components/DevControls';
 
 // Admin stranice će doći kasnije
 const AdminHome = () => <div className="min-h-screen bg-accent p-4 flex items-center justify-center">
   <h1 className="text-primary text-2xl font-bold">Admin Home (Coming Soon)</h1>
 </div>;
+
+// Error Boundary komponenta
+const ErrorBoundary = () => {
+  return (
+    <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">
+      <h1 className="text-primary text-2xl font-bold mb-4">Oops! Nešto nije u redu.</h1>
+      <p className="text-primary mb-4">Molimo vas da osvežite stranicu ili se vratite nazad.</p>
+      <button 
+        onClick={() => window.location.href = '/'}
+        className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-opacity-90"
+      >
+        Nazad na početnu
+      </button>
+    </div>
+  );
+};
 
 // Layout komponenta koja sadrži DevControls
 const Layout = () => {
@@ -34,11 +51,16 @@ const Layout = () => {
 const router = createBrowserRouter([
   {
     element: <Layout />,
+    errorElement: <ErrorBoundary />,
     children: [
       // Player Routes
       {
         path: '/player',
         element: <JoinPage />,
+      },
+      {
+        path: '/player/mascot',
+        element: <MascotSelection />,
       },
       {
         path: '/player/waiting',
@@ -91,6 +113,10 @@ const router = createBrowserRouter([
       {
         path: '/',
         element: <JoinPage />,
+      },
+      {
+        path: '/mascot',
+        element: <MascotSelection />,
       },
       {
         path: '/waiting',
