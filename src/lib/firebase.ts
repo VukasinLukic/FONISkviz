@@ -41,8 +41,13 @@ export interface Team {
 
 export interface Question {
   id: string;
-  question: string;
-  answers: string[];
+  text: string;
+  options: {
+    A: string;
+    B: string;
+    C: string;
+    D: string;
+  };
   correctAnswer: string;
   category: string;
   points?: number;

@@ -81,8 +81,8 @@ export const setNextQuestion = async (questionData?: Partial<Question>): Promise
     if (questionId) {
       await set(newQuestionRef, {
         id: questionId,
-        question: questionData.question || '',
-        answers: questionData.answers || ['', '', '', ''],
+        text: questionData.text || '',
+        options: questionData.options || { A: '', B: '', C: '', D: '' },
         correctAnswer: questionData.correctAnswer || 'A',
         category: questionData.category || game.currentCategory,
         timeLimit: questionData.timeLimit || 30
@@ -224,29 +224,49 @@ export const seedQuestions = async (): Promise<void> => {
   
   const sampleQuestions: Omit<Question, 'id'>[] = [
     {
-      question: 'Koji grad je glavni grad Srbije?',
-      answers: ['Beograd', 'Novi Sad', 'Niš', 'Kragujevac'],
+      text: 'Koji grad je glavni grad Srbije?',
+      options: {
+        A: 'Beograd',
+        B: 'Novi Sad',
+        C: 'Niš',
+        D: 'Kragujevac'
+      },
       correctAnswer: 'A',
       category: 'Geografija',
       timeLimit: 20
     },
     {
-      question: 'Koje godine je održan prvi FONIS Hakaton?',
-      answers: ['2010', '2012', '2015', '2018'],
+      text: 'Koje godine je održan prvi FONIS Hakaton?',
+      options: {
+        A: '2010',
+        B: '2012',
+        C: '2015',
+        D: '2018'
+      },
       correctAnswer: 'C',
       category: 'Tehnologija',
       timeLimit: 20
     },
     {
-      question: 'Ko je osnivač Tesla Motors-a?',
-      answers: ['Bill Gates', 'Elon Musk', 'Jeff Bezos', 'Mark Zuckerberg'],
+      text: 'Ko je osnivač Tesla Motors-a?',
+      options: {
+        A: 'Bill Gates',
+        B: 'Elon Musk',
+        C: 'Jeff Bezos',
+        D: 'Mark Zuckerberg'
+      },
       correctAnswer: 'B',
       category: 'Tehnologija',
       timeLimit: 15
     },
     {
-      question: 'Koje godine je počeo Drugi svetski rat?',
-      answers: ['1939', '1941', '1945', '1918'],
+      text: 'Koje godine je počeo Drugi svetski rat?',
+      options: {
+        A: '1939',
+        B: '1941',
+        C: '1945',
+        D: '1918'
+      },
       correctAnswer: 'A',
       category: 'Istorija',
       timeLimit: 20
