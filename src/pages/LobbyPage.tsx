@@ -10,16 +10,12 @@ const LobbyPage = () => {
   const navigate = useNavigate();
   const { gameState, teams, startNewGame, loading } = useQuizAdmin();
   const [showStartButton, setShowStartButton] = useState(false);
-  const [filteredTeams, setFilteredTeams] = useState<Team[]>([]);
   
   // Get the gameCode from the game state
   const gameCode = gameState?.gameCode || '';
   
-  // Filter teams to only show those connected to this game
-  useEffect(() => {
-    const teamsForCurrentGame = teams.filter(team => team.gameCode === gameCode);
-    setFilteredTeams(teamsForCurrentGame);
-  }, [teams, gameCode]);
+  // No need to filter teams again - they're already filtered in useQuizAdmin
+  // We'll use the teams array directly from the hook
   
   // Show start button after a delay
   useEffect(() => {
@@ -78,9 +74,9 @@ const LobbyPage = () => {
           animate={{ opacity: 0.8 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          {filteredTeams.length === 0 
+          {teams.length === 0 
             ? "Waiting for teams to join..." 
-            : `${filteredTeams.length} ${filteredTeams.length === 1 ? 'team' : 'teams'} in the lobby`}
+            : `${teams.length} ${teams.length === 1 ? 'team' : 'teams'} in the lobby`}
         </motion.p>
       </div>
       
@@ -88,7 +84,7 @@ const LobbyPage = () => {
       <div className="max-w-4xl mx-auto mb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <AnimatePresence>
-            {filteredTeams.map((team, index) => (
+            {teams.map((team, index) => (
               <motion.div
                 key={team.id}
                 className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center"
@@ -104,7 +100,7 @@ const LobbyPage = () => {
               >
                 <div className="w-20 h-20 mb-2 overflow-hidden">
                   <img
-                    src={maskotImages[team.mascotId % maskotImages.length]}
+                    src={team.mascotId ? `/assets/maskota${team.mascotId}.svg` : maskotImages[0]}
                     alt={`Team Mascot ${team.mascotId}`}
                     className="w-full h-full object-contain"
                     onError={(e) => {
@@ -139,10 +135,10 @@ const LobbyPage = () => {
           >
             <MainButton
               onClick={handleStartGame}
-              disabled={loading || filteredTeams.length === 0}
+              disabled={loading || teams.length === 0}
               className={`
                 py-3 px-10 text-lg
-                ${filteredTeams.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}
+                ${teams.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
               {loading ? 'Starting...' : 'Start Game'}

@@ -58,7 +58,7 @@ const MascotSelection: React.FC = () => {
               }`}
             >
               <img
-                src={`/assets/maskota${mascotId} 1.svg`}
+                src={`/assets/maskota${mascotId}.svg`}
                 alt={`Maskota ${mascotId}`}
                 className="w-24 h-24 md:w-32 md:h-32 object-contain"
                 onError={() => handleImageError(mascotId)}

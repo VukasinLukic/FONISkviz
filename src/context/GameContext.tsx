@@ -270,40 +270,41 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   }, [gameState.teamId, gameState.currentQuestion?.id]);
   
   const registerTeam = async (name: string, mascotId: number, gameCode: string): Promise<string> => {
-    setLoading(true);
     try {
-      // Create new team entry
-      const newTeam: Omit<Team, 'id'> = {
-        name,
-        mascotId,
-        points: 0,
-        joinedAt: Date.now(),
-        isActive: true,
-        gameCode
-      };
+      setLoading(true);
       
-      // Push to Firebase
+      // Create a new team record in Firebase
       const newTeamRef = push(teamsRef);
       const teamId = newTeamRef.key as string;
       
-      // Update with ID
+      if (!teamId) throw new Error('Failed to generate team ID');
+      
+      // Set team data with the provided gameCode
       await update(newTeamRef, {
-        id: teamId
+        id: teamId,
+        name: name,
+        mascotId: mascotId,
+        points: 0,
+        joinedAt: serverTimestamp(),
+        isActive: true,
+        gameCode: gameCode // Make sure gameCode is saved with the team
       });
       
-      // Save to local storage
-      localStorage.setItem('teamId', teamId);
-      localStorage.setItem('gameCode', gameCode);
-      
-      // Update context
+      // Update local state
       setGameState(prev => ({
         ...prev,
         teamId,
         teamName: name,
         mascotId,
         isRegistered: true,
-        gameCode
+        gameCode: gameCode // Add gameCode to the local state as well
       }));
+      
+      // Save to localStorage for persistence
+      localStorage.setItem('teamId', teamId);
+      localStorage.setItem('gameCode', gameCode); // Store gameCode in localStorage
+      
+      console.log(`Team registered: ${name} (ID: ${teamId}, Game: ${gameCode})`);
       
       return teamId;
     } catch (error) {
@@ -333,20 +334,34 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   };
   
   const updateMascot = async (newMascotId: number): Promise<void> => {
-    if (!gameState.teamId) return;
+    if (!gameState.teamId) {
+      console.error('Cannot update mascot: No team ID');
+      return;
+    }
     
     try {
-      await update(ref(db, `teams/${gameState.teamId}`), {
+      setLoading(true);
+      
+      // Reference to the team in Firebase
+      const teamRef = ref(db, `teams/${gameState.teamId}`);
+      
+      // Update the mascot ID
+      await update(teamRef, {
         mascotId: newMascotId
       });
       
+      // Update local state
       setGameState(prev => ({
         ...prev,
         mascotId: newMascotId
       }));
+      
+      console.log(`Mascot updated for team ${gameState.teamName}: ${newMascotId}`);
     } catch (error) {
       console.error('Error updating mascot:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
   

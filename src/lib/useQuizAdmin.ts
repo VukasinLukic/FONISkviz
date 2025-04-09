@@ -101,7 +101,13 @@ export const useQuizAdmin = (): UseQuizAdminResult => {
         // Filter teams by gameCode if available
         let filteredTeams = teamsList;
         if (gameState?.gameCode) {
-          filteredTeams = teamsList.filter(team => team.gameCode === gameState.gameCode || !team.gameCode);
+          // Changed this filter to be more lenient - include teams with this gameCode 
+          // or teams that may have been created before the gameCode system
+          filteredTeams = teamsList.filter(team => 
+            team.gameCode === gameState.gameCode || 
+            !team.gameCode || // Include teams with no gameCode for backward compatibility
+            team.gameCode === '' // Include teams with empty string gameCode
+          );
         }
         
         // Sort teams by points
