@@ -10,7 +10,6 @@ const WaitingForPlayers: React.FC = () => {
   const location = useLocation();
   
   const isPlayerRoute = location.pathname.startsWith('/player');
-  const currentTeam = gameState.currentTeam;
 
   // Simuliramo animaciju tačkica za čekanje
   useEffect(() => {
@@ -23,19 +22,13 @@ const WaitingForPlayers: React.FC = () => {
   
   // Auto-navigacija nakon što su svi timovi spremni (simulacija)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isPlayerRoute) {
-        navigate('/player/quiz-starting');
-      } else {
-        navigate('/quiz-starting');
-      }
-    }, 10000); // 10 sekundi čekanja
-    
-    return () => clearTimeout(timer);
+    // Instead of a timer, we should listen to game state changes
+    // Game state changes are already listened to in GameContext.tsx
+    // and will automatically navigate when the game starts
   }, [navigate, isPlayerRoute]);
 
-  // Ako nema izabranog tima, preusmeravamo na početnu stranicu
-  if (!currentTeam) {
+  // If no team info, redirect to the join page
+  if (!gameState.teamId || !gameState.isRegistered) {
     navigate(isPlayerRoute ? '/player' : '/');
     return null;
   }
@@ -43,7 +36,7 @@ const WaitingForPlayers: React.FC = () => {
   return (
     <div className="min-h-screen bg-tertiarypink p-4 flex flex-col items-center justify-center">
       <h1 className="text-primary text-5xl font-bold mb-4 font-basteleur">
-        {currentTeam.name}
+        {gameState.teamName}
       </h1>
       
       <div className="mb-8 text-center">
@@ -52,10 +45,10 @@ const WaitingForPlayers: React.FC = () => {
         </p>
       </div>
       
-      {currentTeam.mascotId > 0 && !imageError ? (
+      {gameState.mascotId > 0 && !imageError ? (
         <img 
-          src={`/assets/maskota${currentTeam.mascotId} 1.svg`}
-          alt={`Maskota tima ${currentTeam.name}`}
+          src={`/assets/maskota${gameState.mascotId} 1.svg`}
+          alt={`Maskota tima ${gameState.teamName}`}
           className="w-64 h-64 object-contain"
           onError={() => setImageError(true)}
         />
@@ -67,7 +60,7 @@ const WaitingForPlayers: React.FC = () => {
       
       {import.meta.env.DEV && (
         <p className="text-sm text-primary mt-4 font-caviar">
-          Debug: Mascot ID = {currentTeam.mascotId}
+          Debug: Mascot ID = {gameState.mascotId}
         </p>
       )}
     </div>

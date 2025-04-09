@@ -31,7 +31,7 @@ const JoinPage: React.FC = () => {
     if (teamName.trim() && !isLoading) {
       setIsLoading(true);
       try {
-        await registerTeam(teamName.trim(), gameCode);
+        await registerTeam(teamName.trim(), 1, gameCode);
         // Always navigate to player/mascot since that's the correct route
         navigate('/player/mascot');
       } catch (error) {

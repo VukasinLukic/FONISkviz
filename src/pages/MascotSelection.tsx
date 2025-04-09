@@ -6,14 +6,13 @@ import MainButton from '../components/MainButton';
 const MascotSelection: React.FC = () => {
   const [selectedMascot, setSelectedMascot] = useState<number | null>(null);
   const [imageError, setImageError] = useState<Record<number, boolean>>({});
-  const { gameState, updateTeamMascot } = useGameContext();
+  const { gameState, updateMascot } = useGameContext();
   const navigate = useNavigate();
   const location = useLocation();
   
   const isPlayerRoute = location.pathname.startsWith('/player');
-  const currentTeam = gameState.currentTeam;
 
-  if (!currentTeam) {
+  if (!gameState.teamId || !gameState.isRegistered) {
     navigate(isPlayerRoute ? '/player' : '/');
     return null;
   }
@@ -32,12 +31,8 @@ const MascotSelection: React.FC = () => {
   const handleSubmit = async () => {
     if (selectedMascot !== null) {
       try {
-        await updateTeamMascot(currentTeam.id, selectedMascot);
-        if (isPlayerRoute) {
-          navigate('/player/waiting');
-        } else {
-          navigate('/waiting');
-        }
+        await updateMascot(selectedMascot);
+        navigate('/player/waiting');
       } catch (error) {
         console.error('Error updating mascot:', error);
       }
@@ -47,7 +42,7 @@ const MascotSelection: React.FC = () => {
   return (
     <div className="min-h-screen bg-tertiarygreen p-4 flex flex-col items-center justify-center">
       <h1 className="text-primary text-3xl font-bold mb-8 text-center font-basteleur">
-        {currentTeam.name}, izaberite maskotu:
+        {gameState.teamName}, izaberite maskotu:
       </h1>
       
       <div className="grid grid-cols-3 gap-4 mb-8">
