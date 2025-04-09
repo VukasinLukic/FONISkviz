@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Outlet, useRouteError, isRouteErrorResponse } from 'react-router-dom';
+import { createBrowserRouter, Outlet, useRouteError, isRouteErrorResponse, Navigate } from 'react-router-dom';
 import JoinPage from './pages/JoinPage';
 import WaitingForPlayers from './pages/WaitingForPlayers';
 import QuizStarting from './pages/QuizStarting';
@@ -18,6 +18,14 @@ import LobbyPage from './pages/LobbyPage';
 import TestPage from './pages/TestPage';
 import QuestionDisplayPage from './pages/QuestionDisplayPage';
 import AdminFlowLayout from './components/AdminFlowLayout';
+import App from './App';
+import useDeviceDetection from './lib/useDeviceDetection';
+
+// Device detection component for the root route
+const DeviceRedirect = () => {
+  const { isMobile } = useDeviceDetection();
+  return <Navigate to={isMobile ? "/player" : "/admin"} replace />;
+};
 
 // Error boundary component
 function ErrorBoundary() {
@@ -71,14 +79,16 @@ function DevLayout({ children }: { children: React.ReactNode }) {
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Outlet />,
+    element: <App />,
     errorElement: <ErrorBoundary />,
     children: [
-      // Player routes (no layout)
+      // Root route - redirects based on device type
       {
         index: true,
-        element: <DevLayout><JoinPage /></DevLayout>,
+        element: <DeviceRedirect />
       },
+      
+      // Player routes (no layout)
       {
         path: 'player', 
         element: <DevLayout><JoinPage /></DevLayout>,
