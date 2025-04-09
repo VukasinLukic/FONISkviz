@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useGameContext } from '../context/GameContext';
 import MainButton from '../components/MainButton';
@@ -6,6 +6,7 @@ import MainButton from '../components/MainButton';
 const JoinPage: React.FC = () => {
   const [teamName, setTeamName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const { registerTeam } = useGameContext();
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,6 +31,67 @@ const JoinPage: React.FC = () => {
     }
   };
 
+  const handleScanQRCode = () => {
+    // Check if the browser supports the camera API
+    if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+      setShowScanner(true);
+    } else {
+      alert('Vaš pretraživač ne podržava pristup kameri.');
+    }
+  };
+
+  // Use useEffect to start scanner when showScanner state changes
+  useEffect(() => {
+    if (showScanner) {
+      const startScanner = () => {
+        // Request camera access when the component mounts
+        const video = document.getElementById('qr-video') as HTMLVideoElement;
+        
+        if (video) {
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+              video.srcObject = stream;
+              video.play();
+              
+              // Process video frames to detect QR code (this would need a QR code library)
+              // For now we'll just mock this functionality with a button
+              // In production, you would use a library like jsQR or QR Scanner
+            })
+            .catch(err => {
+              console.error("Error accessing camera:", err);
+              alert("Greška pri pristupu kameri: " + err.message);
+              setShowScanner(false);
+            });
+        }
+      };
+      
+      // Small timeout to ensure the video element is rendered
+      setTimeout(startScanner, 100);
+    }
+  }, [showScanner]);
+
+  const closeScanner = () => {
+    // Close the camera stream when closing the scanner
+    const video = document.getElementById('qr-video') as HTMLVideoElement;
+    if (video && video.srcObject) {
+      const stream = video.srcObject as MediaStream;
+      const tracks = stream.getTracks();
+      tracks.forEach(track => track.stop());
+      video.srcObject = null;
+    }
+    setShowScanner(false);
+  };
+
+  // Mock function to simulate scanning a code
+  const mockScanCompleted = () => {
+    closeScanner();
+    // Navigate to join with code
+    alert('QR kod uspešno skeniran! Bićete preusmereni na stranicu za unos imena tima.');
+    
+    // In a real implementation, you would parse the QR code value
+    // and navigate to the appropriate page or set game state
+  };
+
   return (
     <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">
       <img 
@@ -38,27 +100,72 @@ const JoinPage: React.FC = () => {
         className="w-48 mb-8"
       />
       
-      <form onSubmit={handleSubmit} className="w-full max-w-md">
-        <div className="mb-6">
-          <label htmlFor="teamName" className="block text-primary mb-2 font-bold text-3xl text-center font-basteleur">
-            unesite ime tima:
-          </label>
-          <input
-            type="text"
-            id="teamName"
-            value={teamName}
-            onChange={(e) => setTeamName(e.target.value)}
-            className="w-full p-3 border-2 border-secondary rounded-lg focus:outline-none focus:border-primary bg-accent text-primary font-caviar"
-            placeholder="ime tima..."
-            required
-            disabled={isLoading}
-          />
+      {showScanner ? (
+        <div className="fixed inset-0 z-50 bg-primary bg-opacity-90 flex flex-col items-center justify-center p-4">
+          <div className="bg-accent rounded-lg p-4 w-full max-w-md flex flex-col items-center">
+            <h2 className="text-primary font-bold text-2xl mb-4 font-basteleur">Skeniraj QR kod</h2>
+            
+            <div className="relative w-full aspect-square bg-black rounded-lg overflow-hidden mb-4">
+              <video id="qr-video" className="absolute inset-0 w-full h-full object-cover"></video>
+              <div className="absolute inset-0 border-2 border-secondary rounded-lg pointer-events-none"></div>
+            </div>
+            
+            <div className="flex gap-4 w-full">
+              <button 
+                onClick={closeScanner}
+                className="flex-1 py-3 px-4 bg-primary text-white font-bold rounded-lg"
+              >
+                Zatvori
+              </button>
+              
+              {/* This button is just for demo purposes, in a real app the QR scanning would happen automatically */}
+              <button 
+                onClick={mockScanCompleted}
+                className="flex-1 py-3 px-4 bg-secondary text-white font-bold rounded-lg"
+              >
+                Test Scan
+              </button>
+            </div>
+          </div>
         </div>
-        
-        <MainButton type="submit" disabled={!teamName.trim() || isLoading}>
-          <span className="font-caviar">{isLoading ? 'učitavanje...' : 'pridruži se kvizu'}</span>
-        </MainButton>
-      </form>
+      ) : (
+        <>
+          <form onSubmit={handleSubmit} className="w-full max-w-md">
+            <div className="mb-6">
+              <label htmlFor="teamName" className="block text-primary mb-2 font-bold text-3xl text-center font-basteleur">
+                unesite ime tima:
+              </label>
+              <input
+                type="text"
+                id="teamName"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                className="w-full p-3 border-2 border-secondary rounded-lg focus:outline-none focus:border-primary bg-accent text-primary font-caviar"
+                placeholder="ime tima..."
+                required
+                disabled={isLoading}
+              />
+            </div>
+            
+            <MainButton type="submit" disabled={!teamName.trim() || isLoading}>
+              <span className="font-caviar">{isLoading ? 'učitavanje...' : 'pridruži se kvizu'}</span>
+            </MainButton>
+          </form>
+          
+          <div className="mt-8 w-full max-w-md">
+            <button 
+              onClick={handleScanQRCode}
+              className="w-full p-3 bg-secondary text-white rounded-lg font-bold font-caviar flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Skeniraj QR kod
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
