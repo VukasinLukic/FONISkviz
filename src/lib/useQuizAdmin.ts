@@ -26,7 +26,7 @@ import {
   getQuestionById,
   getAnswersForQuestion
 } from './quizService';
-import { ref, onValue, off, get, update } from 'firebase/database';
+import { ref, onValue, off, get, update, push, serverTimestamp } from 'firebase/database';
 import { useGameContext } from '../context/GameContext';
 
 interface UseQuizAdminResult {
@@ -47,6 +47,8 @@ interface UseQuizAdminResult {
   showNextRound: () => Promise<void>;
   showFinalResults: () => Promise<void>;
   resetGameState: () => Promise<void>;
+  createNewGame: () => Promise<void>;
+  nextQuestion: (questionId: string) => Promise<void>;
 }
 
 export const useQuizAdmin = (): UseQuizAdminResult => {
@@ -118,9 +120,20 @@ export const useQuizAdmin = (): UseQuizAdminResult => {
   // Game flow control functions
   const startNewGame = async () => {
     setLoading(true);
-    await startGame();
-    setLoading(false);
-    navigate('/admin/lobby');
+    try {
+      await update(gameRef, {
+        isActive: true,
+        startedAt: serverTimestamp()
+      });
+      
+      // Navigate to category selection
+      navigate('/admin/category');
+    } catch (error) {
+      console.error('Error starting game:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
   
   const endCurrentGame = async () => {
@@ -187,7 +200,56 @@ export const useQuizAdmin = (): UseQuizAdminResult => {
       status
     });
   };
-  
+
+  // Create a new game
+  const createNewGame = async () => {
+    setLoading(true);
+    try {
+      // Generate a random game code (6 alphanumeric characters)
+      const gameCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      
+      // Reset the game state for a new session
+      await update(gameRef, {
+        isActive: false,
+        currentRound: 0,
+        currentQuestion: null,
+        currentCategory: '',
+        status: 'waiting',
+        totalRounds: 8,
+        startedAt: null,
+        gameCode: gameCode,
+        createdAt: serverTimestamp()
+      });
+      
+      // Navigate to the QR code page
+      navigate('/admin/qrcode');
+    } catch (error) {
+      console.error('Error creating new game:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Go to next question
+  const nextQuestion = async (questionId: string) => {
+    setLoading(true);
+    try {
+      await update(gameRef, {
+        currentQuestion: questionId,
+        status: 'question'
+      });
+      
+      // Navigate to question display
+      navigate('/admin/question');
+    } catch (error) {
+      console.error('Error navigating to next question:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     teams,
     gameState,
@@ -204,6 +266,8 @@ export const useQuizAdmin = (): UseQuizAdminResult => {
     showResults,
     showNextRound,
     showFinalResults,
-    resetGameState
+    resetGameState,
+    createNewGame,
+    nextQuestion
   };
 }; 
