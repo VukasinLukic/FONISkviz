@@ -47,7 +47,7 @@ const WaitingForPlayers: React.FC = () => {
       
       {gameState.mascotId > 0 && !imageError ? (
         <img 
-          src={`/assets/maskota${gameState.mascotId}.svg`}
+          src={`/assets/maskota${gameState.mascotId} 1.svg`}
           alt={`Maskota tima ${gameState.teamName}`}
           className="w-64 h-64 object-contain"
           onError={() => setImageError(true)}

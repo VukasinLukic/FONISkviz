@@ -335,20 +335,43 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   
   const updateMascot = async (newMascotId: number): Promise<void> => {
     if (!gameState.teamId) {
-      console.error('Cannot update mascot: No team ID');
-      return;
+      console.error('Cannot update mascot: No team ID', gameState);
+      throw new Error('No team ID available');
     }
     
     try {
       setLoading(true);
+      console.log(`Starting mascot update for team ${gameState.teamId} to mascotId ${newMascotId}`);
       
       // Reference to the team in Firebase
       const teamRef = ref(db, `teams/${gameState.teamId}`);
+      
+      // First get the current team data to verify it exists
+      const teamSnapshot = await get(teamRef);
+      if (!teamSnapshot.exists()) {
+        console.error(`Team with ID ${gameState.teamId} not found`);
+        throw new Error('Team not found');
+      }
+      
+      const currentTeamData = teamSnapshot.val();
+      console.log('Current team data:', currentTeamData);
       
       // Update the mascot ID
       await update(teamRef, {
         mascotId: newMascotId
       });
+      
+      console.log(`Firebase update completed for team ${gameState.teamId}, mascotId=${newMascotId}`);
+      
+      // Verify the update was successful
+      const updatedSnapshot = await get(teamRef);
+      const updatedTeam = updatedSnapshot.val();
+      console.log('Updated team data:', updatedTeam);
+      
+      if (updatedTeam.mascotId !== newMascotId) {
+        console.error('Mascot update verification failed, Firebase data does not match expected value');
+        throw new Error('Mascot update verification failed');
+      }
       
       // Update local state
       setGameState(prev => ({
@@ -356,7 +379,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         mascotId: newMascotId
       }));
       
-      console.log(`Mascot updated for team ${gameState.teamName}: ${newMascotId}`);
+      console.log(`Local state updated: mascotId=${newMascotId}`);
     } catch (error) {
       console.error('Error updating mascot:', error);
       throw error;

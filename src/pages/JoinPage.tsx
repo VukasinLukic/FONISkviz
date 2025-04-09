@@ -9,6 +9,7 @@ const JoinPage: React.FC = () => {
   const [showScanner, setShowScanner] = useState(false);
   const [qrScanned, setQrScanned] = useState(false);
   const [gameCode, setGameCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const { registerTeam } = useGameContext();
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,6 +20,10 @@ const JoinPage: React.FC = () => {
     const codeFromUrl = searchParams.get('code');
     if (codeFromUrl) {
       setGameCode(codeFromUrl);
+      
+      // Store the gameCode in localStorage immediately
+      localStorage.setItem('latestGameCode', codeFromUrl);
+      
       setQrScanned(true); // Skip scanner if we have a code
     }
   }, [searchParams]);
@@ -28,15 +33,31 @@ const JoinPage: React.FC = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // Clear previous errors
+    
     if (teamName.trim() && !isLoading) {
       setIsLoading(true);
       try {
+        // Ensure we have a gameCode
+        if (!gameCode) {
+          // Try to get from localStorage as fallback
+          const savedCode = localStorage.getItem('latestGameCode');
+          if (savedCode) {
+            setGameCode(savedCode);
+          } else {
+            throw new Error("No game code available. Please scan the QR code again.");
+          }
+        }
+        
+        console.log(`Registering team "${teamName}" with game code: ${gameCode}`);
         await registerTeam(teamName.trim(), 1, gameCode);
+        
+        console.log("Team registered successfully, navigating to mascot selection");
         // Always navigate to player/mascot since that's the correct route
         navigate('/player/mascot');
       } catch (error) {
         console.error('Error registering team:', error);
-        // TODO: Prikazati error poruku korisniku
+        setError(error instanceof Error ? error.message : "Failed to register team. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -102,6 +123,10 @@ const JoinPage: React.FC = () => {
     // and extract the game code
     const mockGameCode = "GAME" + Math.floor(Math.random() * 10000);
     setGameCode(mockGameCode);
+    
+    // Store the gameCode in localStorage immediately
+    localStorage.setItem('latestGameCode', mockGameCode);
+    
     setQrScanned(true);
   };
 
@@ -109,7 +134,12 @@ const JoinPage: React.FC = () => {
   const enterGameCodeManually = () => {
     const code = prompt("Enter the game code:", "");
     if (code && code.trim() !== "") {
-      setGameCode(code.trim().toUpperCase());
+      const upperCode = code.trim().toUpperCase();
+      setGameCode(upperCode);
+      
+      // Store the gameCode in localStorage immediately
+      localStorage.setItem('latestGameCode', upperCode);
+      
       setQrScanned(true);
     }
   };
@@ -173,6 +203,13 @@ const JoinPage: React.FC = () => {
                 disabled={isLoading}
               />
             </div>
+
+            {/* Display error message if any */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
             
             <MainButton type="submit" disabled={!teamName.trim() || isLoading}>
               <span className="font-caviar">{isLoading ? 'učitavanje...' : 'pridruži se kvizu'}</span>
@@ -215,4 +252,4 @@ const JoinPage: React.FC = () => {
   );
 };
 
-export default JoinPage;
+export default JoinPage; 

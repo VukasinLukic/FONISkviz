@@ -100,7 +100,7 @@ const LobbyPage = () => {
               >
                 <div className="w-20 h-20 mb-2 overflow-hidden">
                   <img
-                    src={team.mascotId ? `/assets/maskota${team.mascotId}.svg` : maskotImages[0]}
+                    src={team.mascotId ? `/assets/maskota${team.mascotId} 1.svg` : maskotImages[0]}
                     alt={`Team Mascot ${team.mascotId}`}
                     className="w-full h-full object-contain"
                     onError={(e) => {
