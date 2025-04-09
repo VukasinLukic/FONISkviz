@@ -1,15 +1,21 @@
 // src/context/GameContext.tsx
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { 
+  db, 
+  Team as FirebaseTeam, 
+  Game as FirebaseGame,
+  teamsRef, 
+  gameRef, 
+  createTeam, 
+  updateTeam, 
+  updateGame, 
+  initializeGameState 
+} from '../lib/firebase';
+import { ref, onValue, off } from 'firebase/database';
 
-// Definicija tipa za tim
-interface Team {
-  id: string;
-  name: string;
-  mascotId: number; // ID maskote (1-4)
-  points: number;
-  joinedAt: number; // timestamp
-  isActive: boolean;
-}
+// Use the Firebase types directly
+export type Team = FirebaseTeam;
+export type Game = FirebaseGame;
 
 // Definicija tipa za stanje igre
 interface GameState {
@@ -19,6 +25,7 @@ interface GameState {
   isGameStarted: boolean;
   currentCategory: string;
   totalRounds: number;
+  status: FirebaseGame['status'];
 }
 
 // Definicija tipa za kontekst
@@ -28,6 +35,7 @@ interface GameContextType {
   updateTeamPoints: (teamId: string, points: number) => Promise<void>;
   updateTeamMascot: (teamId: string, mascotId: number) => Promise<void>;
   updateCurrentCategory: (category: string) => Promise<void>;
+  updateGameStatus: (status: FirebaseGame['status']) => Promise<void>;
 }
 
 // Kreiranje konteksta
@@ -51,125 +59,130 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     isGameStarted: false,
     currentCategory: '',
     totalRounds: 8,
+    status: 'waiting',
   });
 
   // Funkcija za registraciju novog tima
-  const registerTeam = async (name: string) => {
-    const newTeam: Team = {
-      id: crypto.randomUUID(), // Kasnije će ovo biti Firebase ID
+  const registerTeam = async (name: string): Promise<Team> => {
+    // Create the team in Firebase
+    const newTeamData: Omit<Team, 'id'> = {
       name,
       mascotId: 0, // Početna vrednost - nije izabrana maskota
       points: 0,
       joinedAt: Date.now(),
       isActive: true
     };
-
-    // TODO: Dodati Firebase kod ovde
-    // const teamRef = await addDoc(collection(db, 'teams'), newTeam);
-    // newTeam.id = teamRef.id;
-
+    
+    const teamId = await createTeam(newTeamData);
+    const newTeam: Team = { ...newTeamData, id: teamId };
+    
+    // Set current team locally - Firebase listener will update the teams array
     setGameState(prev => ({
       ...prev,
       currentTeam: newTeam,
-      teams: [...prev.teams, newTeam],
     }));
 
     return newTeam;
   };
 
   // Funkcija za ažuriranje poena tima
-  const updateTeamPoints = async (teamId: string, points: number) => {
-    // TODO: Dodati Firebase kod ovde
-    // await updateDoc(doc(db, 'teams', teamId), {
-    //   points: increment(points)
-    // });
-
-    setGameState(prev => ({
-      ...prev,
-      teams: prev.teams.map(team => {
-        if (team.id === teamId) {
-          const updatedTeam = { 
-            ...team, 
-            points: team.points + points,
-          };
-          
-          if (prev.currentTeam?.id === teamId) {
-            prev.currentTeam = updatedTeam;
-          }
-          
-          return updatedTeam;
-        }
-        return team;
-      }),
-    }));
+  const updateTeamPoints = async (teamId: string, points: number): Promise<void> => {
+    // Get the existing team first to update the points accurately
+    const teamToUpdate = gameState.teams.find(t => t.id === teamId);
+    
+    if (teamToUpdate) {
+      const newPoints = teamToUpdate.points + points;
+      await updateTeam(teamId, { points: newPoints });
+      
+      // Firebase listener will update the state automatically
+    }
   };
 
   // Funkcija za ažuriranje maskote tima
-  const updateTeamMascot = async (teamId: string, mascotId: number) => {
-    // TODO: Dodati Firebase kod ovde
-    // await updateDoc(doc(db, 'teams', teamId), {
-    //   mascotId: mascotId
-    // });
-
-    setGameState(prev => {
-      // Prvo ažuriramo tim u teams nizu
-      const updatedTeams = prev.teams.map(team => {
-        if (team.id === teamId) {
-          return { 
-            ...team, 
-            mascotId: mascotId,
-          };
-        }
-        return team;
-      });
-
-      // Ažuriramo i currentTeam ako je potrebno
-      let updatedCurrentTeam = prev.currentTeam;
-      if (prev.currentTeam && prev.currentTeam.id === teamId) {
-        updatedCurrentTeam = {
-          ...prev.currentTeam,
-          mascotId: mascotId
-        };
-      }
-
-      // Vraćamo ažurirano stanje
-      return {
+  const updateTeamMascot = async (teamId: string, mascotId: number): Promise<void> => {
+    await updateTeam(teamId, { mascotId });
+    
+    // If this is the current team, update it locally as well
+    if (gameState.currentTeam && gameState.currentTeam.id === teamId) {
+      setGameState(prev => ({
         ...prev,
-        teams: updatedTeams,
-        currentTeam: updatedCurrentTeam
-      };
-    });
+        currentTeam: {
+          ...prev.currentTeam!,
+          mascotId
+        }
+      }));
+    }
   };
 
   // Funkcija za ažuriranje trenutne kategorije
-  const updateCurrentCategory = async (category: string) => {
-    // TODO: Dodati Firebase kod ovde
-    // await updateDoc(doc(db, 'game', 'currentGame'), {
-    //   currentCategory: category
-    // });
-
-    setGameState(prev => ({
-      ...prev,
-      currentCategory: category,
-    }));
+  const updateCurrentCategory = async (category: string): Promise<void> => {
+    await updateGame({ currentCategory: category });
+    // Firebase listener will update the state
+  };
+  
+  // Funkcija za ažuriranje statusa igre
+  const updateGameStatus = async (status: FirebaseGame['status']): Promise<void> => {
+    await updateGame({ status });
+    // Firebase listener will update the state
   };
 
-  // Listener za promene u Firebase-u
+  // Initialize Firebase listeners
   useEffect(() => {
-    // TODO: Dodati Firebase listener ovde
-    // const unsubscribe = onSnapshot(collection(db, 'teams'), (snapshot) => {
-    //   const teamsData = snapshot.docs.map(doc => ({
-    //     id: doc.id,
-    //     ...doc.data()
-    //   })) as Team[];
-    //   
-    //   setGameState(prev => ({
-    //     ...prev,
-    //     teams: teamsData
-    //   }));
-    // });
-    //
-    // return () => unsubscribe();
+    // Initialize the game state if it doesn't exist
+    initializeGameState();
+    
+    // Listen for teams changes
+    const teamsListener = onValue(teamsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const teamsData = snapshot.val() || {};
+        const teams = Object.values(teamsData) as Team[];
+        
+        setGameState(prev => {
+          // If we have a currentTeam, make sure it's updated
+          let updatedCurrentTeam = prev.currentTeam;
+          
+          if (prev.currentTeam) {
+            const updatedTeamData = teams.find(t => t.id === prev.currentTeam?.id);
+            if (updatedTeamData) {
+              updatedCurrentTeam = updatedTeamData;
+            }
+          }
+          
+          return {
+            ...prev,
+            teams,
+            currentTeam: updatedCurrentTeam
+          };
+        });
+      } else {
+        setGameState(prev => ({
+          ...prev,
+          teams: []
+        }));
+      }
+    });
+    
+    // Listen for game state changes
+    const gameListener = onValue(gameRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const gameData = snapshot.val() as FirebaseGame;
+        
+        setGameState(prev => ({
+          ...prev,
+          currentRound: gameData.currentRound,
+          isGameStarted: gameData.isActive,
+          currentCategory: gameData.currentCategory,
+          totalRounds: gameData.totalRounds,
+          status: gameData.status
+        }));
+      }
+    });
+    
+    // Cleanup listeners on unmount
+    return () => {
+      off(teamsRef);
+      off(gameRef);
+    };
   }, []);
 
   const value = {
@@ -178,6 +191,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     updateTeamPoints,
     updateTeamMascot,
     updateCurrentCategory,
+    updateGameStatus
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
