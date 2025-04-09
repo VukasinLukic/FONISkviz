@@ -41,16 +41,12 @@ export interface Team {
 
 export interface Question {
   id: string;
-  text: string;
-  options: { 
-    A: string;
-    B: string; 
-    C: string; 
-    D: string;
-  };
-  correctAnswer: 'A' | 'B' | 'C' | 'D';
+  question: string;
+  answers: string[];
+  correctAnswer: number;
   category: string;
-  timeLimit: number;
+  points?: number;
+  timeLimit?: number;
 }
 
 export interface Game {

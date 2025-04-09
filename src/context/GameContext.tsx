@@ -1,199 +1,400 @@
 // src/context/GameContext.tsx
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  db, 
-  Team as FirebaseTeam, 
-  Game as FirebaseGame,
-  teamsRef, 
+  Team, 
+  Game,
+  Question,
+  Answer,
+  db,
   gameRef, 
-  createTeam, 
-  updateTeam, 
-  updateGame, 
-  initializeGameState 
+  teamsRef,
+  questionsRef,
+  answersRef
 } from '../lib/firebase';
-import { ref, onValue, off } from 'firebase/database';
+import { ref, onValue, off, update, get, push, serverTimestamp } from 'firebase/database';
 
-// Use the Firebase types directly
-export type Team = FirebaseTeam;
-export type Game = FirebaseGame;
-
-// Definicija tipa za stanje igre
-interface GameState {
-  teams: Team[];
-  currentTeam: Team | null;
-  currentRound: number;
+type GameState = {
+  teamId: string | null;
+  teamName: string;
+  mascotId: number;
+  isRegistered: boolean;
+  points: number;
   isGameStarted: boolean;
   currentCategory: string;
-  totalRounds: number;
-  status: FirebaseGame['status'];
-}
-
-// Definicija tipa za kontekst
-interface GameContextType {
-  gameState: GameState;
-  registerTeam: (name: string, gameCode?: string) => Promise<Team>;
-  updateTeamPoints: (teamId: string, points: number) => Promise<void>;
-  updateTeamMascot: (teamId: string, mascotId: number) => Promise<void>;
-  updateCurrentCategory: (category: string) => Promise<void>;
-  updateGameStatus: (status: FirebaseGame['status']) => Promise<void>;
-}
-
-// Kreiranje konteksta
-const GameContext = createContext<GameContextType | undefined>(undefined);
-
-// Hook za korišćenje konteksta
-export const useGameContext = () => {
-  const context = useContext(GameContext);
-  if (!context) {
-    throw new Error('useGameContext must be used within a GameProvider');
-  }
-  return context;
+  currentRound: number;
+  currentQuestion: Question | null;
+  status: string;
+  gameCode: string | null;
 };
 
-// Provider komponenta
-export const GameProvider = ({ children }: { children: ReactNode }) => {
-  const [gameState, setGameState] = useState<GameState>({
-    teams: [],
-    currentTeam: null,
-    currentRound: 0,
-    isGameStarted: false,
-    currentCategory: '',
-    totalRounds: 8,
-    status: 'waiting',
-  });
+type GameContextType = {
+  gameState: GameState;
+  registerTeam: (name: string, mascotId: number, gameCode: string) => Promise<string>;
+  updatePoints: (newPoints: number) => Promise<void>;
+  updateMascot: (newMascotId: number) => Promise<void>;
+  resetGame: () => void;
+  submittedAnswer: boolean;
+  submitAnswer: (questionId: string, answer: string) => Promise<void>;
+  loading: boolean;
+};
 
-  // Funkcija za registraciju novog tima
-  const registerTeam = async (name: string, gameCode?: string): Promise<Team> => {
-    // Create the team in Firebase
-    const newTeamData: Omit<Team, 'id'> = {
-      name,
-      mascotId: 0, // Početna vrednost - nije izabrana maskota
-      points: 0,
-      joinedAt: Date.now(),
-      isActive: true,
-      gameCode: gameCode || undefined // Add the game code if provided
-    };
-    
-    const teamId = await createTeam(newTeamData);
-    const newTeam: Team = { ...newTeamData, id: teamId };
-    
-    // Set current team locally - Firebase listener will update the teams array
-    setGameState(prev => ({
-      ...prev,
-      currentTeam: newTeam,
-    }));
+const defaultGameState: GameState = {
+  teamId: null,
+  teamName: '',
+  mascotId: 1,
+  isRegistered: false,
+  points: 0,
+  isGameStarted: false,
+  currentCategory: '',
+  currentRound: 0,
+  currentQuestion: null,
+  status: 'waiting',
+  gameCode: null,
+};
 
-    return newTeam;
-  };
+export const GameContext = createContext<GameContextType>({
+  gameState: defaultGameState,
+  registerTeam: async () => '',
+  updatePoints: async () => {},
+  updateMascot: async () => {},
+  resetGame: () => {},
+  submittedAnswer: false,
+  submitAnswer: async () => {},
+  loading: false,
+});
 
-  // Funkcija za ažuriranje poena tima
-  const updateTeamPoints = async (teamId: string, points: number): Promise<void> => {
-    // Get the existing team first to update the points accurately
-    const teamToUpdate = gameState.teams.find(t => t.id === teamId);
-    
-    if (teamToUpdate) {
-      const newPoints = teamToUpdate.points + points;
-      await updateTeam(teamId, { points: newPoints });
-      
-      // Firebase listener will update the state automatically
-    }
-  };
+export const useGameContext = () => useContext(GameContext);
 
-  // Funkcija za ažuriranje maskote tima
-  const updateTeamMascot = async (teamId: string, mascotId: number): Promise<void> => {
-    await updateTeam(teamId, { mascotId });
-    
-    // If this is the current team, update it locally as well
-    if (gameState.currentTeam && gameState.currentTeam.id === teamId) {
-      setGameState(prev => ({
-        ...prev,
-        currentTeam: {
-          ...prev.currentTeam!,
-          mascotId
-        }
-      }));
-    }
-  };
+type GameProviderProps = {
+  children: ReactNode;
+};
 
-  // Funkcija za ažuriranje trenutne kategorije
-  const updateCurrentCategory = async (category: string): Promise<void> => {
-    await updateGame({ currentCategory: category });
-    // Firebase listener will update the state
-  };
+export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
+  const [gameState, setGameState] = useState<GameState>(defaultGameState);
+  const [submittedAnswer, setSubmittedAnswer] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [serverGameData, setServerGameData] = useState<Game | null>(null);
   
-  // Funkcija za ažuriranje statusa igre
-  const updateGameStatus = async (status: FirebaseGame['status']): Promise<void> => {
-    await updateGame({ status });
-    // Firebase listener will update the state
-  };
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Initialize Firebase listeners
+  // Listen for game state changes
   useEffect(() => {
-    // Initialize the game state if it doesn't exist
-    initializeGameState();
-    
-    // Listen for teams changes
-    const teamsListener = onValue(teamsRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const teamsData = snapshot.val() || {};
-        const teams = Object.values(teamsData) as Team[];
-        
-        setGameState(prev => {
-          // If we have a currentTeam, make sure it's updated
-          let updatedCurrentTeam = prev.currentTeam;
-          
-          if (prev.currentTeam) {
-            const updatedTeamData = teams.find(t => t.id === prev.currentTeam?.id);
-            if (updatedTeamData) {
-              updatedCurrentTeam = updatedTeamData;
-            }
-          }
-          
-          return {
-            ...prev,
-            teams,
-            currentTeam: updatedCurrentTeam
-          };
-        });
-      } else {
-        setGameState(prev => ({
-          ...prev,
-          teams: []
-        }));
-      }
-    });
-    
-    // Listen for game state changes
     const gameListener = onValue(gameRef, (snapshot) => {
       if (snapshot.exists()) {
-        const gameData = snapshot.val() as FirebaseGame;
+        const gameData = snapshot.val() as Game;
+        setServerGameData(gameData);
         
+        // Update game state in our context
         setGameState(prev => ({
           ...prev,
-          currentRound: gameData.currentRound,
           isGameStarted: gameData.isActive,
           currentCategory: gameData.currentCategory,
-          totalRounds: gameData.totalRounds,
-          status: gameData.status
+          currentRound: gameData.currentRound,
+          status: gameData.status,
         }));
+        
+        // Load current question if there is one
+        if (gameData.currentQuestion) {
+          get(ref(db, `questions/${gameData.currentQuestion}`))
+            .then((questionSnapshot) => {
+              if (questionSnapshot.exists()) {
+                const questionData = questionSnapshot.val();
+                setGameState(prev => ({
+                  ...prev,
+                  currentQuestion: {
+                    id: gameData.currentQuestion,
+                    ...questionData
+                  } as Question
+                }));
+              }
+            })
+            .catch(error => console.error('Error loading question:', error));
+        } else {
+          setGameState(prev => ({
+            ...prev,
+            currentQuestion: null
+          }));
+        }
       }
     });
     
-    // Cleanup listeners on unmount
     return () => {
-      off(teamsRef);
-      off(gameRef);
+      off(ref(db, 'game'));
     };
   }, []);
-
+  
+  // Handle navigation based on game state changes
+  useEffect(() => {
+    // Don't navigate unless the player is registered
+    if (!gameState.isRegistered || !gameState.teamId) return;
+    
+    // Get path without the leading slash
+    const currentPath = location.pathname.replace(/^\//, '');
+    
+    // Handle game start - redirect to quiz-starting page
+    if (gameState.isGameStarted && 
+        (currentPath === 'player' || currentPath === 'player/join' || currentPath === 'player/waiting')) {
+      navigate('/player/quiz-starting');
+    }
+    
+    // Handle category change
+    if (gameState.status === 'category' && currentPath !== 'player/category') {
+      setSubmittedAnswer(false);
+      navigate('/player/category');
+    }
+    
+    // Handle question display
+    if (gameState.status === 'question' && currentPath !== 'player/answers') {
+      setSubmittedAnswer(false);
+      navigate('/player/answers');
+    }
+    
+    // Handle showing results
+    if (gameState.status === 'results' && currentPath !== 'player/results') {
+      navigate('/player/results');
+    }
+    
+    // Handle leaderboard
+    if (gameState.status === 'leaderboard' && currentPath !== 'player/leaderboard') {
+      navigate('/player/leaderboard');
+    }
+    
+    // Handle game end
+    if (gameState.status === 'finished' && currentPath !== 'player/finished') {
+      navigate('/player/finished');
+    }
+    
+  }, [
+    gameState.isGameStarted, 
+    gameState.isRegistered, 
+    gameState.teamId, 
+    gameState.currentCategory,
+    gameState.status,
+    gameState.currentQuestion?.id,
+    location.pathname,
+    navigate
+  ]);
+  
+  // If player has teamId saved, check if it's still valid and load team data
+  useEffect(() => {
+    const savedTeamId = localStorage.getItem('teamId');
+    const savedGameCode = localStorage.getItem('gameCode');
+    
+    if (savedTeamId && savedGameCode) {
+      setLoading(true);
+      
+      // Verify the team exists
+      get(ref(db, `teams/${savedTeamId}`))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const teamData = snapshot.val() as Team;
+            // Verify the team belongs to the current game
+            if (teamData.gameCode === savedGameCode) {
+              setGameState(prev => ({
+                ...prev,
+                teamId: savedTeamId,
+                teamName: teamData.name,
+                mascotId: teamData.mascotId,
+                points: teamData.points,
+                isRegistered: true,
+                gameCode: savedGameCode
+              }));
+              
+              // Listen for changes to this team
+              const teamListener = onValue(ref(db, `teams/${savedTeamId}`), (teamSnapshot) => {
+                if (teamSnapshot.exists()) {
+                  const updatedTeam = teamSnapshot.val() as Team;
+                  setGameState(prev => ({
+                    ...prev,
+                    points: updatedTeam.points,
+                    mascotId: updatedTeam.mascotId,
+                  }));
+                }
+              });
+              
+              return () => {
+                off(ref(db, `teams/${savedTeamId}`));
+              };
+            } else {
+              // Team exists but doesn't match the current game
+              localStorage.removeItem('teamId');
+              localStorage.removeItem('gameCode');
+            }
+          } else {
+            // Team doesn't exist anymore
+            localStorage.removeItem('teamId');
+            localStorage.removeItem('gameCode');
+          }
+        })
+        .catch(error => {
+          console.error('Error verifying team:', error);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, []);
+  
+  // Check if player has already submitted an answer for current question
+  useEffect(() => {
+    if (!gameState.teamId || !gameState.currentQuestion?.id) {
+      setSubmittedAnswer(false);
+      return;
+    }
+    
+    const checkAnswers = async () => {
+      try {
+        const answersSnapshot = await get(answersRef);
+        if (answersSnapshot.exists()) {
+          const answers = answersSnapshot.val() || {};
+          
+          // Check if this team has already answered current question
+          const hasAnswered = Object.values(answers).some((answer: any) => {
+            return answer.teamId === gameState.teamId && 
+                  answer.questionId === gameState.currentQuestion?.id;
+          });
+          
+          setSubmittedAnswer(hasAnswered);
+        } else {
+          setSubmittedAnswer(false);
+        }
+      } catch (error) {
+        console.error('Error checking answers:', error);
+        setSubmittedAnswer(false);
+      }
+    };
+    
+    checkAnswers();
+  }, [gameState.teamId, gameState.currentQuestion?.id]);
+  
+  const registerTeam = async (name: string, mascotId: number, gameCode: string): Promise<string> => {
+    setLoading(true);
+    try {
+      // Create new team entry
+      const newTeam: Omit<Team, 'id'> = {
+        name,
+        mascotId,
+        points: 0,
+        joinedAt: Date.now(),
+        isActive: true,
+        gameCode
+      };
+      
+      // Push to Firebase
+      const newTeamRef = push(teamsRef);
+      const teamId = newTeamRef.key as string;
+      
+      // Update with ID
+      await update(newTeamRef, {
+        id: teamId
+      });
+      
+      // Save to local storage
+      localStorage.setItem('teamId', teamId);
+      localStorage.setItem('gameCode', gameCode);
+      
+      // Update context
+      setGameState(prev => ({
+        ...prev,
+        teamId,
+        teamName: name,
+        mascotId,
+        isRegistered: true,
+        gameCode
+      }));
+      
+      return teamId;
+    } catch (error) {
+      console.error('Error registering team:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const updatePoints = async (newPoints: number): Promise<void> => {
+    if (!gameState.teamId) return;
+    
+    try {
+      await update(ref(db, `teams/${gameState.teamId}`), {
+        points: newPoints
+      });
+      
+      setGameState(prev => ({
+        ...prev,
+        points: newPoints
+      }));
+    } catch (error) {
+      console.error('Error updating points:', error);
+      throw error;
+    }
+  };
+  
+  const updateMascot = async (newMascotId: number): Promise<void> => {
+    if (!gameState.teamId) return;
+    
+    try {
+      await update(ref(db, `teams/${gameState.teamId}`), {
+        mascotId: newMascotId
+      });
+      
+      setGameState(prev => ({
+        ...prev,
+        mascotId: newMascotId
+      }));
+    } catch (error) {
+      console.error('Error updating mascot:', error);
+      throw error;
+    }
+  };
+  
+  const resetGame = () => {
+    // Clear localStorage
+    localStorage.removeItem('teamId');
+    localStorage.removeItem('gameCode');
+    
+    // Reset state
+    setGameState(defaultGameState);
+    setSubmittedAnswer(false);
+  };
+  
+  const submitAnswer = async (questionId: string, answer: string): Promise<void> => {
+    if (!gameState.teamId) return;
+    
+    setLoading(true);
+    try {
+      const newAnswer: Omit<Answer, 'id' | 'isCorrect' | 'pointsEarned' | 'answeredAt'> = {
+        teamId: gameState.teamId,
+        questionId,
+        answer: answer as 'A' | 'B' | 'C' | 'D' | null
+      };
+      
+      await push(answersRef, newAnswer);
+      setSubmittedAnswer(true);
+    } catch (error) {
+      console.error('Error submitting answer:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   const value = {
     gameState,
     registerTeam,
-    updateTeamPoints,
-    updateTeamMascot,
-    updateCurrentCategory,
-    updateGameStatus
+    updatePoints,
+    updateMascot,
+    resetGame,
+    submittedAnswer,
+    submitAnswer,
+    loading
   };
-
-  return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
+  
+  return (
+    <GameContext.Provider value={value}>
+      {children}
+    </GameContext.Provider>
+  );
 };
