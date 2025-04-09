@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="braceright" format="2">
+	<advance width="377"/>
+	<unicode hex="007D"/>
+	<anchor x="92" y="500" name="_top"/>
+	<anchor x="92" y="765" name="top"/>
+	<outline>
+		<component base="braceleft" xScale="-1" xOffset="377"/>
+	</outline>
+</glyph>

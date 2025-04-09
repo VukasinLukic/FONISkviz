@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name=".notdef" format="2">
+	<advance width="672"/>
+	<outline>
+		<contour>
+			<point x="80" y="-66" type="line"/>
+			<point x="592" y="-66" type="line"/>
+			<point x="592" y="831" type="line"/>
+			<point x="80" y="831" type="line"/>
+		</contour>
+		<contour>
+			<point x="543" y="-16" type="line"/>
+			<point x="129" y="-16" type="line"/>
+			<point x="129" y="781" type="line"/>
+			<point x="543" y="781" type="line"/>
+		</contour>
+		<component base="question" xScale="0.3696" yScale="0.3696" xOffset="218" yOffset="76"/>
+		<component base="question" xScale="0.3696" yScale="0.3696" xOffset="218" yOffset="413"/>
+	</outline>
+</glyph>

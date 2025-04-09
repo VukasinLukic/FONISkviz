@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="Z" format="2">
+	<advance width="721"/>
+	<outline>
+		<contour>
+			<point x="11" y="0" type="line"/>
+			<point x="715" y="0" type="line"/>
+			<point x="731" y="17" type="line"/>
+			<point x="714" y="81"/>
+			<point x="702" y="190"/>
+			<point x="700" y="308" type="curve"/>
+			<point x="674" y="311" type="line"/>
+			<point x="620" y="110"/>
+			<point x="466" y="50"/>
+			<point x="337" y="50" type="curve" smooth="yes"/>
+			<point x="170" y="50" type="line"/>
+			<point x="164" y="31" type="line"/>
+			<point x="688" y="722" type="line"/>
+			<point x="679" y="745" type="line"/>
+			<point x="406" y="745" type="line" smooth="yes"/>
+			<point x="218" y="745"/>
+			<point x="154" y="751"/>
+			<point x="63" y="770" type="curve"/>
+			<point x="42" y="758" type="line"/>
+			<point x="60" y="671"/>
+			<point x="69" y="564"/>
+			<point x="71" y="460" type="curve"/>
+			<point x="97" y="457" type="line"/>
+			<point x="141" y="611"/>
+			<point x="217" y="695"/>
+			<point x="349" y="695" type="curve" smooth="yes"/>
+			<point x="526" y="695" type="line"/>
+			<point x="526" y="715" type="line"/>
+			<point x="0" y="22" type="line"/>
+		</contour>
+	</outline>
+</glyph>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="underscore" format="2">
+	<advance width="532"/>
+	<unicode hex="005F"/>
+	<outline>
+		<component base="endash" xScale="1.1328" xOffset="-41" yOffset="-339"/>
+	</outline>
+</glyph>

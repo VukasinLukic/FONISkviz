@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="aogonek" format="2">
+	<advance width="627"/>
+	<unicode hex="0105"/>
+	<outline>
+		<component base="a"/>
+		<contour>
+			<point x="439" y="-192" type="curve" smooth="yes"/>
+			<point x="510" y="-192"/>
+			<point x="558" y="-131"/>
+			<point x="575" y="-102" type="curve"/>
+			<point x="558" y="-85" type="line"/>
+			<point x="526" y="-115"/>
+			<point x="495" y="-131"/>
+			<point x="470" y="-131" type="curve" smooth="yes"/>
+			<point x="431" y="-131"/>
+			<point x="407" y="-109"/>
+			<point x="407" y="-78" type="curve" smooth="yes"/>
+			<point x="407" y="-44"/>
+			<point x="431" y="0"/>
+			<point x="508" y="0" type="curve"/>
+			<point x="454" y="15" type="line"/>
+			<point x="416" y="11"/>
+			<point x="346" y="-42"/>
+			<point x="345" y="-101" type="curve" smooth="yes"/>
+			<point x="344" y="-148"/>
+			<point x="381" y="-192"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>a</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>a</string>
+		</dict>
+	</lib>
+</glyph>

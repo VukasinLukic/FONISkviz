@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="parenright.case" format="2">
+	<advance width="410"/>
+	<anchor x="124" y="550" name="_top"/>
+	<anchor x="124" y="815" name="top"/>
+	<outline>
+		<component base="parenleft.case" xScale="-1" xOffset="410"/>
+	</outline>
+</glyph>

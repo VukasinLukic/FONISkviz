@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="diamond" format="2">
+	<advance width="776"/>
+	<unicode hex="2666"/>
+	<outline>
+		<contour>
+			<point x="378" y="2" type="curve"/>
+			<point x="398" y="2" type="line"/>
+			<point x="461" y="158"/>
+			<point x="551" y="279"/>
+			<point x="676" y="376" type="curve"/>
+			<point x="676" y="402" type="line"/>
+			<point x="551" y="499"/>
+			<point x="461" y="620"/>
+			<point x="398" y="776" type="curve"/>
+			<point x="378" y="776" type="line"/>
+			<point x="315" y="620"/>
+			<point x="225" y="499"/>
+			<point x="100" y="402" type="curve"/>
+			<point x="100" y="376" type="line"/>
+			<point x="225" y="279"/>
+			<point x="315" y="158"/>
+		</contour>
+	</outline>
+</glyph>

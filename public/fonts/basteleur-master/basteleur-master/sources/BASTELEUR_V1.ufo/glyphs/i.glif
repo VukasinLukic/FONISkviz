@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="i" format="2">
+	<advance width="439"/>
+	<unicode hex="0069"/>
+	<outline>
+		<component base="dotlessi"/>
+		<component base="period" xScale="0.9573" yScale="0.9573" xOffset="60" yOffset="645"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>public.markColor</key>
+			<string>0.67,0.95,0.38,1</string>
+		</dict>
+	</lib>
+</glyph>
