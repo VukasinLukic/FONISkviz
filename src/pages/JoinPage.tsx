@@ -19,11 +19,8 @@ const JoinPage: React.FC = () => {
       setIsLoading(true);
       try {
         await registerTeam(teamName.trim());
-        if (isPlayerRoute) {
-          navigate('/player/mascot');
-        } else {
-          navigate('/mascot');
-        }
+        // Always navigate to player/mascot since that's the correct route
+        navigate('/player/mascot');
       } catch (error) {
         console.error('Error registering team:', error);
         // TODO: Prikazati error poruku korisniku
