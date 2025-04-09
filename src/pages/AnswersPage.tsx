@@ -79,19 +79,49 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
   const [timeLeft, setTimeLeft] = useState(isPlayerRoute ? 20 : 10); // 20s for players to answer, 10s for admin results
   const [progress, setProgress] = useState(100);
   
-  // Mock current question (would come from context in real app)
-  const currentQuestion = gameState.currentQuestion || {
-    id: '1',
-    text: 'Which is the capital of Serbia?',
-    category: gameState.currentCategory || 'Geography',
-    options: {
-      A: 'Zagreb',
-      B: 'Belgrade', 
-      C: 'Skopje',
-      D: 'Sarajevo'
+  // Set of possible questions to show if no real question is available
+  const defaultQuestions = [
+    {
+      id: '1',
+      text: 'Koji je glavni grad Srbije?',
+      category: 'Geografija',
+      options: {
+        A: 'Zagreb',
+        B: 'Beograd', 
+        C: 'Skopje',
+        D: 'Sarajevo'
+      },
+      correctAnswer: 'B'
     },
-    correctAnswer: 'B'
-  };
+    {
+      id: '2',
+      text: 'Ko je napisao roman "Na Drini ćuprija"?',
+      category: 'Književnost',
+      options: {
+        A: 'Mesa Selimović',
+        B: 'Branislav Nušić',
+        C: 'Ivo Andrić',
+        D: 'Dobrica Ćosić'
+      },
+      correctAnswer: 'C'
+    },
+    {
+      id: '3',
+      text: 'Koji element ima hemijski simbol "O"?',
+      category: 'Nauka',
+      options: {
+        A: 'Zlato',
+        B: 'Kiseonik',
+        C: 'Olovo',
+        D: 'Vodonik'
+      },
+      correctAnswer: 'B'
+    }
+  ];
+  
+  // Get a random question from default questions if no real question is available
+  const randomIndex = Math.floor(Math.random() * defaultQuestions.length);
+  const currentQuestion = gameState.currentQuestion || defaultQuestions[randomIndex];
   
   // Mock team answers for admin view (would come from Firebase in real app)
   const teamAnswers: TeamAnswer[] = [

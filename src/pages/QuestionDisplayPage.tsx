@@ -73,12 +73,30 @@ const QuestionDisplayPage: React.FC<QuestionDisplayPageProps> = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isExiting, setIsExiting] = useState(false);
 
+  // If there's no current question, use a default one instead of showing loading
+  const questionToDisplay = gameState.currentQuestion || {
+    id: '1',
+    text: 'Koji je glavni grad Srbije?',
+    options: {
+      A: 'Zagreb',
+      B: 'Beograd',
+      C: 'Skopje',
+      D: 'Sarajevo'
+    },
+    correctAnswer: 'B',
+    category: gameState.currentCategory || 'Geografija',
+    timeLimit: 30
+  };
+
   // Initialize timer when a new question is loaded
   useEffect(() => {
     if (gameState.currentQuestion) {
       // Use the timeLimit from the question or default to 30 seconds
       const timeLimit = gameState.currentQuestion.timeLimit || 30;
       setTimeLeft(timeLimit);
+    } else {
+      // Use the default timeLimit for our hardcoded question
+      setTimeLeft(30);
     }
   }, [gameState.currentQuestion]);
 
@@ -89,14 +107,14 @@ const QuestionDisplayPage: React.FC<QuestionDisplayPageProps> = () => {
         setTimeLeft(timeLeft - 1);
         
         // Calculate progress based on the original time limit
-        const timeLimit = gameState.currentQuestion?.timeLimit || 30;
+        const timeLimit = questionToDisplay.timeLimit || 30;
         setProgress((timeLeft - 1) * 100 / timeLimit);
       }, 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && !isExiting) {
       handleTimeExpired();
     }
-  }, [timeLeft, isExiting, gameState.currentQuestion]);
+  }, [timeLeft, isExiting, questionToDisplay.timeLimit]);
 
   // Handle answer selection
   const handleAnswerSelect = (answerId: string) => {
@@ -130,18 +148,8 @@ const QuestionDisplayPage: React.FC<QuestionDisplayPageProps> = () => {
     return `${Math.floor(seconds / 60)}:${seconds % 60 < 10 ? '0' : ''}${seconds % 60}`;
   };
 
-  // If there's no current question, show a loading state
-  if (!gameState.currentQuestion) {
-    return (
-      <div className="min-h-screen overflow-hidden relative flex flex-col items-center justify-center p-4 bg-gradient-to-br from-primary via-primary to-[#3a1106]">
-        <AnimatedBackground density="medium" color="primary" />
-        <div className="text-accent text-2xl font-bold">Učitavanje pitanja...</div>
-      </div>
-    );
-  }
-
   // Convert the options object to an array for mapping
-  const answerOptions = Object.entries(gameState.currentQuestion.options).map(([key, value]) => ({
+  const answerOptions = Object.entries(questionToDisplay.options).map(([key, value]) => ({
     id: key,
     text: value
   }));
@@ -188,7 +196,7 @@ const QuestionDisplayPage: React.FC<QuestionDisplayPageProps> = () => {
               variants={questionVariants}
             >
               <span className="bg-accent text-primary px-4 py-1 rounded-full text-sm font-semibold uppercase tracking-wider">
-                {gameState.currentCategory}
+                {questionToDisplay.category}
               </span>
             </motion.div>
             
@@ -198,7 +206,7 @@ const QuestionDisplayPage: React.FC<QuestionDisplayPageProps> = () => {
               variants={questionVariants}
             >
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-accent font-basteleur">
-                {gameState.currentQuestion.text}
+                {questionToDisplay.text}
               </h1>
             </motion.div>
             

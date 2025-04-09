@@ -1,22 +1,30 @@
 /* 
  * This script loads the questions from seed-questions.ts into Firebase
- * Run it with: node src/scripts/use-real-questions.js
+ * Run it with: node --experimental-specifier-resolution=node --experimental-modules src/scripts/use-real-questions.js
  */
 
+// Import required modules
+import { config } from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+import { register } from 'ts-node';
+import { getDatabase, ref, remove } from 'firebase/database';
+import { initializeApp } from 'firebase/app';
+
 // Load environment variables
-require('dotenv').config();
+config();
+
+// Setup __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Enable TypeScript execution
-require('ts-node').register({
+register({
   transpileOnly: true,
   compilerOptions: {
     module: 'commonjs'
   }
 });
-
-// First clear existing questions from the database
-const { getDatabase, ref, remove } = require('firebase/database');
-const { initializeApp } = require('firebase/app');
 
 // Firebase configuration
 const firebaseConfig = {
@@ -37,12 +45,20 @@ const db = getDatabase(app);
 // First remove existing questions
 console.log('Removing existing questions...');
 remove(ref(db, 'questions'))
-  .then(() => {
+  .then(async () => {
     console.log('Successfully removed existing questions');
     
     // Now run the seed-questions.ts file to add the new questions
     console.log('Adding new questions from seed-questions.ts...');
-    require('./seed-questions.ts');
+    // We need to import dynamically because it's a TypeScript file
+    try {
+      const seedPath = resolve(__dirname, './seed-questions.ts');
+      await import(seedPath);
+      console.log('Questions imported successfully!');
+    } catch (err) {
+      console.error('Error importing seed-questions.ts:', err);
+      process.exit(1);
+    }
   })
   .catch(error => {
     console.error('Error removing existing questions:', error);
