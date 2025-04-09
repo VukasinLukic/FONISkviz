@@ -4,6 +4,7 @@ import QRCode from 'react-qr-code';
 import { motion, AnimatePresence } from 'framer-motion';
 import TextReveal from '../components/TextReveal';
 import Logo from '../components/Logo';
+import { useQuizAdmin } from '../lib/useQuizAdmin';
 
 interface QRCodePageProps {}
 
@@ -68,12 +69,13 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
   const location = useLocation();
   const [loaded, setLoaded] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const { gameState, teams } = useQuizAdmin();
   
   // Check if we're coming from the splash screen
   const fromSplash = location.state?.fromSplash || false;
   
-  // Game code for the current session
-  const [gameCode] = useState('FONIS123');
+  // Game code from the actual game state
+  const gameCode = gameState?.gameCode || 'LOADING';
   
   // Full URL for joining the game
   const joinUrl = `${window.location.origin}/player?code=${gameCode}`;
@@ -232,7 +234,11 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
             {/* Connected players indicator */}
             <motion.div className="mt-1 flex items-center text-accent z-30" variants={itemVariants}>
               <div className="h-2 w-2 rounded-full bg-highlight animate-pulse mr-2"></div>
-              <span className="text-xs opacity-80">4 teams connected</span>
+              <span className="text-xs opacity-80">
+                {teams.length === 0 
+                  ? "Waiting for teams to connect" 
+                  : `${teams.length} ${teams.length === 1 ? 'team' : 'teams'} connected`}
+              </span>
             </motion.div>
           </motion.div>
         )}

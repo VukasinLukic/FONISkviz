@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useGameContext } from '../context/GameContext';
 import MainButton from '../components/MainButton';
 
@@ -12,6 +12,16 @@ const JoinPage: React.FC = () => {
   const { registerTeam } = useGameContext();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
+  // Check for game code in URL parameter
+  useEffect(() => {
+    const codeFromUrl = searchParams.get('code');
+    if (codeFromUrl) {
+      setGameCode(codeFromUrl);
+      setQrScanned(true); // Skip scanner if we have a code
+    }
+  }, [searchParams]);
   
   // Detektujemo da li smo na player/* ruti
   const isPlayerRoute = location.pathname.startsWith('/player');
@@ -95,6 +105,15 @@ const JoinPage: React.FC = () => {
     setQrScanned(true);
   };
 
+  // Process URL directly if loaded with a code in the URL
+  const enterGameCodeManually = () => {
+    const code = prompt("Enter the game code:", "");
+    if (code && code.trim() !== "") {
+      setGameCode(code.trim().toUpperCase());
+      setQrScanned(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">
       <img 
@@ -168,7 +187,7 @@ const JoinPage: React.FC = () => {
           
           <button 
             onClick={handleScanQRCode}
-            className="w-full p-4 bg-secondary text-white rounded-lg font-bold font-caviar flex items-center justify-center text-xl"
+            className="w-full p-4 bg-secondary text-white rounded-lg font-bold font-caviar flex items-center justify-center text-xl mb-4"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -177,7 +196,17 @@ const JoinPage: React.FC = () => {
             Skeniraj QR kod
           </button>
           
-          <p className="mt-4 text-primary text-center">
+          <button 
+            onClick={enterGameCodeManually}
+            className="w-full p-3 border-2 border-primary text-primary rounded-lg font-bold font-caviar flex items-center justify-center mb-4"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Unesi kod ručno
+          </button>
+          
+          <p className="mt-2 text-primary text-center">
             Skenirajte QR kod koji je prikazan na glavnom ekranu da biste se pridružili kvizu
           </p>
         </div>
