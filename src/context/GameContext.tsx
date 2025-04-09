@@ -31,7 +31,7 @@ interface GameState {
 // Definicija tipa za kontekst
 interface GameContextType {
   gameState: GameState;
-  registerTeam: (name: string) => Promise<Team>;
+  registerTeam: (name: string, gameCode?: string) => Promise<Team>;
   updateTeamPoints: (teamId: string, points: number) => Promise<void>;
   updateTeamMascot: (teamId: string, mascotId: number) => Promise<void>;
   updateCurrentCategory: (category: string) => Promise<void>;
@@ -63,14 +63,15 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   });
 
   // Funkcija za registraciju novog tima
-  const registerTeam = async (name: string): Promise<Team> => {
+  const registerTeam = async (name: string, gameCode?: string): Promise<Team> => {
     // Create the team in Firebase
     const newTeamData: Omit<Team, 'id'> = {
       name,
       mascotId: 0, // Početna vrednost - nije izabrana maskota
       points: 0,
       joinedAt: Date.now(),
-      isActive: true
+      isActive: true,
+      gameCode: gameCode || undefined // Add the game code if provided
     };
     
     const teamId = await createTeam(newTeamData);

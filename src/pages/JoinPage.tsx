@@ -7,6 +7,8 @@ const JoinPage: React.FC = () => {
   const [teamName, setTeamName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [qrScanned, setQrScanned] = useState(false);
+  const [gameCode, setGameCode] = useState('');
   const { registerTeam } = useGameContext();
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,7 +21,7 @@ const JoinPage: React.FC = () => {
     if (teamName.trim() && !isLoading) {
       setIsLoading(true);
       try {
-        await registerTeam(teamName.trim());
+        await registerTeam(teamName.trim(), gameCode);
         // Always navigate to player/mascot since that's the correct route
         navigate('/player/mascot');
       } catch (error) {
@@ -85,11 +87,12 @@ const JoinPage: React.FC = () => {
   // Mock function to simulate scanning a code
   const mockScanCompleted = () => {
     closeScanner();
-    // Navigate to join with code
-    alert('QR kod uspešno skeniran! Bićete preusmereni na stranicu za unos imena tima.');
     
     // In a real implementation, you would parse the QR code value
-    // and navigate to the appropriate page or set game state
+    // and extract the game code
+    const mockGameCode = "GAME" + Math.floor(Math.random() * 10000);
+    setGameCode(mockGameCode);
+    setQrScanned(true);
   };
 
   return (
@@ -128,8 +131,13 @@ const JoinPage: React.FC = () => {
             </div>
           </div>
         </div>
-      ) : (
+      ) : qrScanned ? (
         <>
+          <div className="w-full max-w-md mb-6 text-center">
+            <h2 className="text-primary font-bold text-2xl mb-2 font-basteleur">Kod igre: {gameCode}</h2>
+            <p className="text-primary">Uspešno ste skenirali QR kod. Unesite ime vašeg tima da biste se pridružili kvizu.</p>
+          </div>
+          
           <form onSubmit={handleSubmit} className="w-full max-w-md">
             <div className="mb-6">
               <label htmlFor="teamName" className="block text-primary mb-2 font-bold text-3xl text-center font-basteleur">
@@ -151,20 +159,28 @@ const JoinPage: React.FC = () => {
               <span className="font-caviar">{isLoading ? 'učitavanje...' : 'pridruži se kvizu'}</span>
             </MainButton>
           </form>
-          
-          <div className="mt-8 w-full max-w-md">
-            <button 
-              onClick={handleScanQRCode}
-              className="w-full p-3 bg-secondary text-white rounded-lg font-bold font-caviar flex items-center justify-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              Skeniraj QR kod
-            </button>
-          </div>
         </>
+      ) : (
+        <div className="w-full max-w-md flex flex-col items-center justify-center">
+          <h2 className="text-primary font-bold text-3xl mb-8 text-center font-basteleur">
+            Pridruži se FONIS kvizu
+          </h2>
+          
+          <button 
+            onClick={handleScanQRCode}
+            className="w-full p-4 bg-secondary text-white rounded-lg font-bold font-caviar flex items-center justify-center text-xl"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Skeniraj QR kod
+          </button>
+          
+          <p className="mt-4 text-primary text-center">
+            Skenirajte QR kod koji je prikazan na glavnom ekranu da biste se pridružili kvizu
+          </p>
+        </div>
       )}
     </div>
   );

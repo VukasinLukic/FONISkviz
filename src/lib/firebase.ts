@@ -36,6 +36,7 @@ export interface Team {
   points: number;
   joinedAt: number;
   isActive: boolean;
+  gameCode?: string; // Optional game code for connecting to specific games
 }
 
 export interface Question {
@@ -57,9 +58,10 @@ export interface Game {
   currentRound: number;
   currentQuestion: string | null;
   currentCategory: string;
-  status: 'waiting' | 'question' | 'answering' | 'results' | 'leaderboard' | 'finished';
+  status: 'waiting' | 'question' | 'answering' | 'results' | 'leaderboard' | 'finished' | 'category';
   totalRounds: number;
   startedAt: number | null;
+  gameCode?: string; // Optional game code for identifying games
 }
 
 export interface Answer {
