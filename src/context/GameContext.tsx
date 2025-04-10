@@ -152,18 +152,18 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     }
     
     // Handle showing results
-    if (gameState.status === 'results' && currentPath !== 'player/results') {
-      navigate('/player/results');
+    if (gameState.status === 'results' && currentPath !== 'player/answers') {
+      navigate('/player/answers');
     }
     
     // Handle leaderboard
-    if (gameState.status === 'leaderboard' && currentPath !== 'player/leaderboard') {
-      navigate('/player/leaderboard');
+    if (gameState.status === 'leaderboard' && currentPath !== 'player/team-points') {
+      navigate('/player/team-points');
     }
     
     // Handle game end
-    if (gameState.status === 'finished' && currentPath !== 'player/finished') {
-      navigate('/player/finished');
+    if (gameState.status === 'finished' && currentPath !== 'player/winners') {
+      navigate('/player/winners');
     }
     
   }, [

@@ -24,7 +24,18 @@ import useDeviceDetection from './lib/useDeviceDetection';
 // Device detection component for the root route
 const DeviceRedirect = () => {
   const { isMobile } = useDeviceDetection();
-  return <Navigate to={isMobile ? "/player" : "/admin"} replace />;
+  
+  // If user has already registered as a team, send them to waiting
+  const hasTeam = localStorage.getItem('teamId') && localStorage.getItem('gameCode');
+  
+  if (isMobile) {
+    if (hasTeam) {
+      return <Navigate to="/player/waiting" replace />;
+    }
+    return <Navigate to="/player" replace />;
+  }
+  
+  return <Navigate to="/admin" replace />;
 };
 
 // Error boundary component
@@ -194,6 +205,12 @@ const router = createBrowserRouter([
       {
         path: 'test',
         element: <TestPage />,
+      },
+      
+      // Catch-all route for any undefined paths
+      {
+        path: '*',
+        element: <DeviceRedirect />
       }
     ]
   }

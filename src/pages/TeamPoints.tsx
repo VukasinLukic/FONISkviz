@@ -9,22 +9,26 @@ const TeamPoints: React.FC = () => {
   const location = useLocation();
   
   const isPlayerRoute = location.pathname.startsWith('/player');
-  const currentTeam = gameState.currentTeam;
+  
+  // Get team data from gameState 
+  const teamName = gameState.teamName || "Your Team";
+  const points = gameState.points || 0;
+  const mascotId = gameState.mascotId || 0;
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (isPlayerRoute) {
-        navigate('/player/answers');
+        navigate('/player/category');
       } else {
-        navigate('/answers');
+        navigate('/admin/category');
       }
     }, 10000);
     
     return () => clearTimeout(timer);
   }, [navigate, isPlayerRoute]);
 
-  if (!currentTeam) {
-    // Redirect to join page if no team
+  // If not registered, redirect to join page
+  if (!gameState.isRegistered) {
     navigate(isPlayerRoute ? '/player' : '/');
     return null;
   }
@@ -33,17 +37,17 @@ const TeamPoints: React.FC = () => {
     <div className="min-h-screen bg-tertiarygreen p-4 flex flex-col items-center justify-center">
       <div className="mb-8 text-center">
         <h1 className="text-primary text-2xl font-bold mb-2 font-basteleur">
-          {currentTeam.name}
+          {teamName}
         </h1>
         <p className="text-primary text-xl font-caviar">
-          Osvojili ste {currentTeam.points} poena!
+          Osvojili ste {points} poena!
         </p>
       </div>
       
-      {currentTeam.mascotId > 0 && !imageError ? (
+      {mascotId > 0 && !imageError ? (
         <img 
-          src={`/assets/maskota${currentTeam.mascotId} 1.svg`}
-          alt={`Maskota tima ${currentTeam.name}`}
+          src={`/assets/maskota${mascotId} 1.svg`}
+          alt={`Maskota tima ${teamName}`}
           className="w-64 h-64 object-contain"
           onError={() => setImageError(true)}
         />
@@ -54,10 +58,10 @@ const TeamPoints: React.FC = () => {
       )}
       
       <div className="mt-8 text-primary">
-        <p className="font-caviar">Ukupno poena: {currentTeam.points}</p>
+        <p className="font-caviar">Ukupno poena: {points}</p>
         {import.meta.env.DEV && (
           <p className="text-sm text-primary mt-2 font-caviar">
-            Debug: Mascot ID = {currentTeam.mascotId}
+            Debug: Mascot ID = {mascotId}
           </p>
         )}
       </div>
