@@ -15,6 +15,25 @@ const JoinPage: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   
+  // Resetovanje stanja pri učitavanju komponente
+  useEffect(() => {
+    // Automatski resetujemo stanje igre pri svakom učitavanju JoinPage-a
+    resetGame();
+    
+    // Reset lokalnog stanja komponente
+    setQrScanned(false);
+    setGameCode('');
+    setTeamName('');
+    setError(null);
+    
+    // Automatski otvaramo QR skener na mobilnim uređajima
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+      // Kratka odgoda da bismo osigurali da su elementi već renderirani
+      setTimeout(() => setShowScanner(true), 300);
+    }
+  }, [resetGame]);
+  
   // Function to handle resetting the game state
   const handleReset = () => {
     resetGame();
@@ -155,6 +174,37 @@ const JoinPage: React.FC = () => {
       setQrScanned(true);
     }
   };
+
+  // Automatska provera i čišćenje localStorage
+  useEffect(() => {
+    // Provera da li postoje stari podaci koje treba očistiti
+    const shouldCleanStorage = () => {
+      const lastUpdated = localStorage.getItem('lastUpdated');
+      const savedTeamId = localStorage.getItem('teamId');
+      const savedGameCode = localStorage.getItem('gameCode');
+      
+      if (!lastUpdated || !savedTeamId || !savedGameCode) {
+        return false; // Nema podataka za čišćenje
+      }
+      
+      try {
+        const timestamp = parseInt(lastUpdated, 10);
+        const now = Date.now();
+        const maxAge = 24 * 60 * 60 * 1000; // 24h
+        
+        // Ako imamo stare podatke ili nepotpune podatke
+        return isNaN(timestamp) || now - timestamp > maxAge;
+      } catch (e) {
+        return true; // U slučaju greške, očistimo podatke
+      }
+    };
+    
+    // Ako se nalazimo na JoinPage-u i imamo stare podatke, resetujemo stanje
+    if (location.pathname === '/player' && shouldCleanStorage()) {
+      console.log('Čistim stare localStorage podatke...');
+      resetGame();
+    }
+  }, [resetGame, location.pathname]);
 
   return (
     <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">

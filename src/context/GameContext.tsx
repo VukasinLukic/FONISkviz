@@ -14,6 +14,11 @@ import {
 } from '../lib/firebase';
 import { ref, onValue, off, update, get, push, serverTimestamp } from 'firebase/database';
 
+// Konstanta za verziju igre - menjati kad god se promeni struktura lokalnih podataka
+const GAME_VERSION = "1.0.1";
+// Maksimalno vreme za koje se smatra da je tim "svež" (24h u milisekundama)
+const MAX_TEAM_FRESHNESS = 24 * 60 * 60 * 1000;
+
 type GameState = {
   teamId: string | null;
   teamName: string;
@@ -78,6 +83,49 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Funkcija za proveru validnosti podataka u localStorage
+  const validateLocalStorageData = (): boolean => {
+    const savedVersion = localStorage.getItem('gameVersion');
+    const savedTimestamp = localStorage.getItem('lastUpdated');
+    const savedTeamId = localStorage.getItem('teamId');
+    const savedGameCode = localStorage.getItem('gameCode');
+    
+    // Provera verzije aplikacije
+    if (!savedVersion || savedVersion !== GAME_VERSION) {
+      console.log('Verzija igre je promenjena, resetujem localStorage');
+      return false;
+    }
+    
+    // Provera svežine podataka
+    if (savedTimestamp) {
+      const lastUpdated = parseInt(savedTimestamp, 10);
+      const now = Date.now();
+      
+      // Ako su podaci stariji od MAX_TEAM_FRESHNESS, poništi ih
+      if (now - lastUpdated > MAX_TEAM_FRESHNESS) {
+        console.log('Podaci su zastareli, resetujem localStorage');
+        return false;
+      }
+    } else {
+      // Ako nema timestamp-a, podaci nisu validni
+      return false;
+    }
+    
+    // Provera neophodnih podataka
+    if (!savedTeamId || !savedGameCode) {
+      return false;
+    }
+    
+    return true;
+  };
+  
+  // Funkcija za čuvanje podataka u localStorage sa timestamp-om
+  const saveToLocalStorage = (key: string, value: string) => {
+    localStorage.setItem(key, value);
+    localStorage.setItem('lastUpdated', Date.now().toString());
+    localStorage.setItem('gameVersion', GAME_VERSION);
+  };
 
   // Listen for game state changes
   useEffect(() => {
@@ -179,6 +227,13 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   
   // If player has teamId saved, check if it's still valid and load team data
   useEffect(() => {
+    // Provera i validacija podataka iz localStorage
+    if (!validateLocalStorageData()) {
+      console.log('Podaci u localStorage nisu validni, resetujem...');
+      resetGame();
+      return;
+    }
+    
     const savedTeamId = localStorage.getItem('teamId');
     const savedGameCode = localStorage.getItem('gameCode');
     
@@ -202,6 +257,10 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
                 gameCode: savedGameCode
               }));
               
+              // Osvežavanje timestamp-a za validne podatke
+              saveToLocalStorage('teamId', savedTeamId);
+              saveToLocalStorage('gameCode', savedGameCode);
+              
               // Listen for changes to this team
               const teamListener = onValue(ref(db, `teams/${savedTeamId}`), (teamSnapshot) => {
                 if (teamSnapshot.exists()) {
@@ -211,6 +270,12 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
                     points: updatedTeam.points,
                     mascotId: updatedTeam.mascotId,
                   }));
+                  
+                  // Osvežavanje timestamp-a pri svakom ažuriranju tima
+                  saveToLocalStorage('lastUpdated', Date.now().toString());
+                } else {
+                  // Tim više ne postoji, obrišimo podatke
+                  resetGame();
                 }
               });
               
@@ -219,17 +284,16 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
               };
             } else {
               // Team exists but doesn't match the current game
-              localStorage.removeItem('teamId');
-              localStorage.removeItem('gameCode');
+              resetGame();
             }
           } else {
             // Team doesn't exist anymore
-            localStorage.removeItem('teamId');
-            localStorage.removeItem('gameCode');
+            resetGame();
           }
         })
         .catch(error => {
           console.error('Error verifying team:', error);
+          resetGame();
         })
         .finally(() => {
           setLoading(false);
@@ -300,9 +364,10 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         gameCode: gameCode // Add gameCode to the local state as well
       }));
       
-      // Save to localStorage for persistence
-      localStorage.setItem('teamId', teamId);
-      localStorage.setItem('gameCode', gameCode); // Store gameCode in localStorage
+      // Save to localStorage for persistence with timestamp
+      saveToLocalStorage('teamId', teamId);
+      saveToLocalStorage('gameCode', gameCode);
+      saveToLocalStorage('teamName', name);
       
       console.log(`Team registered: ${name} (ID: ${teamId}, Game: ${gameCode})`);
       
@@ -327,6 +392,9 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         ...prev,
         points: newPoints
       }));
+      
+      // Osvežavanje timestamp-a
+      saveToLocalStorage('lastUpdated', Date.now().toString());
     } catch (error) {
       console.error('Error updating points:', error);
       throw error;
@@ -379,7 +447,10 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         mascotId: newMascotId
       }));
       
-      console.log(`Local state updated: mascotId=${newMascotId}`);
+      // Osvežavanje timestamp-a
+      saveToLocalStorage('lastUpdated', Date.now().toString());
+      
+      console.log('Mascot update complete and verified');
     } catch (error) {
       console.error('Error updating mascot:', error);
       throw error;
@@ -392,10 +463,15 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     // Clear localStorage
     localStorage.removeItem('teamId');
     localStorage.removeItem('gameCode');
+    localStorage.removeItem('teamName');
+    localStorage.removeItem('lastUpdated');
+    localStorage.removeItem('gameVersion');
     
     // Reset state
     setGameState(defaultGameState);
     setSubmittedAnswer(false);
+    
+    console.log('Game state reset successfully');
   };
   
   const submitAnswer = async (questionId: string, answer: string): Promise<void> => {
@@ -411,6 +487,9 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       
       await push(answersRef, newAnswer);
       setSubmittedAnswer(true);
+      
+      // Osvežavanje timestamp-a
+      saveToLocalStorage('lastUpdated', Date.now().toString());
     } catch (error) {
       console.error('Error submitting answer:', error);
       throw error;

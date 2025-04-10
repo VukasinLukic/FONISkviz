@@ -25,13 +25,20 @@ import useDeviceDetection from './lib/useDeviceDetection';
 const DeviceRedirect = () => {
   const { isMobile } = useDeviceDetection();
   
-  // Always redirect mobile users to the /player route initially.
-  // The JoinPage and GameContext will handle further redirection based on actual state.
+  // Za mobilne uređaje, uvek idi na početni ekran za skeniranje QR koda
   if (isMobile) {
+    // Obrišimo lokalne podatke da bi se sprečila automatska redirekcija
+    localStorage.removeItem('teamId');
+    localStorage.removeItem('gameCode');
+    localStorage.removeItem('teamName');
+    localStorage.removeItem('lastUpdated');
+    localStorage.removeItem('gameVersion');
+    localStorage.removeItem('latestGameCode');
+    
     return <Navigate to="/player" replace />;
   }
   
-  // Desktop users go to admin
+  // Desktop korisnici uvek idu na admin panel
   return <Navigate to="/admin" replace />;
 };
 
