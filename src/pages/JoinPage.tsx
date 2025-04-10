@@ -15,6 +15,48 @@ const JoinPage: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   
+  // Proveravamo inicijalno da li smo na pravoj ruti za mobilni uređaj
+  useEffect(() => {
+    // Pouzdana detekcija mobilnog uređaja
+    const isMobileByUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(
+      navigator.userAgent
+    );
+    
+    const isMobileByScreenSize = window.innerWidth <= 768;
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const isMobile = isMobileByUserAgent || (isMobileByScreenSize && isPortrait);
+    
+    console.log("JoinPage detekcija:", { isMobileByUserAgent, isMobileByScreenSize, isPortrait, isMobile });
+    
+    // Ako smo mobilni uređaj ali nismo na player ruti, redirektuj
+    if (isMobile && location.pathname !== '/player') {
+      console.log("Mobilni uređaj na pogrešnoj ruti, redirektovanje na /player...");
+      // Resetuj stanje i forsiraj redirekciju
+      resetGame();
+      localStorage.removeItem('teamId');
+      localStorage.removeItem('gameCode');
+      window.location.href = '/player';
+      return;
+    }
+    
+    // Ako smo desktop na player ruti, redirektuj na admin
+    if (!isMobile && location.pathname === '/player') {
+      console.log("Desktop uređaj na player ruti, redirektovanje na /admin...");
+      window.location.href = '/admin';
+      return;
+    }
+    
+    // Posebno za mobilne uređaje, uvek prikaži QR skener ako smo na pravoj ruti
+    if (isMobile && location.pathname === '/player') {
+      // Automatski otvaramo QR skener na mobilnim uređajima
+      // Kratka odgoda da bismo osigurali da su elementi već renderirani
+      setTimeout(() => {
+        console.log("Automatsko pokretanje QR skenera za mobilni uređaj");
+        setShowScanner(true);
+      }, 300);
+    }
+  }, [location.pathname, resetGame]);
+  
   // Resetovanje stanja pri učitavanju komponente
   useEffect(() => {
     // Automatski resetujemo stanje igre pri svakom učitavanju JoinPage-a

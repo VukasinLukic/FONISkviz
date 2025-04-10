@@ -23,7 +23,28 @@ import useDeviceDetection from './lib/useDeviceDetection';
 
 // Device detection component for the root route
 const DeviceRedirect = () => {
-  const { isMobile } = useDeviceDetection();
+  // Pouzdana detekcija mobilnog uređaja preko više metoda
+  const isMobileByUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(
+    navigator.userAgent
+  );
+  
+  const isMobileByScreenSize = window.innerWidth <= 768;
+  
+  // Provera orijentacije uređaja (portrait je često mobilni)
+  const isPortrait = window.innerHeight > window.innerWidth;
+  
+  // Kombinovanje različitih signala za precizniju detekciju
+  const isMobile = isMobileByUserAgent || (isMobileByScreenSize && isPortrait);
+  
+  // Sačuvaj tip uređaja u localStorage da bi znali ako nešto pođe po zlu
+  localStorage.setItem('deviceType', isMobile ? 'mobile' : 'desktop');
+  
+  console.log("Detekcija uređaja:", { 
+    isMobileByUserAgent, 
+    isMobileByScreenSize, 
+    isPortrait, 
+    finalDecision: isMobile 
+  });
   
   // Za mobilne uređaje, uvek idi na početni ekran za skeniranje QR koda
   if (isMobile) {
@@ -35,6 +56,7 @@ const DeviceRedirect = () => {
     localStorage.removeItem('gameVersion');
     localStorage.removeItem('latestGameCode');
     
+    // Obavezno redirektujemo na player rutu
     return <Navigate to="/player" replace />;
   }
   
