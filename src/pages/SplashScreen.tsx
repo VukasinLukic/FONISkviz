@@ -1,77 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-// import AnimatedBackground from '../components/AnimatedBackground'; // Removed
+import { motion } from 'framer-motion';
+import { useQuizAdmin } from '../lib/useQuizAdmin';
+import MainButton from '../components/MainButton';
 
 const SplashScreen = () => {
   const navigate = useNavigate();
   const [logoAnimationComplete, setLogoAnimationComplete] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
-  // const [bgColor, setBgColor] = useState("bg-accent"); // Removed - Layout handles bg
+  const { createNewGame, loading } = useQuizAdmin();
   
-  // Navigation effect - Simplified
-  useEffect(() => {
-    if (logoAnimationComplete) {
-      const timer = setTimeout(() => {
-        setIsExiting(true); // Trigger exit animation
-        
-        // Navigate after a delay for the animation
-        setTimeout(() => {
-          navigate('/admin/qrcode', { state: { fromSplash: true } });
-        }, 800); // Delay for exit animation
-      }, 1500); // Shorter wait before exiting
-      
-      return () => clearTimeout(timer);
-    }
-  }, [logoAnimationComplete, navigate]);
+  const handleCreateGame = async () => {
+    await createNewGame();
+  };
 
   return (
     <motion.div
-      // Removed background color class - Layout handles bg
-      className={`min-h-screen overflow-hidden relative flex items-center justify-center`} 
+      className={`min-h-screen overflow-hidden relative flex flex-col items-center justify-center bg-accent`} 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }} // Simple fade out for the whole page container
+      exit={{ opacity: 0 }}
       transition={{ duration: 0.7 }}
     >
       {/* Logo */}
       <motion.div 
-        className="absolute inset-0 flex items-center justify-center z-20"
+        className="flex items-center justify-center mb-12 z-20"
         initial={{ opacity: 0 }}
-        animate={{ 
-          opacity: isExiting ? 0 : 1,
-          scale: isExiting ? 0.8 : 1
-        }}
-        transition={{ 
-          opacity: { duration: 0.7 },
-          scale: { duration: 0.7 } 
-        }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.7 }}
       >
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ 
-            scale: logoAnimationComplete ? 1.05 : 1,
-            opacity: isExiting ? 0 : 1 // Fade out logo on exit
-          }}
+          animate={{ scale: 1, opacity: 1 }}
           transition={{ 
-            scale: { 
-              duration: 1.2, 
-              ease: "easeOut",
-              repeat: logoAnimationComplete ? 1 : 0,
-              repeatType: "reverse" 
-            },
+            scale: { duration: 1.2, ease: "easeOut" },
             opacity: { duration: 0.7 }
           }}
           onAnimationComplete={() => {
-            if (!logoAnimationComplete) {
-              setLogoAnimationComplete(true);
-            }
+            setLogoAnimationComplete(true);
           }}
         >
           <img
             src="/assets/logo.svg"
             alt="FONIS Quiz Logo"
-            className="w-64 h-64 md:w-80 md:h-80 object-contain"
+            className="w-64 h-64 md:w-72 md:h-72 object-contain"
             onError={(e) => {
               // If image fails to load, show a fallback
               const target = e.currentTarget;
@@ -103,21 +74,23 @@ const SplashScreen = () => {
         </motion.div>
       </motion.div>
       
-      {/* Background elements - REMOVED - Layout handles background */}
-      {/* {logoAnimationComplete && (
+      {/* Admin Controls */}
+      {logoAnimationComplete && (
         <motion.div
-          className="absolute inset-0 z-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
+          className="flex flex-col gap-4 w-full max-w-md px-4 z-20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <AnimatedBackground 
-            density="medium" 
-            color={bgColor === "bg-accent" ? "accent" : "primary"}
-            animated={true}
-          />
+          <MainButton 
+            onClick={handleCreateGame}
+            disabled={loading}
+            className="bg-secondary hover:bg-secondary/90 text-white py-4 text-lg"
+          >
+            {loading ? 'Kreiranje igre...' : 'Kreiraj novu igru'}
+          </MainButton>
         </motion.div>
-      )} */}
+      )}
     </motion.div>
   );
 };

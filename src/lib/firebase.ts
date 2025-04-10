@@ -36,20 +36,22 @@ export interface Team {
   points: number;
   joinedAt: number;
   isActive: boolean;
+  gameCode?: string; // Optional game code for connecting to specific games
 }
 
 export interface Question {
   id: string;
   text: string;
-  options: { 
+  options: {
     A: string;
-    B: string; 
-    C: string; 
+    B: string;
+    C: string;
     D: string;
   };
-  correctAnswer: 'A' | 'B' | 'C' | 'D';
+  correctAnswer: string;
   category: string;
-  timeLimit: number;
+  points?: number;
+  timeLimit?: number;
 }
 
 export interface Game {
@@ -57,9 +59,10 @@ export interface Game {
   currentRound: number;
   currentQuestion: string | null;
   currentCategory: string;
-  status: 'waiting' | 'question' | 'answering' | 'results' | 'leaderboard' | 'finished';
+  status: 'waiting' | 'question' | 'answering' | 'results' | 'leaderboard' | 'finished' | 'category';
   totalRounds: number;
   startedAt: number | null;
+  gameCode?: string; // Optional game code for identifying games
 }
 
 export interface Answer {

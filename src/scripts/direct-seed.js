@@ -7,5 +7,10 @@
 require('dotenv').config();
 
 // Run the TypeScript seed file using ts-node
-require('ts-node').register();
+require('ts-node').register({
+  transpileOnly: true,
+  compilerOptions: {
+    module: 'commonjs'
+  }
+});
 require('./seed-questions.ts'); 

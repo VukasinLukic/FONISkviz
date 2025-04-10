@@ -79,19 +79,49 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
   const [timeLeft, setTimeLeft] = useState(isPlayerRoute ? 20 : 10); // 20s for players to answer, 10s for admin results
   const [progress, setProgress] = useState(100);
   
-  // Mock current question (would come from context in real app)
-  const currentQuestion = {
-    id: '1',
-    text: 'Which is the capital of Serbia?',
-    category: gameState.currentCategory || 'Geography',
-    answers: [
-      { id: 'A', text: 'Zagreb' },
-      { id: 'B', text: 'Belgrade' },
-      { id: 'C', text: 'Skopje' },
-      { id: 'D', text: 'Sarajevo' }
-    ],
-    correctAnswer: 'B'
-  };
+  // Set of possible questions to show if no real question is available
+  const defaultQuestions = [
+    {
+      id: '1',
+      text: 'Koji je glavni grad Srbije?',
+      category: 'Geografija',
+      options: {
+        A: 'Zagreb',
+        B: 'Beograd', 
+        C: 'Skopje',
+        D: 'Sarajevo'
+      },
+      correctAnswer: 'B'
+    },
+    {
+      id: '2',
+      text: 'Ko je napisao roman "Na Drini ćuprija"?',
+      category: 'Književnost',
+      options: {
+        A: 'Mesa Selimović',
+        B: 'Branislav Nušić',
+        C: 'Ivo Andrić',
+        D: 'Dobrica Ćosić'
+      },
+      correctAnswer: 'C'
+    },
+    {
+      id: '3',
+      text: 'Koji element ima hemijski simbol "O"?',
+      category: 'Nauka',
+      options: {
+        A: 'Zlato',
+        B: 'Kiseonik',
+        C: 'Olovo',
+        D: 'Vodonik'
+      },
+      correctAnswer: 'B'
+    }
+  ];
+  
+  // Get a random question from default questions if no real question is available
+  const randomIndex = Math.floor(Math.random() * defaultQuestions.length);
+  const currentQuestion = gameState.currentQuestion || defaultQuestions[randomIndex];
   
   // Mock team answers for admin view (would come from Firebase in real app)
   const teamAnswers: TeamAnswer[] = [
@@ -203,25 +233,25 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
                   className="grid grid-cols-2 gap-4 w-full max-w-md"
                   variants={itemVariants}
                 >
-                  {currentQuestion.answers.map((answer) => (
+                  {Object.entries(currentQuestion.options).map(([id, text]) => (
                     <motion.button
-                      key={answer.id}
+                      key={id}
                       className={`p-6 rounded-xl text-white font-bold text-xl flex items-center justify-center shadow-lg transition-all
-                        ${selectedAnswer === answer.id ? 'ring-4 ring-white' : ''}
-                        ${answer.id === 'A' ? 'bg-highlight hover:bg-opacity-90' : 
-                          answer.id === 'B' ? 'bg-secondary hover:bg-opacity-90' : 
-                          answer.id === 'C' ? 'bg-special hover:bg-opacity-90' : 
+                        ${selectedAnswer === id ? 'ring-4 ring-white' : ''}
+                        ${id === 'A' ? 'bg-highlight hover:bg-opacity-90' : 
+                          id === 'B' ? 'bg-secondary hover:bg-opacity-90' : 
+                          id === 'C' ? 'bg-special hover:bg-opacity-90' : 
                           'bg-accent hover:bg-opacity-90'}
                       `}
-                      onClick={() => handleAnswerSelect(answer.id)}
+                      onClick={() => handleAnswerSelect(id)}
                       variants={cardVariants}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <span className="mr-3 bg-white bg-opacity-20 w-9 h-9 flex items-center justify-center rounded-full">
-                        {answer.id}
+                        {id}
                       </span>
-                      <span className="font-caviar">{answer.text}</span>
+                      <span className="font-caviar">{text}</span>
                     </motion.button>
                   ))}
                 </motion.div>
@@ -262,7 +292,9 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
                   variants={itemVariants}
                 >
                   <h2 className="text-2xl font-bold text-accent mb-2 font-caviar">
-                    Tačan odgovor: <span className="text-highlight">{currentQuestion.answers.find(a => a.id === currentQuestion.correctAnswer)?.text}</span>
+                    Tačan odgovor: <span className="text-highlight">
+                      {currentQuestion.options[currentQuestion.correctAnswer as keyof typeof currentQuestion.options]}
+                    </span>
                   </h2>
                   
                   {/* Decorative divider */}
@@ -336,8 +368,8 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = '/assets/maskota1 1.svg';
                               }}
-        />
-      </div>
+                            />
+                          </div>
                           <span className="font-caviar font-medium text-white flex-1">
                             {team.name}
                           </span>

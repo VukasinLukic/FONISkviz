@@ -4,6 +4,8 @@ import QRCode from 'react-qr-code';
 import { motion, AnimatePresence } from 'framer-motion';
 import TextReveal from '../components/TextReveal';
 import Logo from '../components/Logo';
+import { useQuizAdmin } from '../lib/useQuizAdmin';
+import AnimatedBackground from '../components/AnimatedBackground';
 
 interface QRCodePageProps {}
 
@@ -68,15 +70,16 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
   const location = useLocation();
   const [loaded, setLoaded] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const { gameState, teams } = useQuizAdmin();
   
   // Check if we're coming from the splash screen
   const fromSplash = location.state?.fromSplash || false;
   
-  // Game code for the current session
-  const [gameCode] = useState('FONIS123');
+  // Game code from the actual game state
+  const gameCode = gameState?.gameCode || 'LOADING';
   
-  // Full URL for joining the game
-  const joinUrl = `${window.location.origin}/player?code=${gameCode}`;
+  // Full URL for joining the game - now pointing to the join page without code
+  const joinUrl = `${window.location.origin}/player`;
 
   // Use loaded state to trigger initial animation
   useEffect(() => {
@@ -91,8 +94,10 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
   
   return (
     <motion.div 
-      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4"
+      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4 bg-primary"
     >
+      <AnimatedBackground density="medium" color="primary" />
+      
       {/* Logo at top */}
       <motion.div 
         className="absolute top-6 left-6 z-40"
@@ -111,7 +116,7 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
         {loaded && !isExiting && (
           <motion.div
             key="qr-content" // Key is needed for AnimatePresence
-            className="flex flex-col items-center justify-center w-full h-full pt-20 pb-10"
+            className="flex flex-col items-center justify-center w-full h-full pt-20 pb-10 z-30"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -188,7 +193,7 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
                 delay={0} // Delay handled by stagger
               />
               <TextReveal
-                text="da biste se pridružili kvizu"
+                text="zatim unesite kod igre da biste se pridružili kvizu"
                 className="text-center text-accent mb-1 opacity-90 text-sm"
                 duration={0.6}
                 delay={0.1} // Slight delay for second line
@@ -232,7 +237,11 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
             {/* Connected players indicator */}
             <motion.div className="mt-1 flex items-center text-accent z-30" variants={itemVariants}>
               <div className="h-2 w-2 rounded-full bg-highlight animate-pulse mr-2"></div>
-              <span className="text-xs opacity-80">4 teams connected</span>
+              <span className="text-xs opacity-80">
+                {teams.length === 0 
+                  ? "Waiting for teams to connect" 
+                  : `${teams.length} ${teams.length === 1 ? 'team' : 'teams'} connected`}
+              </span>
             </motion.div>
           </motion.div>
         )}

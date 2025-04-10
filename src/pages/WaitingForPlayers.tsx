@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useGameContext } from '../context/GameContext';
+import { motion } from 'framer-motion';
+import Logo from '../components/Logo';
+import AnimatedBackground from '../components/AnimatedBackground';
 
 const WaitingForPlayers: React.FC = () => {
   const [dots, setDots] = useState('');
@@ -10,9 +13,8 @@ const WaitingForPlayers: React.FC = () => {
   const location = useLocation();
   
   const isPlayerRoute = location.pathname.startsWith('/player');
-  const currentTeam = gameState.currentTeam;
 
-  // Simuliramo animaciju tačkica za čekanje
+  // Animate loading dots
   useEffect(() => {
     const interval = setInterval(() => {
       setDots(prev => (prev.length >= 3 ? '' : prev + '.'));
@@ -20,56 +22,133 @@ const WaitingForPlayers: React.FC = () => {
     
     return () => clearInterval(interval);
   }, []);
-  
-  // Auto-navigacija nakon što su svi timovi spremni (simulacija)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isPlayerRoute) {
-        navigate('/player/quiz-starting');
-      } else {
-        navigate('/quiz-starting');
-      }
-    }, 10000); // 10 sekundi čekanja
-    
-    return () => clearTimeout(timer);
-  }, [navigate, isPlayerRoute]);
 
-  // Ako nema izabranog tima, preusmeravamo na početnu stranicu
-  if (!currentTeam) {
-    navigate(isPlayerRoute ? '/player' : '/');
-    return null;
-  }
+  // If no team info, redirect to the join page
+  useEffect(() => {
+    if (!gameState.teamId || !gameState.isRegistered) {
+      navigate(isPlayerRoute ? '/player' : '/');
+    }
+  }, [gameState.teamId, gameState.isRegistered, navigate, isPlayerRoute]);
+
+  const getMascotPath = (mascotId: number) => {
+    return `/assets/maskota${mascotId} 1.svg`;
+  };
 
   return (
-    <div className="min-h-screen bg-tertiarypink p-4 flex flex-col items-center justify-center">
-      <h1 className="text-primary text-5xl font-bold mb-4 font-basteleur">
-        {currentTeam.name}
-      </h1>
+    <div className="min-h-screen bg-primary p-4 flex flex-col items-center justify-center relative overflow-hidden">
+      <AnimatedBackground density="medium" />
       
-      <div className="mb-8 text-center">
-        <p className="text-primary text-xl font-caviar">
-          čekamo ostale timove{dots}
-        </p>
-      </div>
+      <motion.div
+        className="z-30 absolute top-6 left-6"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Logo size="small" />
+      </motion.div>
       
-      {currentTeam.mascotId > 0 && !imageError ? (
-        <img 
-          src={`/assets/maskota${currentTeam.mascotId} 1.svg`}
-          alt={`Maskota tima ${currentTeam.name}`}
-          className="w-64 h-64 object-contain"
-          onError={() => setImageError(true)}
-        />
-      ) : (
-        <div className="w-64 h-64 bg-secondary bg-opacity-20 rounded-full flex items-center justify-center">
-          <p className="text-primary text-xl font-caviar">?</p>
-        </div>
+      {/* Game code display */}
+      {gameState.gameCode && (
+        <motion.div
+          className="z-30 absolute top-6 right-6 bg-secondary text-white px-4 py-2 rounded-lg"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          Game Code: {gameState.gameCode}
+        </motion.div>
       )}
       
-      {import.meta.env.DEV && (
-        <p className="text-sm text-primary mt-4 font-caviar">
-          Debug: Mascot ID = {currentTeam.mascotId}
-        </p>
-      )}
+      <motion.div 
+        className="z-20 flex flex-col items-center"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.h1 
+          className="text-4xl md:text-5xl font-bold text-accent mb-6 font-mainstay text-center"
+          initial={{ y: -20 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          {gameState.teamName}
+        </motion.h1>
+        
+        <motion.div 
+          className="relative"
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          {/* Pulse effect behind mascot */}
+          <motion.div
+            className="absolute inset-0 bg-highlight rounded-full"
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.5, 0.2, 0.5]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              repeatType: "reverse"
+            }}
+            style={{ 
+              width: "100%", 
+              height: "100%",
+              zIndex: -1
+            }}
+          />
+          
+          {gameState.mascotId > 0 && !imageError ? (
+            <motion.div
+              className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center"
+              animate={{
+                y: [0, -10, 0],
+                rotate: [0, 2, 0, -2, 0]
+              }}
+              transition={{
+                y: { duration: 2, repeat: Infinity, repeatType: "reverse" },
+                rotate: { duration: 5, repeat: Infinity, repeatType: "reverse" }
+              }}
+            >
+              <img 
+                src={getMascotPath(gameState.mascotId)}
+                alt={`Team mascot`}
+                className="w-full h-full object-contain"
+                onError={() => setImageError(true)}
+              />
+            </motion.div>
+          ) : (
+            <motion.div 
+              className="w-48 h-48 md:w-64 md:h-64 bg-accent rounded-full flex items-center justify-center"
+              animate={{
+                y: [0, -10, 0]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse"
+              }}
+            >
+              <p className="text-primary text-4xl font-mainstay">?</p>
+            </motion.div>
+          )}
+        </motion.div>
+        
+        <motion.div 
+          className="mt-8 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <p className="text-accent text-xl font-caviar">
+            Waiting for the game to start{dots}
+          </p>
+          <p className="text-accent/70 text-sm mt-2">
+            The host will start the game when all teams are ready
+          </p>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

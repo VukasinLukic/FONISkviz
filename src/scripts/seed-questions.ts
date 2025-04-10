@@ -4,18 +4,18 @@ import { Question } from '../lib/firebase';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyBS5gnw4eO8jqAaCW5cNeVTjhUFMXQC140",
-  authDomain: "kahoot-clone-b8034.firebaseapp.com",
-  databaseURL: "https://kahoot-clone-b8034-default-rtdb.firebaseio.com",
-  projectId: "kahoot-clone-b8034",
-  storageBucket: "kahoot-clone-b8034.firebasestorage.app",
-  messagingSenderId: "486709016032",
-  appId: "1:486709016032:web:699b6739bab04f22782785",
-  measurementId: "G-JQVLMKD96K"
+  apiKey: process.env.VITE_FIREBASE_API_KEY || "AIzaSyBS5gnw4eO8jqAaCW5cNeVTjhUFMXQC140",
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "kahoot-clone-b8034.firebaseapp.com",
+  databaseURL: process.env.VITE_FIREBASE_DATABASE_URL || "https://kahoot-clone-b8034-default-rtdb.firebaseio.com",
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "kahoot-clone-b8034",
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "kahoot-clone-b8034.firebasestorage.app",
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "486709016032",
+  appId: process.env.VITE_FIREBASE_APP_ID || "1:486709016032:web:699b6739bab04f22782785",
+  measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID || "G-JQVLMKD96K"
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig, 'seed-app');
 const db = getDatabase(app);
 
 // Sample questions
@@ -230,7 +230,7 @@ const questions: Omit<Question, 'id'>[] = [
 ];
 
 // Seed function
-async function seedQuestions() {
+export async function seedQuestions() {
   console.log('Starting to seed questions...');
   const questionsRef = ref(db, 'questions');
   
@@ -248,7 +248,7 @@ async function seedQuestions() {
   }
   
   console.log('Questions seeded successfully!');
-  process.exit(0);
+  return true;
 }
 
 // Run the seed function

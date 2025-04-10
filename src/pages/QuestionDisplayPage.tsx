@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameContext } from '../context/GameContext';
 import AnimatedBackground from '../components/AnimatedBackground';
+import { Question } from '../lib/firebase';
 
 interface QuestionDisplayPageProps {}
 
@@ -67,45 +68,53 @@ const QuestionDisplayPage: React.FC<QuestionDisplayPageProps> = () => {
   const isPlayerRoute = location.pathname.startsWith('/player');
 
   // State
-  const [currentQuestion, setCurrentQuestion] = useState({
-    id: '1',
-    text: 'Koji od navedenih gradova je najbliži ekvatoru?',
-    category: gameState.currentCategory || 'GEOGRAFIJA',
-    answers: [
-      { id: 'A', text: 'Pariz' },
-      { id: 'B', text: 'Rio de Žaneiro' },
-      { id: 'C', text: 'Singapur' },
-      { id: 'D', text: 'Manila' }
-    ],
-    correctAnswer: 'C'
-  });
   const [timeLeft, setTimeLeft] = useState(30); // 30 seconds for question
   const [progress, setProgress] = useState(100); // Progress percentage for progress bar
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isExiting, setIsExiting] = useState(false);
+
+  // If there's no current question, use a default one instead of showing loading
+  const questionToDisplay = gameState.currentQuestion || {
+    id: '1',
+    text: 'Koji je glavni grad Srbije?',
+    options: {
+      A: 'Zagreb',
+      B: 'Beograd',
+      C: 'Skopje',
+      D: 'Sarajevo'
+    },
+    correctAnswer: 'B',
+    category: gameState.currentCategory || 'Geografija',
+    timeLimit: 30
+  };
+
+  // Initialize timer when a new question is loaded
+  useEffect(() => {
+    if (gameState.currentQuestion) {
+      // Use the timeLimit from the question or default to 30 seconds
+      const timeLimit = gameState.currentQuestion.timeLimit || 30;
+      setTimeLeft(timeLimit);
+    } else {
+      // Use the default timeLimit for our hardcoded question
+      setTimeLeft(30);
+    }
+  }, [gameState.currentQuestion]);
 
   // Timer countdown and progress bar effect
   useEffect(() => {
     if (timeLeft > 0 && !isExiting) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
-        // Update progress bar (from 100% to 0%)
-        setProgress((timeLeft - 1) * 100 / 30);
+        
+        // Calculate progress based on the original time limit
+        const timeLimit = questionToDisplay.timeLimit || 30;
+        setProgress((timeLeft - 1) * 100 / timeLimit);
       }, 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && !isExiting) {
       handleTimeExpired();
     }
-  }, [timeLeft, isExiting]);
-
-  // Initial animations
-  useEffect(() => {
-    // Update question category from gameState
-    setCurrentQuestion(prev => ({
-      ...prev,
-      category: gameState.currentCategory || prev.category
-    }));
-  }, [gameState]);
+  }, [timeLeft, isExiting, questionToDisplay.timeLimit]);
 
   // Handle answer selection
   const handleAnswerSelect = (answerId: string) => {
@@ -138,6 +147,12 @@ const QuestionDisplayPage: React.FC<QuestionDisplayPageProps> = () => {
   const formatTime = (seconds: number): string => {
     return `${Math.floor(seconds / 60)}:${seconds % 60 < 10 ? '0' : ''}${seconds % 60}`;
   };
+
+  // Convert the options object to an array for mapping
+  const answerOptions = Object.entries(questionToDisplay.options).map(([key, value]) => ({
+    id: key,
+    text: value
+  }));
 
   return (
     <div className="min-h-screen overflow-hidden relative flex flex-col items-center justify-center p-4 bg-gradient-to-br from-primary via-primary to-[#3a1106]">
@@ -181,7 +196,7 @@ const QuestionDisplayPage: React.FC<QuestionDisplayPageProps> = () => {
               variants={questionVariants}
             >
               <span className="bg-accent text-primary px-4 py-1 rounded-full text-sm font-semibold uppercase tracking-wider">
-                {currentQuestion.category}
+                {questionToDisplay.category}
               </span>
             </motion.div>
             
@@ -191,7 +206,7 @@ const QuestionDisplayPage: React.FC<QuestionDisplayPageProps> = () => {
               variants={questionVariants}
             >
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-accent font-basteleur">
-                {currentQuestion.text}
+                {questionToDisplay.text}
               </h1>
             </motion.div>
             
@@ -199,7 +214,7 @@ const QuestionDisplayPage: React.FC<QuestionDisplayPageProps> = () => {
             <motion.div 
               className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl"
             >
-              {currentQuestion.answers.map((answer) => (
+              {answerOptions.map((answer) => (
                 <motion.div
                   key={answer.id}
                   className={`

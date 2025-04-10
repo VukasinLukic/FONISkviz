@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Outlet, useRouteError, isRouteErrorResponse } from 'react-router-dom';
+import { createBrowserRouter, Outlet, useRouteError, isRouteErrorResponse, Navigate } from 'react-router-dom';
 import JoinPage from './pages/JoinPage';
 import WaitingForPlayers from './pages/WaitingForPlayers';
 import QuizStarting from './pages/QuizStarting';
@@ -18,6 +18,51 @@ import LobbyPage from './pages/LobbyPage';
 import TestPage from './pages/TestPage';
 import QuestionDisplayPage from './pages/QuestionDisplayPage';
 import AdminFlowLayout from './components/AdminFlowLayout';
+import App from './App';
+import useDeviceDetection from './lib/useDeviceDetection';
+
+// Device detection component for the root route
+const DeviceRedirect = () => {
+  // Pouzdana detekcija mobilnog uređaja preko više metoda
+  const isMobileByUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(
+    navigator.userAgent
+  );
+  
+  const isMobileByScreenSize = window.innerWidth <= 768;
+  
+  // Provera orijentacije uređaja (portrait je često mobilni)
+  const isPortrait = window.innerHeight > window.innerWidth;
+  
+  // Kombinovanje različitih signala za precizniju detekciju
+  const isMobile = isMobileByUserAgent || (isMobileByScreenSize && isPortrait);
+  
+  // Sačuvaj tip uređaja u localStorage da bi znali ako nešto pođe po zlu
+  localStorage.setItem('deviceType', isMobile ? 'mobile' : 'desktop');
+  
+  console.log("Detekcija uređaja:", { 
+    isMobileByUserAgent, 
+    isMobileByScreenSize, 
+    isPortrait, 
+    finalDecision: isMobile 
+  });
+  
+  // Za mobilne uređaje, uvek idi na početni ekran za skeniranje QR koda
+  if (isMobile) {
+    // Obrišimo lokalne podatke da bi se sprečila automatska redirekcija
+    localStorage.removeItem('teamId');
+    localStorage.removeItem('gameCode');
+    localStorage.removeItem('teamName');
+    localStorage.removeItem('lastUpdated');
+    localStorage.removeItem('gameVersion');
+    localStorage.removeItem('latestGameCode');
+    
+    // Obavezno redirektujemo na player rutu
+    return <Navigate to="/player" replace />;
+  }
+  
+  // Desktop korisnici uvek idu na admin panel
+  return <Navigate to="/admin" replace />;
+};
 
 // Error boundary component
 function ErrorBoundary() {
@@ -71,14 +116,16 @@ function DevLayout({ children }: { children: React.ReactNode }) {
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Outlet />,
+    element: <App />,
     errorElement: <ErrorBoundary />,
     children: [
-      // Player routes (no layout)
+      // Root route - redirects based on device type
       {
         index: true,
-        element: <DevLayout><JoinPage /></DevLayout>,
+        element: <DeviceRedirect />
       },
+      
+      // Player routes (no layout)
       {
         path: 'player', 
         element: <DevLayout><JoinPage /></DevLayout>,
@@ -184,6 +231,12 @@ const router = createBrowserRouter([
       {
         path: 'test',
         element: <TestPage />,
+      },
+      
+      // Catch-all route for any undefined paths
+      {
+        path: '*',
+        element: <DeviceRedirect />
       }
     ]
   }

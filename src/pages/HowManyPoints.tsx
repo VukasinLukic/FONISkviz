@@ -14,7 +14,10 @@ const HowManyPoints: React.FC<HowManyPointsProps> = () => {
   
   // Detektujemo da li smo na player/* ruti
   const isPlayerRoute = location.pathname.startsWith('/player');
-  const currentTeam = gameState.currentTeam;
+  
+  // Get team data from gameState 
+  const teamName = gameState.teamName || "Your Team";
+  const mascotId = gameState.mascotId || 0;
   
   // Auto-navigacija nakon prikazivanja poena
   useEffect(() => {
@@ -22,15 +25,15 @@ const HowManyPoints: React.FC<HowManyPointsProps> = () => {
       if (isPlayerRoute) {
         navigate('/player/team-points'); // Navigiramo ka prikazu ukupnih poena tima
       } else {
-        navigate('/team-points');
+        navigate('/admin/points');
       }
     }, 5000);
     
     return () => clearTimeout(timer);
   }, [navigate, isPlayerRoute]);
 
-  // Ako nema izabranog tima, preusmeravamo na početnu stranicu
-  if (!currentTeam) {
+  // Ako nije registrovan tim, preusmeravamo na početnu stranicu
+  if (!gameState.isRegistered) {
     navigate(isPlayerRoute ? '/player' : '/');
     return null;
   }
@@ -53,10 +56,10 @@ const HowManyPoints: React.FC<HowManyPointsProps> = () => {
         </h2>
       )}
       
-      {currentTeam.mascotId > 0 && !imageError ? (
+      {mascotId > 0 && !imageError ? (
         <img 
-          src={`/assets/maskota${currentTeam.mascotId} 1.svg`}
-          alt={`Maskota tima ${currentTeam.name}`}
+          src={`/assets/maskota${mascotId} 1.svg`}
+          alt={`Maskota tima ${teamName}`}
           className="w-64 h-64 object-contain"
           onError={() => setImageError(true)}
         />
@@ -68,7 +71,7 @@ const HowManyPoints: React.FC<HowManyPointsProps> = () => {
 
       {import.meta.env.DEV && (
         <p className="text-sm text-primary mt-4 font-caviar">
-          Debug: Mascot ID = {currentTeam?.mascotId}
+          Debug: Mascot ID = {mascotId}
         </p>
       )}
     </div>
