@@ -25,16 +25,13 @@ import useDeviceDetection from './lib/useDeviceDetection';
 const DeviceRedirect = () => {
   const { isMobile } = useDeviceDetection();
   
-  // If user has already registered as a team, send them to waiting
-  const hasTeam = localStorage.getItem('teamId') && localStorage.getItem('gameCode');
-  
+  // Always redirect mobile users to the /player route initially.
+  // The JoinPage and GameContext will handle further redirection based on actual state.
   if (isMobile) {
-    if (hasTeam) {
-      return <Navigate to="/player/waiting" replace />;
-    }
     return <Navigate to="/player" replace />;
   }
   
+  // Desktop users go to admin
   return <Navigate to="/admin" replace />;
 };
 
