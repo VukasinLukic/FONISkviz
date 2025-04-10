@@ -10,10 +10,22 @@ const JoinPage: React.FC = () => {
   const [qrScanned, setQrScanned] = useState(false);
   const [gameCode, setGameCode] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const { registerTeam } = useGameContext();
+  const { registerTeam, resetGame } = useGameContext();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  
+  // Function to handle resetting the game state
+  const handleReset = () => {
+    resetGame();
+    // Also reset local component state
+    setQrScanned(false);
+    setGameCode('');
+    setTeamName('');
+    setError(null);
+    // Force page reload to ensure clean state
+    window.location.reload();
+  };
   
   // Check for game code in URL parameter
   useEffect(() => {
@@ -146,6 +158,16 @@ const JoinPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-accent p-4 flex flex-col items-center justify-center">
+      {/* Reset button at the top */}
+      <div className="absolute top-4 right-4">
+        <button 
+          onClick={handleReset}
+          className="bg-primary text-white text-sm px-3 py-1 rounded-full shadow-md"
+        >
+          Resetuj
+        </button>
+      </div>
+      
       <img 
         src="/assets/logo.svg" 
         alt="Kviz Logo" 
