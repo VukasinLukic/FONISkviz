@@ -89,14 +89,6 @@ const SplashScreen = () => {
           >
             {loading ? 'Kreiranje igre...' : 'Kreiraj novu igru'}
           </MainButton>
-          
-          <MainButton 
-            onClick={() => navigate('/admin/lobby')}
-            disabled={loading}
-            className="bg-primary hover:bg-primary/90 text-white py-4 text-lg"
-          >
-            Nastavi postojeću igru
-          </MainButton>
         </motion.div>
       )}
     </motion.div>
