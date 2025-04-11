@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useGameContext } from '../context/GameContext';
 import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
+import { getGame } from '../lib/firebase';
 
 interface CategoryNameProps {}
 
@@ -112,8 +113,11 @@ const CategoryName: React.FC<CategoryNameProps> = () => {
   const [isExiting, setIsExiting] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
   const cardControls = useAnimationControls();
   const spotlightRef = useRef<HTMLDivElement>(null);
+  const exitTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const statusIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   // Detect if we're on player/* route
   const isPlayerRoute = location.pathname.startsWith('/player');
@@ -162,27 +166,74 @@ const CategoryName: React.FC<CategoryNameProps> = () => {
   };
 
   // Navigate after exit animation
-  const handleNavigate = () => {
+  const handleNavigate = useCallback(() => {
+    if (isExiting) return; // Prevent multiple calls
     setIsExiting(true);
-  };
+  }, [isExiting]);
 
-  // Auto-navigate trigger after a delay
-  useEffect(() => {
-    if (loaded) {
-      const timer = setTimeout(() => {
-        handleNavigate();
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [loaded]);
-
-  const finalNavigation = () => {
+  // Finalize navigation after exit animation completes
+  const finalNavigation = useCallback(() => {
     if (isPlayerRoute) {
-      navigate('/player/answers');
+      // Navigate to the question display page instead of answers page
+      console.log('Player finalNavigation: navigating to question display page');
+      navigate('/player/question');
     } else {
       navigate('/admin/question');
     }
-  };
+  }, [isPlayerRoute, navigate]);
+
+  // Active monitoring of game state to ensure synchronization
+  useEffect(() => {
+    // Check if we should already be on the question page based on game state
+    if (gameState.status === 'question') {
+      console.log('Game status is question, navigating to question page');
+      handleNavigate();
+      return;
+    }
+
+    // Set up polling for game status changes
+    const checkGameStatus = async () => {
+      if (checkingStatus) return; // Prevent concurrent checks
+      
+      try {
+        setCheckingStatus(true);
+        const game = await getGame();
+        
+        if (game && game.status === 'question') {
+          console.log('Game status changed to question, navigating from category');
+          handleNavigate();
+        }
+      } catch (error) {
+        console.error('Error checking game status:', error);
+      } finally {
+        setCheckingStatus(false);
+      }
+    };
+
+    // Check status every 1.5 seconds
+    statusIntervalRef.current = setInterval(checkGameStatus, 1500);
+    
+    return () => {
+      if (statusIntervalRef.current) {
+        clearInterval(statusIntervalRef.current);
+      }
+    };
+  }, [gameState.status, handleNavigate]);
+
+  // Auto-navigate trigger after a set delay
+  useEffect(() => {
+    if (loaded && !isExiting) {
+      exitTimerRef.current = setTimeout(() => {
+        handleNavigate();
+      }, 4000); // 4 seconds display time
+    }
+    
+    return () => {
+      if (exitTimerRef.current) {
+        clearTimeout(exitTimerRef.current);
+      }
+    };
+  }, [loaded, isExiting, handleNavigate]);
 
   // Generate background sparkles
   const renderSparkles = () => {
@@ -248,126 +299,45 @@ const CategoryName: React.FC<CategoryNameProps> = () => {
                 exit="exit"
               >
                 {/* Card Front Content */}
-                <div className="flex flex-col items-center justify-center text-center backface-hidden">
-                  <motion.div 
-                    className="w-16 h-16 sm:w-20 sm:h-20 mb-4"
-                    initial={{ rotateZ: 0 }}
-                    animate={{ rotateZ: 360 }}
-                    transition={{ 
-                      duration: 10,
-                      repeat: Infinity,
-                      ease: "linear"
-                    }}
-                  >
-                    <svg viewBox="0 0 24 24" className="w-full h-full">
-                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" 
-                        fill="#D35322" />
-                    </svg>
-                  </motion.div>
-                  
-                  <motion.h2
-                    className="text-primary text-xl sm:text-2xl md:text-3xl font-bold mb-2 font-caviar"
-                    initial={{ y: -20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    Sledeća kategorija
-                  </motion.h2>
-                  
-                  <motion.div 
-                    className="h-1 w-24 bg-secondary rounded-full mb-6"
-                    initial={{ width: 0 }}
-                    animate={{ width: 96 }}
-                    transition={{ delay: 0.5, duration: 0.7 }}
-                  />
+                <div className="text-center">
+                  <h2 className="text-primary text-sm sm:text-base uppercase tracking-widest mb-4 font-bold">Kategorija</h2>
+                  <div className="flex flex-wrap justify-center">
+                    {categoryLetters.map((letter, index) => (
+                      <motion.span
+                        key={index}
+                        className="text-3xl sm:text-5xl md:text-6xl font-bold text-primary font-basteleur inline-block mx-1"
+                        variants={letterVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        custom={index}
+                        whileHover="hover"
+                      >
+                        {letter === ' ' ? '\u00A0' : letter}
+                      </motion.span>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Card decorations */}
+                <div className="absolute -top-6 -right-6 w-12 h-12 bg-highlight rounded-full flex items-center justify-center shadow-md z-10">
+                  <span className="text-white text-xl font-bold">!</span>
+                </div>
+                <div className="absolute -bottom-6 -left-6 w-12 h-12 bg-secondary rounded-full flex items-center justify-center shadow-md z-10">
+                  <span className="text-white text-xl font-bold">?</span>
                 </div>
               </motion.div>
             </motion.div>
             
-            {/* Category Name with 3D Theater Effect */}
-            <div className="relative w-full max-w-lg">
-              {/* Category Name 3D Container */}
-              <div className="flex justify-center items-center perspective-1000 py-6 md:py-10 px-4">
-                {/* Spotlight Base */}
-                <motion.div 
-                  className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-28 sm:h-36 bg-secondary bg-opacity-20 rounded-full blur-xl"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 0.6, scale: 1 }}
-                  transition={{ delay: 0.3 }}
-                />
-                
-                {/* Main Stage */}
-                <div className="flex flex-wrap justify-center items-baseline relative z-10">
-                  {categoryLetters.map((letter, index) => (
-                    <motion.div
-                      key={index}
-                      className="relative mx-1 sm:mx-2 preserve-3d" 
-                      variants={letterVariants}
-                      custom={index}
-                      initial="initial"
-                      animate="animate"
-                      exit="exit"
-                      whileHover="hover"
-                    >
-                      <span className={`
-                        text-4xl sm:text-6xl md:text-7xl font-bold font-basteleur inline-block
-                        ${index % 2 === 0 ? 'text-accent' : 'text-secondary'}
-                      `}>
-                        {letter === ' ' ? '\u00A0' : letter}
-                      </span>
-                      
-                      {/* Letter Shadow */}
-                      <span className="absolute top-[0.25em] left-[0.25em] opacity-20 text-primary text-4xl sm:text-6xl md:text-7xl font-bold font-basteleur -z-10">
-                        {letter === ' ' ? '\u00A0' : letter}
-                      </span>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            
-            {/* Navigation Badge */}
-            <motion.div
-              className="mt-8 sm:mt-12"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.5 }}
-              exit={{ y: 50, opacity: 0, transition: { duration: 0.3 } }}
-            >
-              <div className="relative">
-                {/* Badge Glow Effect */}
-                <div className="absolute -inset-1 bg-highlight rounded-full opacity-70 blur-md"></div>
-                
-                {/* Main Badge */}
-                <motion.div 
-                  className="relative bg-accent py-3 px-6 sm:py-4 sm:px-8 rounded-full border-2 border-secondary shadow-lg"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span className="text-primary text-xl sm:text-2xl font-bold font-basteleur tracking-wider">
-                    NOVA KATEGORIJA
-                  </span>
-                </motion.div>
-              </div>
-            </motion.div>
-            
-            {/* Mobile Progress Indicator */}
-            <motion.div 
-              className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2"
+            {/* Bottom hint text */}
+            <motion.p
+              className="text-accent text-sm sm:text-base opacity-80 text-center font-caviar"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2 }}
+              animate={{ opacity: 0.8, transition: { delay: 1 } }}
               exit={{ opacity: 0 }}
             >
-              {[...Array(5)].map((_, i) => (
-                <motion.div 
-                  key={i} 
-                  className="w-2 h-2 rounded-full bg-accent opacity-40"
-                  animate={{ opacity: i === 0 ? 1 : 0.4 }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                />
-              ))}
-            </motion.div>
+              Spremite se za pitanja iz ove kategorije...
+            </motion.p>
           </motion.div>
         )}
       </AnimatePresence>

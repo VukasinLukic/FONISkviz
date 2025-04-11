@@ -26,6 +26,14 @@ const LobbyPage = () => {
     return () => clearTimeout(timer);
   }, []);
   
+  // Check if the game is already active and redirect if needed
+  useEffect(() => {
+    if (gameState?.isActive) {
+      console.log('Game is already active, redirecting to category');
+      navigate('/admin/category');
+    }
+  }, [gameState?.isActive, navigate]);
+  
   // Track when new teams join to trigger animations
   useEffect(() => {
     if (teams.length > previousTeamsCount) {
@@ -108,57 +116,69 @@ const LobbyPage = () => {
       
       {/* Teams Grid */}
       <div className="max-w-4xl mx-auto mb-8 relative z-30">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <AnimatePresence>
-            {teams.map((team, index) => (
-              <motion.div
-                key={team.id}
-                className={`bg-accent p-4 rounded-lg shadow-md flex flex-col items-center
-                  ${newTeamIndex === index ? 'ring-4 ring-highlight ring-opacity-70' : ''}`}
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ 
-                  opacity: 1, 
-                  scale: newTeamIndex === index ? [1, 1.05, 1] : 1, 
-                  y: 0,
-                  transition: {
-                    scale: newTeamIndex === index ? { 
-                      duration: 0.8, 
-                      repeat: 2, 
-                      repeatType: "reverse" 
-                    } : undefined
-                  }
-                }}
-                exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                transition={{ 
-                  duration: 0.4, 
-                  delay: index * 0.05,
-                  ease: "easeOut"
-                }}
-                layout
-              >
-                <div className="w-20 h-20 mb-2 overflow-hidden">
-                  <img
-                    src={getMascotPath(team.mascotId || 1)}
-                    alt={`Team Mascot`}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      // Fallback if mascot image fails to load
-                      const target = e.currentTarget;
-                      target.src = "/assets/maskota1 1.svg"; // Default mascot
-                    }}
-                  />
-                </div>
-                <h2 className="text-primary font-bold text-center">
-                  {team.name}
-                </h2>
-                <div className="flex items-center mt-2">
-                  <div className="w-3 h-3 bg-highlight rounded-full mr-2 animate-pulse"></div>
-                  <span className="text-sm text-primary opacity-80">Ready</span>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
+        {teams.length === 0 ? (
+          <motion.div
+            className="bg-accent/20 p-8 rounded-lg text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <p className="text-accent text-xl">No teams have joined yet</p>
+            <p className="text-accent/70 mt-2">Share the game code with players to join</p>
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <AnimatePresence>
+              {teams.map((team, index) => (
+                <motion.div
+                  key={team.id}
+                  className={`bg-accent p-4 rounded-lg shadow-md flex flex-col items-center
+                    ${newTeamIndex === index ? 'ring-4 ring-highlight ring-opacity-70' : ''}`}
+                  initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                  animate={{ 
+                    opacity: 1, 
+                    scale: newTeamIndex === index ? [1, 1.05, 1] : 1, 
+                    y: 0,
+                    transition: {
+                      scale: newTeamIndex === index ? { 
+                        duration: 0.8, 
+                        repeat: 2, 
+                        repeatType: "reverse" 
+                      } : undefined
+                    }
+                  }}
+                  exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                  transition={{ 
+                    duration: 0.4, 
+                    delay: index * 0.05,
+                    ease: "easeOut"
+                  }}
+                  layout
+                >
+                  <div className="w-20 h-20 mb-2 overflow-hidden">
+                    <img
+                      src={getMascotPath(team.mascotId || 1)}
+                      alt={`Team Mascot`}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        // Fallback if mascot image fails to load
+                        const target = e.currentTarget;
+                        target.src = "/assets/maskota1 1.svg"; // Default mascot
+                      }}
+                    />
+                  </div>
+                  <h2 className="text-primary font-bold text-center">
+                    {team.name}
+                  </h2>
+                  <div className="flex items-center mt-2">
+                    <div className="w-3 h-3 bg-highlight rounded-full mr-2 animate-pulse"></div>
+                    <span className="text-sm text-primary opacity-80">Ready</span>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
       
       {/* Start Game button - conditionally shown */}

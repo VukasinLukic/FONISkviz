@@ -1,14 +1,12 @@
 import { createBrowserRouter, Outlet, useRouteError, isRouteErrorResponse, Navigate } from 'react-router-dom';
 import JoinPage from './pages/JoinPage';
 import WaitingForPlayers from './pages/WaitingForPlayers';
-import QuizStarting from './pages/QuizStarting';
 import CategoryName from './pages/CategoryName';
 import AnswersPage from './pages/AnswersPage';
 import WaitingForAnswer from './pages/WaitingForAnswer';
 import HowManyPoints from './pages/HowManyPoints';
 import TeamPoints from './pages/TeamPoints';
 import FinalTeamPoints from './pages/FinalTeamPoints';
-import TensionPage from './pages/TensionPage';
 import WinnersPage from './pages/WinnersPage';
 import MascotSelection from './pages/MascotSelection';
 import DevControls from './components/DevControls';
@@ -139,16 +137,12 @@ const router = createBrowserRouter([
         element: <DevLayout><WaitingForPlayers /></DevLayout>,
       },
       {
-        path: 'player/quiz-starting',
-        element: <DevLayout><QuizStarting /></DevLayout>,
-      },
-      {
         path: 'player/category',
         element: <DevLayout><CategoryName /></DevLayout>,
       },
       {
-        path: 'player/answers',
-        element: <DevLayout><AnswersPage /></DevLayout>,
+        path: 'player/question',
+        element: <DevLayout><QuestionDisplayPage /></DevLayout>,
       },
       {
         path: 'player/waiting-answer',
@@ -165,10 +159,6 @@ const router = createBrowserRouter([
       {
         path: 'player/final-team-points',
         element: <DevLayout><FinalTeamPoints /></DevLayout>,
-      },
-      {
-        path: 'player/tension',
-        element: <DevLayout><TensionPage /></DevLayout>,
       },
       {
         path: 'player/winners',
@@ -201,16 +191,8 @@ const router = createBrowserRouter([
             element: <DevLayout><QuestionDisplayPage /></DevLayout>,
           },
           {
-            path: 'waiting-answer',
-            element: <DevLayout><WaitingForAnswer /></DevLayout>,
-          },
-          {
             path: 'answers',
             element: <DevLayout><AnswersPage /></DevLayout>,
-          },
-          {
-            path: 'tension',
-            element: <DevLayout><TensionPage /></DevLayout>,
           },
           {
             path: 'points',
@@ -224,10 +206,6 @@ const router = createBrowserRouter([
       },
 
       // Other top-level routes
-      {
-        path: 'splash', // Keep separate splash if needed, or integrate into admin?
-        element: <SplashScreen />,
-      },
       {
         path: 'test',
         element: <TestPage />,

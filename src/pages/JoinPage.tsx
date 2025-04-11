@@ -108,16 +108,16 @@ const JoinPage: React.FC = () => {
     
     setIsLoading(true);
     try {
-      console.log(`Registering team "${teamName}" with game code: ${gameCode}`);
+        console.log(`Registering team "${teamName}" with game code: ${gameCode}`);
       await registerTeam(teamName.trim(), 1, gameCode.trim().toUpperCase());
-      
-      console.log("Team registered successfully, navigating to mascot selection");
-      navigate('/player/mascot');
-    } catch (error) {
-      console.error('Error registering team:', error);
-      setError(error instanceof Error ? error.message : "Failed to register team. Please try again.");
-    } finally {
-      setIsLoading(false);
+        
+        console.log("Team registered successfully, navigating to mascot selection");
+        navigate('/player/mascot');
+      } catch (error) {
+        console.error('Error registering team:', error);
+        setError(error instanceof Error ? error.message : "Failed to register team. Please try again.");
+      } finally {
+        setIsLoading(false);
     }
   };
 
@@ -187,7 +187,7 @@ const JoinPage: React.FC = () => {
                 maxLength={20}
               />
             </div>
-            
+
             {error && (
               <motion.div 
                 className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded"
@@ -208,7 +208,7 @@ const JoinPage: React.FC = () => {
                 className="w-full py-2"
               >
                 {isLoading ? 'Joining...' : 'Join Game'}
-              </MainButton>
+            </MainButton>
             </motion.div>
           </form>
         </motion.div>
@@ -221,7 +221,7 @@ const JoinPage: React.FC = () => {
         >
           Ask the quiz host for the game code
         </motion.p>
-      </div>
+        </div>
     </motion.div>
   );
 };

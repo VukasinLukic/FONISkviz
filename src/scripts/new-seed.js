@@ -1,17 +1,17 @@
+// ES module seed script
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, set, push } from 'firebase/database';
-import { Question } from '../lib/firebase';
 
-// Firebase configuration from environment variables
+// Firebase configuration - hardcoded for direct seeding
 const firebaseConfig = {
-  apiKey: process.env.VITE_FIREBASE_API_KEY || "AIzaSyBS5gnw4eO8jqAaCW5cNeVTjhUFMXQC140",
-  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "kahoot-clone-b8034.firebaseapp.com",
-  databaseURL: process.env.VITE_FIREBASE_DATABASE_URL || "https://kahoot-clone-b8034-default-rtdb.firebaseio.com",
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "kahoot-clone-b8034",
-  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "kahoot-clone-b8034.firebasestorage.app",
-  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "486709016032",
-  appId: process.env.VITE_FIREBASE_APP_ID || "1:486709016032:web:699b6739bab04f22782785",
-  measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID || "G-JQVLMKD96K"
+  apiKey: "AIzaSyBS5gnw4eO8jqAaCW5cNeVTjhUFMXQC140",
+  authDomain: "kahoot-clone-b8034.firebaseapp.com",
+  databaseURL: "https://kahoot-clone-b8034-default-rtdb.firebaseio.com",
+  projectId: "kahoot-clone-b8034",
+  storageBucket: "kahoot-clone-b8034.firebasestorage.app",
+  messagingSenderId: "486709016032",
+  appId: "1:486709016032:web:699b6739bab04f22782785",
+  measurementId: "G-JQVLMKD96K"
 };
 
 // Initialize Firebase
@@ -19,7 +19,7 @@ const app = initializeApp(firebaseConfig, 'seed-app');
 const db = getDatabase(app);
 
 // 6 Categories with 8 questions each
-const questions: Omit<Question, 'id'>[] = [
+const questions = [
   // KATEGORIJA 1: ISTORIJA - 8 pitanja
   {
     text: 'Koje godine je počeo Prvi svetski rat?',
@@ -610,7 +610,7 @@ const questions: Omit<Question, 'id'>[] = [
 ];
 
 // Seed function
-export async function seedQuestions() {
+async function seedQuestions() {
   console.log('Starting to seed questions...');
   const questionsRef = ref(db, 'questions');
   
@@ -634,7 +634,7 @@ export async function seedQuestions() {
 seedQuestions()
   .then(() => {
     console.log('All questions have been seeded!');
-    process.exit(0);
+    setTimeout(() => process.exit(0), 3000); // Allow time for Firebase operations to complete
   })
   .catch((error) => {
     console.error('Error seeding questions:', error);

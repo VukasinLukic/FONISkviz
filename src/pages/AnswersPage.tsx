@@ -3,18 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameContext } from '../context/GameContext';
 import AnimatedBackground from '../components/AnimatedBackground';
+import { getAllAnswersForQuestion, getQuestionById, Answer, Team, Question } from '../lib/firebase';
 
 interface AnswersPageProps {}
-
-interface TeamAnswer {
-  id: string;
-  name: string;
-  mascotId: number;
-  answer: string;
-  isCorrect: boolean;
-  points: number;
-  responseTime: number; // in milliseconds
-}
 
 // Animation variants
 const pageVariants = {
@@ -68,18 +59,16 @@ const cardVariants = {
 
 const AnswersPage: React.FC<AnswersPageProps> = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { gameState } = useGameContext();
   
-  // Detect if we're on player/* route
-  const isPlayerRoute = location.pathname.startsWith('/player');
-  
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isExiting, setIsExiting] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(isPlayerRoute ? 20 : 10); // 20s for players to answer, 10s for admin results
+  const [timeLeft, setTimeLeft] = useState(10); // Only need admin timer (e.g., 10s)
   const [progress, setProgress] = useState(100);
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [teamAnswers, setTeamAnswers] = useState<Array<Answer & { team: Team }>>([]);
+  const [loading, setLoading] = useState(true);
   
-  // Set of possible questions to show if no real question is available
+  // Default questions to show if no real question is available
   const defaultQuestions = [
     {
       id: '1',
@@ -104,77 +93,86 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
         D: 'Dobrica Ćosić'
       },
       correctAnswer: 'C'
-    },
-    {
-      id: '3',
-      text: 'Koji element ima hemijski simbol "O"?',
-      category: 'Nauka',
-      options: {
-        A: 'Zlato',
-        B: 'Kiseonik',
-        C: 'Olovo',
-        D: 'Vodonik'
-      },
-      correctAnswer: 'B'
     }
   ];
   
-  // Get a random question from default questions if no real question is available
-  const randomIndex = Math.floor(Math.random() * defaultQuestions.length);
-  const currentQuestion = gameState.currentQuestion || defaultQuestions[randomIndex];
+  // Get the current question and team answers
+  useEffect(() => {
+    const fetchQuestionAndAnswers = async () => {
+      setLoading(true);
+      // Ensure we use the ID string from the gameState.currentQuestion object
+      const currentQuestionId = gameState.currentQuestion?.id;
+      
+      if (currentQuestionId) { // Check if the ID exists
+        try {
+          // Get the current question using its ID
+          const question = await getQuestionById(currentQuestionId); // Pass ID string
+          
+          if (question) {
+            setCurrentQuestion(question);
+            
+            // Get all team answers for this question using its ID
+            const answers = await getAllAnswersForQuestion(currentQuestionId); // Pass ID string
+            setTeamAnswers(answers);
+          } else {
+            // Use default question if nothing is available
+            const randomIndex = Math.floor(Math.random() * defaultQuestions.length);
+            setCurrentQuestion(defaultQuestions[randomIndex]);
+            setTeamAnswers([]);
+          }
+        } catch (error) {
+          console.error("Error fetching question data:", error);
+          // Use default question on error
+          const randomIndex = Math.floor(Math.random() * defaultQuestions.length);
+          setCurrentQuestion(defaultQuestions[randomIndex]);
+          setTeamAnswers([]);
+        }
+      } else {
+        // Use default question if no current question ID
+        const randomIndex = Math.floor(Math.random() * defaultQuestions.length);
+        setCurrentQuestion(defaultQuestions[randomIndex]);
+        setTeamAnswers([]);
+      }
+      
+      setLoading(false);
+    };
+    
+    fetchQuestionAndAnswers();
+  }, [gameState.currentQuestion]); // Dependency remains the same object
   
-  // Mock team answers for admin view (would come from Firebase in real app)
-  const teamAnswers: TeamAnswer[] = [
-    { id: '1', name: 'Team Fox', mascotId: 1, answer: 'B', isCorrect: true, points: 100, responseTime: 2300 },
-    { id: '2', name: 'Team Lion', mascotId: 2, answer: 'A', isCorrect: false, points: 0, responseTime: 3100 },
-    { id: '3', name: 'Team Panda', mascotId: 3, answer: 'B', isCorrect: true, points: 100, responseTime: 4200 },
-    { id: '4', name: 'Team Koala', mascotId: 4, answer: 'D', isCorrect: false, points: 0, responseTime: 3800 }
-  ];
-  
-  // Group teams by correct/incorrect answers
-  const correctTeams = teamAnswers.filter(team => team.isCorrect);
-  const incorrectTeams = teamAnswers.filter(team => !team.isCorrect);
+  // Group teams by correct/incorrect answers 
+  const correctTeams = teamAnswers.filter(answer => answer.isCorrect);
+  const incorrectTeams = teamAnswers.filter(answer => !answer.isCorrect);
   
   // Timer countdown effect
   useEffect(() => {
     if (timeLeft > 0 && !isExiting) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
-        // Update progress bar
-        setProgress((timeLeft - 1) * 100 / (isPlayerRoute ? 20 : 10));
+        setProgress((timeLeft - 1) * 100 / 10); // Use the admin duration (10s)
       }, 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && !isExiting) {
       handleTimeExpired();
     }
-  }, [timeLeft, isExiting, isPlayerRoute]);
-  
-  // Handle answer selection for player route
-  const handleAnswerSelect = (answer: string) => {
-    if (isPlayerRoute) {
-    setSelectedAnswer(answer);
-      setIsExiting(true);
-      
-      // Add a delay before navigation to allow exit animations
-      setTimeout(() => {
-        navigate('/player/waiting-answer', { state: { selectedAnswer: answer } });
-      }, 500);
-    }
-  };
+  }, [timeLeft, isExiting]); // Removed isPlayerRoute dependency
   
   // Handle timer expiration
   const handleTimeExpired = () => {
     setIsExiting(true);
-    
-    // Add a delay before navigation to allow exit animations
     setTimeout(() => {
-      if (isPlayerRoute) {
-        navigate('/player/waiting-answer');
-      } else {
-        navigate('/admin/points');
-      }
+      navigate('/admin/points'); // Always navigate admin to points/leaderboard
     }, 500);
   };
+
+  // If still loading and on admin page, show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-primary flex flex-col items-center justify-center">
+        <p className="text-accent text-xl">Loading question data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen overflow-hidden relative flex flex-col items-center justify-center p-4 bg-gradient-to-br from-primary via-primary to-[#3a1106]">
@@ -182,7 +180,7 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
       <AnimatedBackground density="medium" color="primary" />
       
       <AnimatePresence mode="wait">
-        {!isExiting && (
+        {!isExiting && currentQuestion && (
           <motion.div 
             className="relative z-10 flex flex-col items-center justify-center w-full max-w-4xl"
             variants={pageVariants}
@@ -215,106 +213,70 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
               </span>
             </motion.div>
             
-            {isPlayerRoute ? (
-              // Player Route - Answer Selection
-              <>
-                {/* Question */}
-                <motion.div 
-                  className="mb-8 text-center max-w-2xl"
-                  variants={itemVariants}
-                >
-                  <h1 className="text-2xl sm:text-3xl font-bold text-accent font-basteleur">
-                    {currentQuestion.text}
-                  </h1>
-                </motion.div>
+            {/* Admin Route - Results Display */}
+            <>
+              {/* Question */}
+              <motion.div 
+                className="mb-6 text-center max-w-2xl"
+                variants={itemVariants}
+              >
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-accent mb-2 font-basteleur">
+                  {currentQuestion.text}
+                </h1>
+              </motion.div>
+              
+              {/* Points animation */}
+              <motion.div
+                className="text-highlight text-6xl font-bold mb-6"
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ 
+                  scale: [0.5, 1.2, 1],
+                  opacity: [0, 1, 1]
+                }}
+                transition={{ 
+                  duration: 0.8,
+                  times: [0, 0.6, 1],
+                  ease: "easeOut"
+                }}
+              >
+                +100
+              </motion.div>
+              
+              {/* Correct Answer */}
+              <motion.div 
+                className="mb-10 text-center"
+                variants={itemVariants}
+              >
+                <h2 className="text-2xl font-bold text-accent mb-2 font-caviar">
+                  Tačan odgovor: <span className="text-highlight">
+                    {currentQuestion.options[currentQuestion.correctAnswer as keyof typeof currentQuestion.options]}
+                  </span>
+                </h2>
                 
-                {/* Answers Grid for Player */}
+                {/* Decorative divider */}
+                <div className="w-32 h-1 bg-secondary mx-auto rounded-full mt-2"></div>
+              </motion.div>
+              
+              {/* Team Results */}
+              <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Correct Teams */}
                 <motion.div 
-                  className="grid grid-cols-2 gap-4 w-full max-w-md"
-                  variants={itemVariants}
+                  className="bg-highlight bg-opacity-20 p-6 rounded-xl"
+                  variants={cardVariants}
                 >
-                  {Object.entries(currentQuestion.options).map(([id, text]) => (
-                    <motion.button
-                      key={id}
-                      className={`p-6 rounded-xl text-white font-bold text-xl flex items-center justify-center shadow-lg transition-all
-                        ${selectedAnswer === id ? 'ring-4 ring-white' : ''}
-                        ${id === 'A' ? 'bg-highlight hover:bg-opacity-90' : 
-                          id === 'B' ? 'bg-secondary hover:bg-opacity-90' : 
-                          id === 'C' ? 'bg-special hover:bg-opacity-90' : 
-                          'bg-accent hover:bg-opacity-90'}
-                      `}
-                      onClick={() => handleAnswerSelect(id)}
-                      variants={cardVariants}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <span className="mr-3 bg-white bg-opacity-20 w-9 h-9 flex items-center justify-center rounded-full">
-                        {id}
-                      </span>
-                      <span className="font-caviar">{text}</span>
-                    </motion.button>
-                  ))}
-                </motion.div>
-              </>
-            ) : (
-              // Admin Route - Results Display
-              <>
-                {/* Question */}
-                <motion.div 
-                  className="mb-6 text-center max-w-2xl"
-                  variants={itemVariants}
-                >
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-accent mb-2 font-basteleur">
-                    {currentQuestion.text}
-                  </h1>
-                </motion.div>
-                
-                {/* Points animation */}
-                <motion.div
-                  className="text-highlight text-6xl font-bold mb-6"
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ 
-                    scale: [0.5, 1.2, 1],
-                    opacity: [0, 1, 1]
-                  }}
-                  transition={{ 
-                    duration: 0.8,
-                    times: [0, 0.6, 1],
-                    ease: "easeOut"
-                  }}
-                >
-                  +100
-                </motion.div>
-                
-                {/* Correct Answer */}
-                <motion.div 
-                  className="mb-10 text-center"
-                  variants={itemVariants}
-                >
-                  <h2 className="text-2xl font-bold text-accent mb-2 font-caviar">
-                    Tačan odgovor: <span className="text-highlight">
-                      {currentQuestion.options[currentQuestion.correctAnswer as keyof typeof currentQuestion.options]}
-                    </span>
-                  </h2>
+                  <h3 className="text-xl font-bold text-highlight mb-4 font-caviar text-center">
+                    Tačni odgovori ({correctTeams.length})
+                  </h3>
                   
-                  {/* Decorative divider */}
-                  <div className="w-32 h-1 bg-secondary mx-auto rounded-full mt-2"></div>
-                </motion.div>
-                
-                {/* Team Results */}
-                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Correct Teams */}
-                  <motion.div 
-                    className="bg-highlight bg-opacity-20 p-6 rounded-xl"
-                    variants={cardVariants}
-                  >
-                    <h3 className="text-xl font-bold text-highlight mb-4 font-caviar text-center">
-                      Tačni odgovori
-                    </h3>
+                  {correctTeams.length === 0 ? (
+                    <div className="text-white text-center p-4">
+                      Nijedan tim nije odgovorio tačno
+                    </div>
+                  ) : (
                     <div className="space-y-3">
-                      {correctTeams.map((team) => (
+                      {correctTeams.map((answerData) => (
                         <motion.div 
-                          key={team.id}
+                          key={answerData.team.id}
                           className="bg-highlight bg-opacity-40 rounded-lg p-3 flex items-center"
                           whileHover={{ x: 5 }}
                           initial={{ x: -20, opacity: 0 }}
@@ -323,8 +285,8 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
                         >
                           <div className="w-10 h-10 bg-white rounded-full mr-3 flex items-center justify-center overflow-hidden">
                             <img 
-                              src={`/assets/maskota${team.mascotId} 1.svg`}
-                              alt={`Team ${team.name} Mascot`}
+                              src={`/assets/maskota${answerData.team.mascotId} 1.svg`}
+                              alt={`Team ${answerData.team.name} Mascot`}
                               className="w-8 h-8 object-contain"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = '/assets/maskota1 1.svg';
@@ -332,28 +294,35 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
                             />
                           </div>
                           <span className="font-caviar font-medium text-white flex-1">
-                            {team.name}
+                            {answerData.team.name}
                           </span>
                           <span className="font-bold text-white">
-                            +{team.points}
+                            +{answerData.pointsEarned || 100}
                           </span>
                         </motion.div>
                       ))}
                     </div>
-                  </motion.div>
+                  )}
+                </motion.div>
+                
+                {/* Incorrect Teams */}
+                <motion.div 
+                  className="bg-special bg-opacity-20 p-6 rounded-xl"
+                  variants={cardVariants}
+                >
+                  <h3 className="text-xl font-bold text-special mb-4 font-caviar text-center">
+                    Netačni odgovori ({incorrectTeams.length})
+                  </h3>
                   
-                  {/* Incorrect Teams */}
-                  <motion.div 
-                    className="bg-special bg-opacity-20 p-6 rounded-xl"
-                    variants={cardVariants}
-                  >
-                    <h3 className="text-xl font-bold text-special mb-4 font-caviar text-center">
-                      Netačni odgovori
-                    </h3>
+                  {incorrectTeams.length === 0 ? (
+                    <div className="text-white text-center p-4">
+                      Svi timovi su odgovorili tačno
+                    </div>
+                  ) : (
                     <div className="space-y-3">
-                      {incorrectTeams.map((team) => (
+                      {incorrectTeams.map((answerData) => (
                         <motion.div 
-                          key={team.id}
+                          key={answerData.team.id}
                           className="bg-special bg-opacity-40 rounded-lg p-3 flex items-center"
                           whileHover={{ x: 5 }}
                           initial={{ x: 20, opacity: 0 }}
@@ -362,8 +331,8 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
                         >
                           <div className="w-10 h-10 bg-white rounded-full mr-3 flex items-center justify-center overflow-hidden">
                             <img 
-                              src={`/assets/maskota${team.mascotId} 1.svg`}
-                              alt={`Team ${team.name} Mascot`}
+                              src={`/assets/maskota${answerData.team.mascotId} 1.svg`}
+                              alt={`Team ${answerData.team.name} Mascot`}
                               className="w-8 h-8 object-contain"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = '/assets/maskota1 1.svg';
@@ -371,18 +340,18 @@ const AnswersPage: React.FC<AnswersPageProps> = () => {
                             />
                           </div>
                           <span className="font-caviar font-medium text-white flex-1">
-                            {team.name}
+                            {answerData.team.name}
                           </span>
                           <span className="font-bold text-white opacity-50">
-                            {team.answer}
+                            {answerData.answer}
                           </span>
                         </motion.div>
                       ))}
                     </div>
-                  </motion.div>
-                </div>
-              </>
-            )}
+                  )}
+                </motion.div>
+              </div>
+            </>
           </motion.div>
         )}
       </AnimatePresence>

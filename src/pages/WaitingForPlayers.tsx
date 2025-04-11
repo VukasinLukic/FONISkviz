@@ -4,6 +4,7 @@ import { useGameContext } from '../context/GameContext';
 import { motion } from 'framer-motion';
 import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
+import { getGame } from '../lib/firebase';
 
 const WaitingForPlayers: React.FC = () => {
   const [dots, setDots] = useState('');
@@ -11,6 +12,7 @@ const WaitingForPlayers: React.FC = () => {
   const { gameState } = useGameContext();
   const navigate = useNavigate();
   const location = useLocation();
+  const [checkingStatus, setCheckingStatus] = useState(false);
   
   const isPlayerRoute = location.pathname.startsWith('/player');
 
@@ -29,6 +31,43 @@ const WaitingForPlayers: React.FC = () => {
       navigate(isPlayerRoute ? '/player' : '/');
     }
   }, [gameState.teamId, gameState.isRegistered, navigate, isPlayerRoute]);
+
+  // Actively check for game status to ensure immediate transition when the game starts
+  useEffect(() => {
+    // Skip if game is already started according to our state
+    if (gameState.isGameStarted) {
+      console.log('Game already started, navigating to category');
+      navigate(isPlayerRoute ? '/player/category' : '/category');
+      return;
+    }
+
+    // Set up polling for game start status
+    const checkGameStatus = async () => {
+      if (checkingStatus) return; // Prevent concurrent checks
+      
+      try {
+        setCheckingStatus(true);
+        const game = await getGame();
+        
+        if (game && game.isActive) {
+          console.log('Game started, detected in WaitingForPlayers component, navigating to category');
+          navigate(isPlayerRoute ? '/player/category' : '/category');
+        }
+      } catch (error) {
+        console.error('Error checking game status:', error);
+      } finally {
+        setCheckingStatus(false);
+      }
+    };
+
+    // Check immediately once
+    checkGameStatus();
+    
+    // Then set up regular polling
+    const pollInterval = setInterval(checkGameStatus, 2000);
+    
+    return () => clearInterval(pollInterval);
+  }, [gameState.isGameStarted, isPlayerRoute, navigate, checkingStatus]);
 
   const getMascotPath = (mascotId: number) => {
     return `/assets/maskota${mascotId} 1.svg`;

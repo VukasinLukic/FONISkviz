@@ -1,76 +1,91 @@
-# FONIS Quiz Application Fix Plan
+# FONIS Quiz Application Improvement Plan
 
-## Current Issues
+## Current Status
+The FONIS Quiz application is a real-time team quiz game built with React, TypeScript, Firebase, and various animation libraries. The application features player and admin interfaces, where players join through QR codes and interact with the quiz on their devices while administrators control the game flow.
 
-1. **QR Code Page Issues**
-   - Missing decorative assets from `/assets/dodaci/`
-   - Background elements not displaying correctly
+## Primary Issues Addressed
 
-2. **LobbyPage Issues**
-   - Page appears to be empty
-   - Missing proper styling and content
+### 1. WinnersPage.tsx Real Data Implementation ✅
+**Issue:** The WinnersPage was using mock data instead of real team data from Firebase.  
+**Solution:**
+- Added Firebase database integration to fetch all teams
+- Implemented sorting by points to determine team rankings
+- Added loading state during data fetching
+- Shows actual team position and points in the UI
+- Displays the team's mascot
 
-3. **SplashScreen Issues**
-   - Only shows "FONIS Quiz" text and poor animations
-   - Need to remove text and just show logo animation
+## Planned Improvements
 
-4. **Route Issues**
-   - Navigation pathways are problematic
-   - Need to ensure paths are correct and functional
+### 2. Player Feedback on HowManyPoints.tsx
+**Issue:** The page currently shows hardcoded "correct" or "incorrect" indicators not based on actual answers.  
+**Plan:**
+- Update HowManyPoints.tsx to fetch and display the player's actual answer result
+- Show points earned based on the answer's isCorrect and pointsEarned fields
+- Add animation/feedback based on answer correctness
 
-5. **DevControls Visibility**
-   - DevControl panel needs to be available on all pages for easier navigation during development
+### 3. Admin Answer Stats Granularity
+**Issue:** AnswersPage.tsx doesn't show which wrong answer each team chose.  
+**Plan:**
+- Modify AnswersPage.tsx to display which specific answer (A/B/C/D) each team selected
+- Group incorrect answers by option chosen
+- Create visual breakdown of answer distribution
 
-6. **Asset Path Issues**
-   - Need to use absolute paths for all assets
-   - SVG files and other assets not loading correctly
+### 4. Game Code Persistence Enhancement
+**Issue:** JoinPage.tsx uses localStorage for game code which can cause confusion if the code changes.  
+**Plan:** 
+- Add visual confirmation when using a saved game code
+- Implement a "Clear Saved Code" button on the join page
+- Add timestamp checking to warn if a saved code is from a previous day
 
-## Detailed Action Plan
+### 5. Tiebreaking Implementation
+**Issue:** Current sorting is only by points without tiebreaking logic.  
+**Plan:**
+- Update team sorting to consider secondary factors (answer speed, join time)
+- Implement consistent tiebreaking logic across all ranking displays
+- Document tiebreaking rules for players to understand
 
-### 1. Fix SplashScreen
-- Remove "FONIS Quiz" text
-- Enhance logo animation 
-- Ensure proper use of AnimatedBackground component with decorative assets
-- Fix transition to QR Code page
+### 6. Admin Control Refinements
+**Plan:**
+- Add timer override controls to QuestionDisplayPage and AnswersPage
+- Implement team removal functionality in the lobby
+- Add admin ability to manually adjust team points if needed
 
-### 2. Fix QR Code Page
-- Add missing decorative assets using AnimatedBackground component
-- Ensure all SVG files are loaded with absolute paths
-- Fix layout and styling issues
-- Make sure navigation to Lobby page works
+### 7. Scalability Improvements
+**Issue:** Fetching all teams could become inefficient with many participants.  
+**Plan:**
+- Implement pagination or limit queries in useQuizAdmin for large team counts
+- Optimize Firebase listeners to reduce data transfer
+- Add loading states for large data operations
 
-### 3. Fix Lobby Page
-- Implement full content display
-- Add team cards and controls
-- Fix styling and animations
-- Ensure proper navigation to next pages
+### 8. Technical Debt Cleanup
+**Plan:**
+- Consolidate overlapping responsibilities between quizService.ts and useQuizAdmin.ts
+- Review and optimize context usage to reduce prop drilling
+- Add proper error handling for all Firebase operations
+- Ensure all image/asset loading includes proper error handlers
+- Audit CSS/styling for consistency and maintainability
 
-### 4. Fix Routes Structure
-- Update Routes.tsx to ensure proper routing
-- Make DevControls visible on all admin pages
-- Fix navigation between screens
-- Add missing routes if needed
+## Implementation Priority
+1. ✅ WinnersPage Real Data (Completed)
+2. HowManyPoints.tsx Actual Results
+3. Admin Answer Stats Enhancement
+4. Game Code Persistence Improvements
+5. Technical Debt Cleanup (Error Handling)
+6. Tiebreaking Implementation
+7. Admin Control Refinements
+8. Scalability Improvements
 
-### 5. Fix Asset Loading
-- Update all asset paths to use window.location.origin
-- Fix SVG loading in AnimatedBackground component
-- Ensure all decorative elements use the proper paths
-
-### 6. DevControls Enhancement
-- Make DevControls available on all pages
-- Update DevControls to include all admin routes
-- Ensure routes in DevControls match the actual route structure
-
-## Implementation Order
-1. Fix asset path issues first (foundation for other fixes)
-2. Update Routes structure
-3. Fix SplashScreen
-4. Fix QR Code Page
-5. Fix Lobby Page
-6. Enhance DevControls for better navigation
+## Error Handling Strategy
+All Firebase operations should be wrapped in try/catch blocks with:
+- Appropriate error logging
+- User-friendly error messages
+- Graceful fallbacks to prevent UI breaks
+- Retry mechanisms where appropriate
 
 ## Testing Strategy
-- Test all routes using DevControls
-- Verify asset loading on each page
-- Test navigation flow from SplashScreen → QR Code → Lobby
-- Ensure animations and transitions work as expected 
+- Test each improvement on both player and admin interfaces
+- Verify with multiple teams simultaneously
+- Test across different browsers and devices
+- Ensure animations and transitions remain smooth
+
+This plan will be updated as improvements are completed and new requirements emerge. 

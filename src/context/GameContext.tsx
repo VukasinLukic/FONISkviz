@@ -17,9 +17,11 @@ import {
 import { ref, onValue, off, update, get, push, serverTimestamp } from 'firebase/database';
 
 // Game version constant - update when local storage data structure changes
-const GAME_VERSION = "1.0.2";
+const GAME_VERSION = "1.0.3";
 // Maximum time for which team data is considered "fresh" (24h in milliseconds)
 const MAX_TEAM_FRESHNESS = 24 * 60 * 60 * 1000;
+// Heartbeat interval in milliseconds
+const HEARTBEAT_INTERVAL = 3000;
 
 type GameState = {
   teamId: string | null;
@@ -33,6 +35,7 @@ type GameState = {
   currentQuestion: Question | null;
   status: string;
   gameCode: string | null;
+  lastSyncTime: number;
 };
 
 type GameContextType = {
@@ -58,6 +61,7 @@ const defaultGameState: GameState = {
   currentQuestion: null,
   status: 'waiting',
   gameCode: null,
+  lastSyncTime: 0,
 };
 
 export const GameContext = createContext<GameContextType>({
@@ -82,6 +86,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   const [submittedAnswer, setSubmittedAnswer] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serverGameData, setServerGameData] = useState<Game | null>(null);
+  const [isConnected, setIsConnected] = useState(true);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -129,53 +134,135 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     localStorage.setItem('gameVersion', GAME_VERSION);
   };
 
+  // Heartbeat check to verify Firebase connection
+  useEffect(() => {
+    const heartbeatInterval = setInterval(() => {
+      // If we haven't received a game update in over 10 seconds, try to refresh
+      const now = Date.now();
+      if (gameState.lastSyncTime > 0 && now - gameState.lastSyncTime > 10000) {
+        console.log('No game updates recently, checking connection...');
+        
+        get(gameRef)
+          .then(snapshot => {
+            if (snapshot.exists()) {
+              // Connection is working, update the game state
+              const gameData = snapshot.val() as Game;
+              updateGameStateFromServer(gameData);
+              setIsConnected(true);
+            }
+          })
+          .catch(error => {
+            console.error('Connection check failed:', error);
+            setIsConnected(false);
+          });
+      }
+    }, HEARTBEAT_INTERVAL);
+
+    return () => clearInterval(heartbeatInterval);
+  }, [gameState.lastSyncTime]);
+
+  // Function to update game state from server data
+  const updateGameStateFromServer = (gameData: Game) => {
+    setServerGameData(gameData);
+    
+    setGameState(prev => ({
+      ...prev,
+      isGameStarted: gameData.isActive,
+      currentCategory: gameData.currentCategory,
+      currentRound: gameData.currentRound,
+      status: gameData.status,
+      // Preserve the gameCode if we already have one, or use the one from gameData, or null
+      gameCode: prev.gameCode || (gameData.gameCode ? gameData.gameCode : null),
+      lastSyncTime: Date.now()
+    }));
+    
+    // Load current question if there is one
+    if (gameData.currentQuestion) {
+      get(ref(db, `questions/${gameData.currentQuestion}`))
+        .then((questionSnapshot) => {
+          if (questionSnapshot.exists()) {
+            const questionData = questionSnapshot.val();
+            setGameState(prev => ({
+              ...prev,
+              currentQuestion: {
+                id: gameData.currentQuestion,
+                ...questionData
+              } as Question,
+              lastSyncTime: Date.now()
+            }));
+          }
+        })
+        .catch(error => console.error('Error loading question:', error));
+    } else {
+      setGameState(prev => ({
+        ...prev,
+        currentQuestion: null,
+        lastSyncTime: Date.now()
+      }));
+    }
+  };
+
   // Listen for global game state changes
   useEffect(() => {
+    console.log('Setting up real-time game state listener');
+    
     const gameListener = onValue(gameRef, (snapshot) => {
       if (snapshot.exists()) {
         const gameData = snapshot.val() as Game;
-        setServerGameData(gameData);
-        
-        // Update game state in our context
-        setGameState(prev => ({
-          ...prev,
-          isGameStarted: gameData.isActive,
-          currentCategory: gameData.currentCategory,
-          currentRound: gameData.currentRound,
-          status: gameData.status,
-          // Preserve the gameCode if we already have one, or use the one from gameData, or null
-          gameCode: prev.gameCode || (gameData.gameCode ? gameData.gameCode : null)
-        }));
-        
-        // Load current question if there is one
-        if (gameData.currentQuestion) {
-          get(ref(db, `questions/${gameData.currentQuestion}`))
-            .then((questionSnapshot) => {
-              if (questionSnapshot.exists()) {
-                const questionData = questionSnapshot.val();
-                setGameState(prev => ({
-                  ...prev,
-                  currentQuestion: {
-                    id: gameData.currentQuestion,
-                    ...questionData
-                  } as Question
-                }));
-              }
-            })
-            .catch(error => console.error('Error loading question:', error));
-        } else {
-          setGameState(prev => ({
-            ...prev,
-            currentQuestion: null
-          }));
-        }
+        console.log('Game update received:', gameData.status);
+        updateGameStateFromServer(gameData);
+        setIsConnected(true);
       }
+    }, (error) => {
+      console.error('Game listener error:', error);
+      setIsConnected(false);
     });
     
     return () => {
-      off(ref(db, 'game'));
+      console.log('Cleaning up game state listener');
+      off(gameRef);
     };
   }, []);
+  
+  // Specifically watch for game start to immediately transition waiting players
+  useEffect(() => {
+    const handleGameStart = () => {
+      // Check if we're on a player waiting screen
+      const currentPath = location.pathname;
+      if (gameState.isRegistered && 
+          gameState.teamId && 
+          (currentPath === '/player/waiting' || currentPath === '/player/waiting') && 
+          gameState.isGameStarted) {
+        console.log('Game started while on waiting screen, redirecting to category');
+        navigate('/player/category');
+      }
+    };
+
+    // Set up a periodic check for game start status specifically
+    const gameStartInterval = setInterval(() => {
+      if (gameState.isRegistered && gameState.teamId) {
+        get(gameRef)
+          .then(snapshot => {
+            if (snapshot.exists()) {
+              const gameData = snapshot.val() as Game;
+              if (gameData.isActive && !gameState.isGameStarted) {
+                console.log('Game start detected in interval check');
+                setGameState(prev => ({
+                  ...prev,
+                  isGameStarted: true,
+                  status: gameData.status,
+                  lastSyncTime: Date.now()
+                }));
+                handleGameStart();
+              }
+            }
+          })
+          .catch(error => console.error('Game start check error:', error));
+      }
+    }, 1500); // Check more frequently specifically for game start
+
+    return () => clearInterval(gameStartInterval);
+  }, [gameState.isRegistered, gameState.teamId, gameState.isGameStarted, location.pathname, navigate]);
   
   // Handle navigation based on game state changes
   useEffect(() => {
@@ -185,37 +272,60 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     // Get path without the leading slash
     const currentPath = location.pathname.replace(/^\//, '');
     
-    // Handle game start - redirect to quiz-starting page
+    // Only handle navigation for player routes
+    if (!currentPath.startsWith('player')) return;
+    
+    console.log('Checking navigation based on game state:', {
+      path: currentPath,
+      status: gameState.status,
+      isGameStarted: gameState.isGameStarted
+    });
+    
+    // Handle game start - redirect to category page (skip quiz-starting)
     if (gameState.isGameStarted && 
         (currentPath === 'player' || currentPath === 'player/join' || currentPath === 'player/waiting')) {
-      navigate('/player/quiz-starting');
+      console.log('Game started while on waiting/join page, redirecting to category');
+      navigate('/player/category');
+      return;
     }
     
     // Handle category change
     if (gameState.status === 'category' && currentPath !== 'player/category') {
       setSubmittedAnswer(false);
       navigate('/player/category');
+      return;
     }
     
     // Handle question display
-    if (gameState.status === 'question' && currentPath !== 'player/answers') {
+    if (gameState.status === 'question' && currentPath !== 'player/question') {
       setSubmittedAnswer(false);
-      navigate('/player/answers');
+      console.log('Game status is question, navigating to question display page');
+      navigate('/player/question');
+      return;
+    }
+    
+    // If player has already submitted an answer and status is still question, wait for results
+    if (gameState.status === 'question' && submittedAnswer && currentPath !== 'player/waiting-answer') {
+      navigate('/player/waiting-answer');
+      return;
     }
     
     // Handle showing results
-    if (gameState.status === 'results' && currentPath !== 'player/answers') {
-      navigate('/player/answers');
+    if (gameState.status === 'results' && currentPath !== 'player/points') {
+      navigate('/player/points');
+      return;
     }
     
     // Handle leaderboard
     if (gameState.status === 'leaderboard' && currentPath !== 'player/team-points') {
       navigate('/player/team-points');
+      return;
     }
     
     // Handle game end
     if (gameState.status === 'finished' && currentPath !== 'player/winners') {
       navigate('/player/winners');
+      return;
     }
     
   }, [
@@ -225,8 +335,10 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     gameState.currentCategory,
     gameState.status,
     gameState.currentQuestion?.id,
+    gameState.lastSyncTime,
     location.pathname,
-    navigate
+    navigate,
+    submittedAnswer
   ]);
   
   // If player has teamId saved, check if it's still valid and load team data
@@ -265,7 +377,8 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
                 currentCategory: game.currentCategory,
                 currentRound: game.currentRound,
                 status: game.status,
-                gameCode: savedGameCode
+                gameCode: savedGameCode,
+                lastSyncTime: Date.now()
               }));
               
               // If the game already started, check current status for navigation
@@ -342,7 +455,8 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         teamName: formattedName,
         mascotId,
         isRegistered: true,
-        gameCode
+        gameCode,
+        lastSyncTime: Date.now()
       }));
       
       // Save to localStorage for persistence
@@ -372,7 +486,8 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       // Update local state
       setGameState(prev => ({
         ...prev,
-        points: newPoints
+        points: newPoints,
+        lastSyncTime: Date.now()
       }));
     } catch (error) {
       console.error('Error updating points:', error);
@@ -394,7 +509,8 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       // Update local state
       setGameState(prev => ({
         ...prev,
-        mascotId: newMascotId
+        mascotId: newMascotId,
+        lastSyncTime: Date.now()
       }));
       
       // Save to localStorage
@@ -473,6 +589,12 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         loading
       }}
     >
+      {/* Show connection warning if disconnected */}
+      {!isConnected && (
+        <div className="fixed top-0 left-0 right-0 bg-secondary text-white py-1 text-center text-sm z-50">
+          Sinhronizacija u toku... Molimo sačekajte.
+        </div>
+      )}
       {children}
     </GameContext.Provider>
   );

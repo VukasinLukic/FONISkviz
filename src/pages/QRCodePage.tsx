@@ -193,7 +193,7 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
                 delay={0} // Delay handled by stagger
               />
               <TextReveal
-                text="zatim unesite kod igre da biste se pridružili kvizu"
+                text="da biste pristupili stranici za prijavu"
                 className="text-center text-accent mb-1 opacity-90 text-sm"
                 duration={0.6}
                 delay={0.1} // Slight delay for second line

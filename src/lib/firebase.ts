@@ -9,7 +9,10 @@ import {
   onValue, 
   get, 
   remove, 
-  serverTimestamp 
+  serverTimestamp,
+  query,
+  orderByChild,
+  equalTo
 } from 'firebase/database';
 
 // Firebase configuration from environment variables
@@ -63,6 +66,8 @@ export interface Game {
   totalRounds: number;
   startedAt: number | null;
   gameCode?: string; // Optional game code for identifying games
+  transitionScheduledAt?: number | object | null;
+  transitionDuration?: number | null;
 }
 
 export interface Answer {
@@ -70,7 +75,7 @@ export interface Answer {
   questionId: string;
   answer: 'A' | 'B' | 'C' | 'D' | null;
   isCorrect: boolean;
-  answeredAt: number;
+  answeredAt: number | object; // Allow serverTimestamp object
   pointsEarned: number;
 }
 
@@ -230,6 +235,40 @@ export const getTeamAnswerForQuestion = async (teamId: string, questionId: strin
   }
   
   return null;
+};
+
+// Get all answers for a specific question with team data included
+export const getAllAnswersForQuestion = async (questionId: string): Promise<Array<Answer & { team: Team }>> => {
+  // Get all answers for this question
+  const answersQuery = query(answersRef, orderByChild('questionId'), equalTo(questionId));
+  const answersSnapshot = await get(answersQuery);
+  
+  if (!answersSnapshot.exists()) {
+    return [];
+  }
+  
+  // Get all teams to merge with answers
+  const teamsSnapshot = await get(teamsRef);
+  const teams = teamsSnapshot.exists() ? teamsSnapshot.val() : {};
+  
+  // Format answers with team data
+  const answers = answersSnapshot.val();
+  const result: Array<Answer & { team: Team }> = [];
+  
+  for (const key in answers) {
+    const answer = answers[key] as Answer;
+    const team = teams[answer.teamId] as Team;
+    
+    if (team) {
+      result.push({
+        ...answer,
+        team
+      });
+    }
+  }
+  
+  // Sort by answeredAt (speed) - Cast to number as serverTimestamp is replaced on read
+  return result.sort((a, b) => (a.answeredAt as number) - (b.answeredAt as number));
 };
 
 // Initialize default game state if it doesn't exist
