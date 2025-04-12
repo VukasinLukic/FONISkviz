@@ -14,28 +14,39 @@
     "start": "react-scripts start",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "seed": "node src/scripts/direct-seed.js",
+    "seed": "node --require ts-node/register src/scripts/seed.ts",
+    "seed-questions": "node --experimental-modules src/scripts/seed-questions.js",
     "seed-real": "node --experimental-modules src/scripts/use-real-questions.js",
     "seed-fix": "node src/scripts/direct-question-fix.cjs",
     "reset": "node src/scripts/direct-reset.js",
+    "reset-database": "node --experimental-modules src/scripts/reset-database.js",
+    "powershell-dev": "vite",
+    "powershell-build": "tsc ; vite build",
     "vercel-build": "npm install --legacy-peer-deps && npm run build"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.2.0",
+    "@types/firebase": "^2.4.32",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "firebase": "^10.14.1",
     "framer-motion": "^11.0.3",
     "gsap": "^3.12.5",
+    "lodash": "^4.17.21",
     "qrcode.react": "^4.2.0",
-    "react-qr-code": "^2.0.15",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.0"
+    "react-qr-code": "^2.0.15",
+    "react-router-dom": "^6.22.0",
+    "tailwind-merge": "^3.2.0"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.16",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.17",
     "dotenv": "^16.4.5",
     "eslint": "^8.55.0",
@@ -45,6 +56,7 @@
     "tailwindcss": "^3.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.2.2",
-    "vite": "^5.0.8"
+    "typescript-eslint": "^8.29.1",
+    "vite": "^5.4.18"
   }
 }

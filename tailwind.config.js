@@ -17,11 +17,7 @@ module.exports = {
         tertiarybrown: "#a0756b",
       },
       fontFamily: {
-        'basteleur': ['Basteleur', 'serif'],
-        'caviar': ['Caviar Dreams', 'sans-serif']
-      },
-      fontFamily: {
-        'mainstay': ['Mainstay', 'serif'],
+        'serif': ['Merriweather', 'serif'],
         'caviar': ['Caviar Dreams', 'sans-serif']
       },
       animation: {

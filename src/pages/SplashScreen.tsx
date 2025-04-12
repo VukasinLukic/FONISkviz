@@ -1,26 +1,71 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useQuizAdmin } from '../lib/useQuizAdmin';
 import MainButton from '../components/MainButton';
+import AnimatedBackground from '../components/AnimatedBackground';
+import { createGame, getAllQuestions } from '../lib/firebase';
 
 const SplashScreen = () => {
   const navigate = useNavigate();
   const [logoAnimationComplete, setLogoAnimationComplete] = useState(false);
-  const { createNewGame, loading } = useQuizAdmin();
-  
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const handleCreateGame = async () => {
-    await createNewGame();
+    if (isCreating) return;
+
+    setIsCreating(true);
+    setError(null);
+
+    try {
+      // Generate a new game code
+      const newGameCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      localStorage.setItem('adminGameCode', newGameCode);
+      localStorage.setItem('gameCode', newGameCode);
+      localStorage.setItem('isAdmin', 'true');
+
+      // Prepare initial game data (fetch questions if needed, or use defaults)
+      const allQuestions = await getAllQuestions();
+      if (!allQuestions || allQuestions.length === 0) {
+        throw new Error("No questions found in the database. Seed questions first.");
+      }
+      const questionOrder = allQuestions.map(q => q.id).sort(() => Math.random() - 0.5);
+
+      const initialData = {
+        currentQuestionIndex: 0,
+        questionOrder: questionOrder,
+        timerEnd: null,
+        currentRound: 1
+      };
+
+      console.log(`Creating game with code: ${newGameCode}`);
+      await createGame(newGameCode, initialData);
+      console.log(`Game ${newGameCode} created successfully.`);
+
+      // Navigate to QR code page
+      navigate('/admin/qrcode', { state: { fromSplash: true, gameCode: newGameCode } });
+
+    } catch (err: any) {
+      console.error("Error creating game:", err);
+      setError(`Failed to create game: ${err.message}`);
+      localStorage.removeItem('adminGameCode');
+      localStorage.removeItem('gameCode');
+      localStorage.removeItem('isAdmin');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
     <motion.div
-      className={`min-h-screen overflow-hidden relative flex flex-col items-center justify-center bg-accent`} 
+      className={`min-h-screen overflow-hidden relative flex flex-col items-center justify-center bg-primary`} 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.7 }}
     >
+      <AnimatedBackground density="high" />
+      
       {/* Logo */}
       <motion.div 
         className="flex items-center justify-center mb-12 z-20"
@@ -82,12 +127,21 @@ const SplashScreen = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <MainButton 
+          {error && (
+            <motion.div
+              className="bg-red-500/20 border border-red-500/50 text-red-100 p-3 rounded-md mb-4 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {error}
+            </motion.div>
+          )}
+          <MainButton
             onClick={handleCreateGame}
-            disabled={loading}
+            disabled={isCreating}
             className="bg-secondary hover:bg-secondary/90 text-white py-4 text-lg"
           >
-            {loading ? 'Kreiranje igre...' : 'Kreiraj novu igru'}
+            {isCreating ? 'Creating Game...' : 'Kreiraj novu igru'}
           </MainButton>
         </motion.div>
       )}

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -15,30 +17,6 @@
   src: url('/fonts/CaviarDreams-Italic.ttf') format('truetype');
   font-weight: normal;
   font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Basteleur';
-  src: url('/fonts/Basteleur-Bold.ttf') format('truetype');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Basteleur';
-  src: url('/fonts/Basteleur-Moonlight.ttf') format('truetype');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Mainstay';
-  src: url('/fonts/Mainstay.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
   font-display: swap;
 }
 
@@ -75,8 +53,7 @@ body {
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
-  font-family: 'Mainstay', serif;
-  font-family: 'Mainstay', serif;
+  font-family: 'Merriweather', serif;
 }
 
 button {
@@ -124,6 +101,10 @@ button:focus-visible {
 /* Custom utility classes */
 .font-caviar {
   font-family: 'Caviar Dreams', sans-serif;
+}
+
+.font-serif {
+  font-family: 'Merriweather', serif;
 }
 
 /* Fix for mobile viewport and background */

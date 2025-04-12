@@ -1,0 +1,29 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": true,
+    
+    "game": {
+      ".indexOn": ["status"],
+      "$gameId": {
+        ".read": true,
+        ".write": true,
+        ".indexOn": ["status", "currentQuestion"]
+      }
+    },
+    
+    "teams": {
+      ".indexOn": ["gameId", "score"],
+      "$teamId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    
+    "questions": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["order"]
+    }
+  }
+} 

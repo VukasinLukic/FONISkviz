@@ -1,21 +1,12 @@
-import { useEffect } from 'react';
-
-interface FontLoaderProps {}
-
-const FontLoader: React.FC<FontLoaderProps> = () => {
-  useEffect(() => {
+// FontLoader modul - učitava fontove u aplikaciju
+const FontLoader = {
+  loadFonts: () => {
     // Create a style element
     const style = document.createElement('style');
     
     // Set the CSS content with absolute paths
     style.textContent = `
-      @font-face {
-        font-family: 'Mainstay';
-        src: url('${window.location.origin}/fonts/Basteleur-Bold.ttf') format('truetype');
-        font-weight: bold;
-        font-style: normal;
-        font-display: swap;
-      }
+      @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
       
       @font-face {
         font-family: 'Caviar Dreams';
@@ -36,16 +27,20 @@ const FontLoader: React.FC<FontLoaderProps> = () => {
       }
     `;
     
+    // Remove any existing FontLoader styles
+    const existingStyle = document.getElementById('font-loader-styles');
+    if (existingStyle) {
+      document.head.removeChild(existingStyle);
+    }
+    
+    // Add ID to the style element for future reference
+    style.id = 'font-loader-styles';
+    
     // Append the style element to the head
     document.head.appendChild(style);
     
-    // Clean up
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-  
-  return null; // This component doesn't render anything
+    return true; // Return true to indicate fonts were loaded
+  }
 };
 
 export default FontLoader; 

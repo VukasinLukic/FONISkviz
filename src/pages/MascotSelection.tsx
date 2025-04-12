@@ -1,32 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useGameContext } from '../context/GameContext';
 import MainButton from '../components/MainButton';
+import Logo from '../components/Logo';
+import AnimatedBackground from '../components/AnimatedBackground';
+import { motion } from 'framer-motion';
+import { updateTeam, getDb } from '../lib/firebase';
+import { Database } from 'firebase/database';
 
 const MascotSelection: React.FC = () => {
   const [selectedMascot, setSelectedMascot] = useState<number | null>(null);
   const [imageError, setImageError] = useState<Record<number, boolean>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const { gameState, updateMascot, loading } = useGameContext();
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [dbInstance, setDbInstance] = useState<Database | null>(null);
+  
+  // Get team data from localStorage
+  const [teamData, setTeamData] = useState({
+    teamId: localStorage.getItem('teamId') || '',
+    teamName: localStorage.getItem('teamName') || '',
+    gameCode: localStorage.getItem('gameCode') || ''
+  });
   
   const isPlayerRoute = location.pathname.startsWith('/player');
 
-  // Log team info for debugging
-  console.log("MascotSelection - Team Info:", { 
-    teamId: gameState.teamId, 
-    teamName: gameState.teamName,
-    isRegistered: gameState.isRegistered,
-    mascotId: gameState.mascotId
-  });
+  // Check if team data exists
+  useEffect(() => {
+    if (!teamData.teamId || !teamData.teamName) {
+      console.log("No team ID or team name, redirecting to join page");
+      navigate(isPlayerRoute ? '/player' : '/');
+    }
+  }, [teamData.teamId, teamData.teamName, navigate, isPlayerRoute]);
 
-  if (!gameState.teamId || !gameState.isRegistered) {
-    console.log("No team ID or not registered, redirecting to join page");
-    navigate(isPlayerRoute ? '/player' : '/');
-    return null;
-  }
+  // Fetch DB instance
+  useEffect(() => {
+    const fetchDb = async () => {
+      const db = await getDb();
+      setDbInstance(db);
+    };
+    fetchDb();
+  }, []);
 
   const handleMascotSelect = (mascotId: number) => {
     setSelectedMascot(mascotId);
@@ -42,13 +57,18 @@ const MascotSelection: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (selectedMascot !== null) {
+    if (selectedMascot !== null && teamData.teamId) {
+      setIsLoading(true);
       try {
+        if (!dbInstance) throw new Error("DB not initialized");
         setErrorMessage(null);
         setSuccessMessage(null);
         console.log(`Updating mascot to ${selectedMascot}`);
         
-        await updateMascot(selectedMascot);
+        await updateTeam(teamData.teamId, { mascotId: selectedMascot });
+        
+        // Save mascot ID to localStorage
+        localStorage.setItem('mascotId', selectedMascot.toString());
         
         console.log(`Mascot updated successfully to ${selectedMascot}`);
         setSuccessMessage("Maskota uspešno izabrana!");
@@ -60,75 +80,104 @@ const MascotSelection: React.FC = () => {
       } catch (error) {
         console.error('Error updating mascot:', error);
         setErrorMessage("Greška pri izboru maskote. Pokušajte ponovo.");
+      } finally {
+        setIsLoading(false);
       }
+    } else {
+      setErrorMessage("Izaberite maskotu pre nego što nastavite.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-tertiarygreen p-4 flex flex-col items-center justify-center">
-      <h1 className="text-primary text-3xl font-bold mb-8 text-center font-basteleur">
-        {gameState.teamName}, izaberite maskotu:
-      </h1>
+    <div className="min-h-screen bg-primary p-4 relative overflow-hidden">
+      <AnimatedBackground density="low" />
       
-      {/* Debug info */}
-      <div className="mb-4 text-xs text-primary">
-        <p>Team ID: {gameState.teamId}</p>
-        <p>Current Mascot: {gameState.mascotId}</p>
-        <p>Selected Mascot: {selectedMascot}</p>
-      </div>
-      
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {[2, 3, 4, 5, 6, 7, 8, 9].map((mascotId) => (
-          !imageError[mascotId] && (
-            <button
-              key={mascotId}
-              onClick={() => handleMascotSelect(mascotId)}
-              className={`p-4 rounded-lg transition-all ${
-                selectedMascot === mascotId
-                  ? 'ring-4 ring-secondary bg-secondary bg-opacity-20'
-                  : 'hover:bg-secondary hover:bg-opacity-10 bg-tertiarygreen'
-              }`}
-            >
-              <img
-                src={`/assets/maskota${mascotId} 1.svg`}
-                alt={`Maskota ${mascotId}`}
-                className="w-24 h-24 md:w-32 md:h-32 object-contain"
-                onError={() => handleImageError(mascotId)}
-              />
-            </button>
-          )
-        ))}
-      </div>
-      
-      {/* Error message */}
-      {errorMessage && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {errorMessage}
-        </div>
-      )}
-      
-      {/* Success message */}
-      {successMessage && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-          {successMessage}
-        </div>
-      )}
-      
-      <button
-        onClick={handleSubmit}
-        disabled={!selectedMascot || loading}
-        className="w-full max-w-md py-3 px-6 text-lg font-bold bg-highlight text-white rounded-lg 
-        shadow-md hover:bg-opacity-90 transition-all disabled:opacity-50 
-        disabled:cursor-not-allowed"
+      <motion.div
+        className="z-30 absolute top-6 left-6"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
       >
-        {loading ? 'Učitavanje...' : 'može!'}
-      </button>
-
-      {import.meta.env.DEV && selectedMascot && (
-        <p className="text-sm text-primary mt-4 font-caviar">
-          Debug: Izabrana maskota ID = {selectedMascot}
-        </p>
-      )}
+        <Logo size="small" />
+      </motion.div>
+      
+      <div className="max-w-2xl mx-auto pt-24 z-20 relative flex flex-col items-center">
+        <motion.h1 
+          className="text-3xl md:text-4xl font-bold text-accent mb-8 text-center font-serif"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {teamData.teamName}, izaberite maskotu:
+        </motion.h1>
+        
+        <motion.div 
+          className="grid grid-cols-3 gap-4 mb-8"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((mascotId) => (
+            !imageError[mascotId] && (
+              <motion.button
+                key={mascotId}
+                onClick={() => handleMascotSelect(mascotId)}
+                className={`p-4 rounded-lg transition-all ${
+                  selectedMascot === mascotId
+                    ? 'ring-4 ring-highlight bg-highlight/20'
+                    : 'hover:bg-accent/20 bg-accent/10'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <img
+                  src={`/assets/maskota${mascotId} 1.svg`}
+                  alt={`Maskota ${mascotId}`}
+                  className="w-24 h-24 md:w-32 md:h-32 object-contain"
+                  onError={() => handleImageError(mascotId)}
+                />
+              </motion.button>
+            )
+          ))}
+        </motion.div>
+        
+        {/* Error message */}
+        {errorMessage && (
+          <motion.div 
+            className="bg-red-500/20 border border-red-500/50 text-red-100 px-4 py-3 rounded-md mb-4 text-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {errorMessage}
+          </motion.div>
+        )}
+        
+        {/* Success message */}
+        {successMessage && (
+          <motion.div 
+            className="bg-green-500/20 border border-green-500/50 text-green-100 px-4 py-3 rounded-md mb-4 text-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {successMessage}
+          </motion.div>
+        )}
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="w-full max-w-md"
+        >
+          <MainButton
+            onClick={handleSubmit}
+            disabled={!selectedMascot || isLoading}
+            className="w-full py-3 text-lg"
+          >
+            {isLoading ? 'Učitavanje...' : 'Potvrdi izbor'}
+          </MainButton>
+        </motion.div>
+      </div>
     </div>
   );
 };

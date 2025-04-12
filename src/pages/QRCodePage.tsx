@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import QRCode from 'react-qr-code';
 import { motion, AnimatePresence } from 'framer-motion';
-import TextReveal from '../components/TextReveal';
 import Logo from '../components/Logo';
-import { useQuizAdmin } from '../lib/useQuizAdmin';
 import AnimatedBackground from '../components/AnimatedBackground';
+import { getDb } from '../lib/firebase';
+import { onValue, query, orderByChild, equalTo, ref, Database } from 'firebase/database';
 
 interface QRCodePageProps {}
 
@@ -70,15 +70,23 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
   const location = useLocation();
   const [loaded, setLoaded] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
-  const { gameState, teams } = useQuizAdmin();
+  const [teams, setTeams] = useState<any[]>([]);
+  const [dbInstance, setDbInstance] = useState<Database | null>(null);
   
   // Check if we're coming from the splash screen
   const fromSplash = location.state?.fromSplash || false;
   
-  // Game code from the actual game state
-  const gameCode = gameState?.gameCode || 'LOADING';
+  // Generate a random 6-character game code if not already in localStorage
+  const [gameCode] = useState(() => {
+    const storedGameCode = localStorage.getItem('adminGameCode');
+    if (storedGameCode) return storedGameCode;
+    
+    const newGameCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    localStorage.setItem('adminGameCode', newGameCode);
+    return newGameCode;
+  });
   
-  // Full URL for joining the game - now pointing to the join page without code
+  // Full URL for joining the game
   const joinUrl = `${window.location.origin}/player`;
 
   // Use loaded state to trigger initial animation
@@ -86,6 +94,45 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
     const timer = setTimeout(() => setLoaded(true), fromSplash ? 50 : 100); // Faster load trigger
     return () => clearTimeout(timer);
   }, [fromSplash]);
+  
+  // Listen for teams joining with this game code
+  useEffect(() => {
+    const setupTeamsListener = async () => {
+      try {
+        const db = await getDb();
+        setDbInstance(db);
+
+        if (!db) return () => {}; // Return empty cleanup if DB fails
+
+        const teamsQuery = query(
+          ref(db, 'teams'),
+          orderByChild('gameCode'),
+          equalTo(gameCode)
+        );
+        
+        const unsubscribe = onValue(teamsQuery, (snapshot) => {
+          if (snapshot.exists()) {
+            const teamsData = snapshot.val();
+            const teamsArray = Object.values(teamsData);
+            setTeams(teamsArray);
+          } else {
+            setTeams([]);
+          }
+        });
+        
+        return unsubscribe;
+      } catch (error) {
+        console.error('Error setting up teams listener:', error);
+        return () => {};
+      }
+    };
+    
+    const unsubscribePromise = setupTeamsListener();
+    
+    return () => {
+      unsubscribePromise.then(unsubscribe => unsubscribe());
+    };
+  }, [gameCode]);
   
   const handleGoToLobby = () => {
     setIsExiting(true);
@@ -111,7 +158,7 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
       {/* Use AnimatePresence to handle the exit animation before navigation */}
       <AnimatePresence 
         mode="wait"
-        onExitComplete={() => navigate('/admin/lobby', { state: { fromPrevious: true } })}
+        onExitComplete={() => navigate(`/admin/lobby?gameCode=${gameCode}`, { state: { fromPrevious: true } })}
       >
         {loaded && !isExiting && (
           <motion.div
@@ -124,13 +171,10 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
             custom={fromSplash} // Pass fromSplash to variants if needed
           >
             {/* Heading */}
-            <motion.div className="mb-6 z-30 text-reveal-container" variants={itemVariants}>
-              <TextReveal
-                text="Join FONIS Quiz"
-                className="text-4xl md:text-5xl font-bold text-accent font-mainstay"
-                duration={0.8} // TextReveal handles its own animation, just animate container
-                delay={0} // Delay handled by stagger
-              />
+            <motion.div className="mb-6 z-30" variants={itemVariants}>
+              <h1 className="text-4xl md:text-5xl font-bold text-accent font-serif">
+                Join FONIS Quiz
+              </h1>
             </motion.div>
             
             {/* QR Code Container with Frame */}
@@ -185,19 +229,13 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
             </motion.div>
             
             {/* Instructions */}
-            <motion.div className="mb-6 max-w-sm text-center z-30 text-reveal-container" variants={itemVariants}>
-              <TextReveal
-                text="Skenirajte QR kod svojim mobilnim uređajem"
-                className="text-center text-accent mb-1 text-sm"
-                duration={0.6} 
-                delay={0} // Delay handled by stagger
-              />
-              <TextReveal
-                text="da biste pristupili stranici za prijavu"
-                className="text-center text-accent mb-1 opacity-90 text-sm"
-                duration={0.6}
-                delay={0.1} // Slight delay for second line
-              />
+            <motion.div className="mb-6 max-w-sm text-center z-30" variants={itemVariants}>
+              <p className="text-center text-accent mb-1 text-sm">
+                Skenirajte QR kod svojim mobilnim uređajem
+              </p>
+              <p className="text-center text-accent mb-1 opacity-90 text-sm">
+                da biste pristupili stranici za prijavu
+              </p>
             </motion.div>
             
             {/* Button - Styled with higher prominence */}

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface AnimatedBackgroundProps {
   density?: 'low' | 'medium' | 'high';
@@ -22,6 +22,13 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   color = 'primary'
 }) => {
   const [decorations, setDecorations] = useState<DecorationElement[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Browser detection for optimizations
+  const isIE = /*@cc_on!@*/false || !!(document as any).documentMode;
+  const isEdge = !isIE && !!((window as any).StyleMedia);
+  const isFirefox = typeof (window as any).InstallTrigger !== 'undefined';
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   
   // Define decorative elements
   const decorativeElements = [
@@ -41,10 +48,19 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   
   // Generate random decorations
   useEffect(() => {
-    const count = density === 'low' ? 8 : density === 'medium' ? 15 : 25;
+    // Adjust quantity based on browser and performance capabilities
+    let adjustedCount = density === 'low' ? 8 : density === 'medium' ? 15 : 25;
+    
+    // Reduce elements for older browsers or Safari which has some animation performance issues
+    if (isIE || isEdge) {
+      adjustedCount = Math.floor(adjustedCount * 0.5); // 50% reduction for IE/Edge
+    } else if (isSafari) {
+      adjustedCount = Math.floor(adjustedCount * 0.7); // 30% reduction for Safari
+    }
+    
     const elements: DecorationElement[] = [];
     
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < adjustedCount; i++) {
       const randomElement = decorativeElements[Math.floor(Math.random() * decorativeElements.length)];
       elements.push({
         id: i,
@@ -59,10 +75,31 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
     }
     
     setDecorations(elements);
-  }, [density]);
+    
+    // Just set decorations to empty instead of manually removing DOM elements
+    return () => {
+      // Clean up by unmounting via state rather than direct DOM manipulation
+      setDecorations([]);
+    };
+  }, [density, isIE, isEdge, isSafari]);
+  
+  // Get appropriate filter value for color
+  const getColorFilter = (colorName: string) => {
+    switch (colorName) {
+      case 'secondary': return 'hue-rotate(20deg)';
+      case 'accent': return 'hue-rotate(60deg)';
+      case 'highlight': return 'hue-rotate(120deg)';
+      case 'special': return 'hue-rotate(180deg)';
+      default: return 'none';
+    }
+  };
   
   return (
-    <div className="absolute inset-0 overflow-hidden z-0 pointer-events-none">
+    <div 
+      ref={containerRef}
+      className="absolute inset-0 overflow-hidden z-0 pointer-events-none"
+      style={{ willChange: 'transform' }} // Hint to browser for optimization
+    >
       {decorations.map((decoration) => (
         <motion.div
           key={decoration.id}
@@ -71,7 +108,8 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
             top: decoration.y,
             left: decoration.x,
             width: decoration.size,
-            height: decoration.size
+            height: decoration.size,
+            willChange: 'transform, opacity' // Better performance hint
           }}
           initial={{ opacity: 0, scale: 0, rotate: decoration.rotate }}
           animate={{ 
@@ -104,16 +142,22 @@ const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
         >
           <img 
             src={decoration.src} 
-            alt="Decoration" 
+            alt=""
+            aria-hidden="true"
             className="w-full h-full object-contain"
             style={{ 
-              filter: color !== 'primary' ? 
-                `hue-rotate(${
-                  color === 'secondary' ? '20deg' : 
-                  color === 'accent' ? '60deg' : 
-                  color === 'highlight' ? '120deg' : 
-                  color === 'special' ? '180deg' : '0deg'
-                })` : 'none' 
+              filter: color !== 'primary' ? getColorFilter(color) : 'none',
+              // Force hardware acceleration for Safari
+              transform: isSafari ? 'translateZ(0)' : 'none',
+              // Add vendor prefixes if needed
+              WebkitFilter: color !== 'primary' ? getColorFilter(color) : 'none'
+            }}
+            // Preload important images for better performance
+            loading="lazy"
+            onError={(e) => {
+              // Fallback for image loading errors
+              const target = e.currentTarget;
+              target.style.display = 'none';
             }}
           />
         </motion.div>
