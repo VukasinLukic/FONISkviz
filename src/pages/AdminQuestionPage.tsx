@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   getGameData, 
   getQuestion, 
@@ -14,17 +14,25 @@ import {
 } from '../lib/firebase';
 import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
-import MainButton from '../components/MainButton';
+import { Button } from '../components/ui/button';
 import DevTools from '../components/DevTools';
 import { onValue, ref, getDatabase, Database } from 'firebase/database';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
+
+// Define colors for answer options based on Tailwind config
+const answerColors = [
+  'bg-highlight/80 border-highlight', // A - highlight (yellowish)
+  'bg-secondary/80 border-secondary',  // B - secondary (orange)
+  'bg-accent/80 border-accent',       // C - accent (light beige)
+  'bg-special/80 border-special'      // D - special (purple) instead of primary
+];
 
 const AdminQuestionPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  const [revealingAnswer, setRevealingAnswer] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const initialStatusSet = useRef(false);
 
   // Extract gameCode from URL query parameters
@@ -89,20 +97,21 @@ const AdminQuestionPage = () => {
     fetchQuestion();
   }, [game, gameLoading, gameError]);
 
-  // Handle revealing the answer
-  const handleRevealAnswer = async () => {
-    if (!gameCode || !game || revealingAnswer || gameError) {
-      console.warn('[handleRevealAnswer] Prevented execution. Conditions:', {
+  // Handle revealing the answer (now processing)
+  const handleProcessAndReveal = async () => {
+    if (!gameCode || !game || processing || gameError || !currentQuestion?.id) {
+      console.warn('[handleProcessAndReveal] Prevented execution. Conditions:', {
         gameCode: !!gameCode,
         game: !!game,
-        revealingAnswer,
-        gameError: !!gameError
+        processing,
+        gameError: !!gameError,
+        currentQuestionId: currentQuestion?.id
       });
       return;
     }
     
     try {
-      setRevealingAnswer(true);
+      setProcessing(true);
       setError(null);
       
       // 1. Reset resultsReady flag before processing
@@ -110,16 +119,9 @@ const AdminQuestionPage = () => {
       await updateGameData(gameCode, { resultsReady: false }); 
       
       // 2. Process question results (calculate scores) - MUST complete first
-      if (currentQuestion?.id) {
-        console.log(`[AdminQuestionPage] Processing results for question: ${currentQuestion.id}`);
-        await processQuestionResults(gameCode, currentQuestion.id); // Wait for this to finish
-        console.log(`[AdminQuestionPage] Results processed for question: ${currentQuestion.id}`);
-      } else {
-        console.error('[AdminQuestionPage] Cannot process results: currentQuestion or its ID is missing.');
-        setError('Cannot process results: Missing question data.');
-        setRevealingAnswer(false);
-        return; 
-      }
+      console.log(`[AdminQuestionPage] Processing results for question: ${currentQuestion.id}`);
+      await processQuestionResults(gameCode, currentQuestion.id); // Wait for this to finish
+      console.log(`[AdminQuestionPage] Results processed for question: ${currentQuestion.id}`);
 
       // 3. NOW set game status to answer_reveal (resultsReady is set to true inside processQuestionResults)
       console.log('[AdminQuestionPage] Setting game status to answer_reveal');
@@ -130,17 +132,17 @@ const AdminQuestionPage = () => {
       navigate(`/admin/answer?gameCode=${gameCode}`);
 
     } catch (err) {
-      console.error("[AdminQuestionPage] Error revealing answer:", err);
+      console.error("[AdminQuestionPage] Error processing and revealing answer:", err);
       setError("Failed to reveal answer or process results");
-      setRevealingAnswer(false); 
+    } finally {
+       setProcessing(false); // Reset processing state on error or completion (though navigation happens on success)
     }
-    // Don't set revealingAnswer back to false on success because we navigate away
   };
   
   if (gameLoading) {
     return (
       <div className="min-h-screen bg-primary flex items-center justify-center">
-        <div className="text-accent text-xl">Loading game state...</div>
+        <div className="text-accent text-xl">Učitavanje stanja igre...</div>
       </div>
     );
   }
@@ -151,114 +153,148 @@ const AdminQuestionPage = () => {
     return (
       <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4">
         <div className="bg-red-500/20 border border-red-500/50 text-red-100 p-4 rounded-lg max-w-md text-center">
-          <p className="text-lg font-bold mb-2">Error</p>
+          <p className="text-lg font-bold mb-2">Greška</p>
           <p>{displayError}</p>
         </div>
         <button 
           onClick={() => navigate('/admin')}
           className="mt-4 text-accent underline"
         >
-          Return to Home
+          Nazad na početnu
         </button>
       </div>
     );
   }
   
   return (
-    <div className="min-h-screen bg-primary p-4 relative overflow-hidden">
+    <div className="min-h-screen h-screen bg-primary p-6 md:p-8 relative overflow-hidden flex flex-col">
       <AnimatedBackground density="high" />
       
-      <motion.div 
-        className="absolute top-6 left-6 z-40"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Logo size="small" onClick={() => navigate('/admin')} />
-      </motion.div>
+      {/* Top Bar: Logo Left, Button Right */}
+       <div className="absolute top-0 left-0 right-0 flex justify-between items-center px-6 md:px-8 z-40">
+         {/* Enlarged Logo */}
+         <motion.div 
+           initial={{ opacity: 0, x: -40 }}
+           animate={{ opacity: 1, x: 0 }}
+           transition={{ duration: 0.6 }}
+         >
+           <Logo size="large" className="w-28 h-28 md:w-48 md:h-48" onClick={() => navigate('/admin')} />
+         </motion.div>
+
+         {/* Process Button - Now just a right arrow icon */}
+         <motion.div
+           initial={{ opacity: 0, x: 40 }}
+           animate={{ opacity: 1, x: 0 }}
+           transition={{ duration: 0.6 }}
+           className="w-28 h-28 md:w-36 md:h-36 flex items-center justify-center"
+         >
+           <Button
+             onClick={handleProcessAndReveal}
+             disabled={processing}
+             className={`whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 rounded-full w-20 h-20 md:w-28 md:h-28 flex items-center justify-center ${processing ? 'bg-secondary/50' : 'bg-secondary hover:bg-secondary/90'}`}
+           >
+             {processing ? (
+               <motion.div 
+                 className="w-10 h-10 border-4 border-white rounded-full border-t-transparent"
+                 animate={{ rotate: 360 }}
+                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+               />
+             ) : (
+               <svg 
+                 xmlns="http://www.w3.org/2000/svg" 
+                 className="h-12 w-12 md:h-16 md:w-16 text-white" 
+                 fill="none" 
+                 viewBox="0 0 24 24" 
+                 stroke="currentColor"
+               >
+                 <path 
+                   strokeLinecap="round" 
+                   strokeLinejoin="round" 
+                   strokeWidth={2} 
+                   d="M14 5l7 7m0 0l-7 7m7-7H3" 
+                 />
+               </svg>
+             )}
+           </Button>
+         </motion.div>
+       </div>
       
-      <motion.div
-        className="absolute top-6 right-6 bg-secondary text-white px-4 py-2 rounded-lg font-bold z-40"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        Game Code: {gameCode}
-      </motion.div>
-      
-      <motion.div
-        className="absolute bottom-4 left-4 text-xs text-accent/50 z-40"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        Status: {game?.status || 'unknown'} | Question: {game?.currentQuestionIndex ?? 'unknown'}
-      </motion.div>
-      
-      <div className="max-w-4xl mx-auto pt-24 z-30 relative">
+      {/* Question Area - Centered and Enlarged */}
+      <div className="flex-grow flex items-center justify-center pt-32 md:pt-40 pb-16 md:pb-20">
         <motion.div
-          className="bg-accent/10 backdrop-blur-sm p-8 rounded-lg border border-accent/20"
-          initial={{ opacity: 0, y: 20 }}
+          className="w-full max-w-5xl mx-auto bg-accent/10 backdrop-blur-lg p-8 md:p-12 rounded-xl border border-accent/20 shadow-2xl z-30"
+          key={currentQuestion?.id || 'loading'}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         >
           <motion.div 
-            className="text-center mb-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            className="text-center mb-4 md:mb-6"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
           >
-            <h2 className="text-2xl text-accent font-bold">
-              Question {(game?.currentQuestionIndex || 0) + 1}
+            <h2 className="text-2xl md:text-3xl text-accent font-bold font-serif">
+              Pitanje {(game?.currentQuestionIndex ?? 0) + 1}
             </h2>
           </motion.div>
           
           <motion.div
-            className="text-center mb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            className="text-center mb-8 md:mb-12"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
           >
-            <h1 className="text-4xl text-accent font-bold font-serif">
-              {currentQuestion?.text || 'Loading question...'}
+            <h1 className="text-3xl md:text-5xl text-white font-bold font-serif leading-tight">
+              {currentQuestion?.text || 'Učitavanje pitanja...'}
             </h1>
           </motion.div>
           
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
           >
             {currentQuestion?.options.map((option, index) => (
               <div
                 key={index}
-                className="bg-accent/5 border border-accent/20 p-4 rounded-lg text-accent text-lg"
+                className={`border-2 text-white p-5 md:p-6 rounded-lg text-lg md:text-xl shadow-md flex items-center ${answerColors[index % answerColors.length]}`}
               >
-                <span className="font-bold mr-2">
+                <span className="font-bold mr-3 text-2xl opacity-80">
                   {String.fromCharCode(65 + index)}.
                 </span>
-                {option}
+                <span className="flex-1">{option}</span>
               </div>
             ))}
           </motion.div>
-        </motion.div>
-        
-        <motion.div 
-          className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md px-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-        >
-          <MainButton
-            onClick={handleRevealAnswer}
-            disabled={revealingAnswer}
-            className="w-full py-4 text-lg"
+          
+          {/* Timer Progress Bar */}
+          <motion.div 
+            className="mt-8 w-full bg-white/20 rounded-full h-4 overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
           >
-            {revealingAnswer ? 'Revealing Answer...' : 'Reveal Answer'}
-          </MainButton>
+            <motion.div
+              className="h-full bg-secondary rounded-full"
+              initial={{ width: "100%" }}
+              animate={{ width: "0%" }}
+              transition={{ 
+                duration: 30, 
+                ease: "linear"
+              }}
+            />
+          </motion.div>
         </motion.div>
       </div>
-
+      
+      {/* Bottom Left: Game Code & Status */}
+      <motion.div
+        className="absolute bottom-4 left-4 md:bottom-6 md:left-6 text-xs md:text-sm text-accent/70 z-40 bg-primary/50 p-2 rounded shadow"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <div>Kod: {gameCode}</div>
+        <div>Status: {game?.status || 'nepoznat'}</div>
+      </motion.div>
+      
+      {/* DevTools remain */}
       {localStorage.getItem('isAdmin') === 'true' && (
         <DevTools gameCode={gameCode} />
       )}

@@ -253,12 +253,41 @@ const AdminAnswerRevealPage = () => {
       <AnimatedBackground density="low" />
       
       <motion.div 
-        className="absolute top-6 left-6 z-40"
-        initial={{ opacity: 0, x: -20 }}
+        className="absolute top-0 left-0 z-40 m-2 ml-16"
+        initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.6 }}
+        
       >
-        <Logo size="small" />
+        <Logo size="large" className="w-28 h-28 md:w-48 md:h-48" onClick={() => navigate('/admin')} />
+      </motion.div>
+      
+      <motion.div
+        className="absolute top-6 right-6 z-40"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        style={{ transformOrigin: 'center' }}
+      >
+        <Button
+          onClick={handleNextStep}
+          className="rounded-full w-20 h-20 md:w-28 md:h-28 flex items-center justify-center bg-secondary hover:bg-secondary/90"
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-12 w-12 md:h-16 md:w-16 text-white" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M14 5l7 7m0 0l-7 7m7-7H3" 
+            />
+          </svg>
+        </Button>
       </motion.div>
       
       <div className="h-full flex flex-col max-w-6xl mx-auto pt-16">
@@ -369,24 +398,6 @@ const AdminAnswerRevealPage = () => {
                    <p className="text-accent/60 italic text-center py-5">Nema timova za prikaz.</p>
                 )}
               </div>
-            </div>
-            
-            {/* --- Next Step Button --- */}
-            <div className="flex justify-center pt-8 pb-4">
-              <motion.div
-                style={{ transformOrigin: 'center' }}
-                animate={{
-                  scale: [1, 1.03, 1],
-                  transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
-                }}
-              >
-                <Button
-                  onClick={handleNextStep}
-                  className="bg-accent hover:bg-accent/80 text-primary px-12 py-5 text-xl font-bold shadow-lg rounded-lg"
-                >
-                  {isLastQuestion ? '🏆 Završi kviz 🏆' : '➡️ Sledeće pitanje'}
-                </Button>
-              </motion.div>
             </div>
           </motion.div>
         )}

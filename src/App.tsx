@@ -142,6 +142,7 @@ const App = () => {
           {/* <GlobalDevTools /> */}
           
           {/* Firebase Status Panel */}
+          {/* 
           <div className={`mt-2 p-2 rounded text-white ${
             firebaseStatus === 'success' 
               ? 'bg-green-500' 
@@ -154,13 +155,16 @@ const App = () => {
               <div className="text-xs mt-1">{firebaseError?.message || firebaseError}</div>
             )}
           </div>
+          */}
 
+          {/* 
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2"
             onClick={handleInitializeData}
           >
             Inicijalizuj podatke
           </button>
+          */}
           {initStatus && (
             <div className={`text-sm mt-2 p-2 rounded ${initStatus.success ? 'bg-green-500' : 'bg-red-500'} text-white`}>
               {initStatus.success 

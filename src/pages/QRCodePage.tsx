@@ -102,7 +102,7 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
         const db = await getDb();
         setDbInstance(db);
 
-        if (!db) return () => {}; // Return empty cleanup if DB fails
+        if (!db || !gameCode) return () => {}; // Return empty cleanup if DB/code fails
 
         const teamsQuery = query(
           ref(db, 'teams'),
@@ -113,7 +113,8 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
         const unsubscribe = onValue(teamsQuery, (snapshot) => {
           if (snapshot.exists()) {
             const teamsData = snapshot.val();
-            const teamsArray = Object.values(teamsData);
+            // Filter active teams
+            const teamsArray = Object.values(teamsData).filter((team: any) => team.isActive !== false);
             setTeams(teamsArray);
           } else {
             setTeams([]);
@@ -130,9 +131,9 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
     const unsubscribePromise = setupTeamsListener();
     
     return () => {
-      unsubscribePromise.then(unsubscribe => unsubscribe());
+      unsubscribePromise.then(unsubscribe => unsubscribe && unsubscribe());
     };
-  }, [gameCode]);
+  }, [gameCode]); // Depend only on gameCode
   
   const handleGoToLobby = () => {
     setIsExiting(true);
@@ -145,14 +146,15 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
     >
       <AnimatedBackground density="medium" color="primary" />
       
-      {/* Logo at top */}
+      {/* Logo at top-left corner with balanced spacing */}
       <motion.div 
-        className="absolute top-6 left-6 z-40"
-        initial={{ opacity: 0, x: -20 }}
+        className="absolute top-0 left-0 z-40 px-6 pt-2 ml-8"
+        initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
+        transition={{ duration: 0.6 }} 
       >
-        <Logo size="medium" onClick={() => navigate('/admin')} />
+         {/* Consistent logo size */}
+         <Logo size="large" className="w-32 h-32 md:w-48 md:h-48" onClick={() => navigate('/admin')} />
       </motion.div>
       
       {/* Use AnimatePresence to handle the exit animation before navigation */}
@@ -170,10 +172,10 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
             exit="exit"
             custom={fromSplash} // Pass fromSplash to variants if needed
           >
-            {/* Heading */}
+            {/* Heading - Translated */}
             <motion.div className="mb-6 z-30" variants={itemVariants}>
               <h1 className="text-4xl md:text-5xl font-bold text-accent font-serif">
-                Join FONIS Quiz
+                Pridruži se FONIS Kvizu
               </h1>
             </motion.div>
             
@@ -206,39 +208,39 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
               {/* QR Code */}
               <div className="bg-white p-3 rounded-md shadow-inner">
                 <QRCode 
-                  value={joinUrl}
+                  value={joinUrl} // Still links to /player base URL
                   size={200}
                   level="H"
-                  fgColor="#5A1B09"
+                  fgColor="#5A1B09" // Primary color
                   bgColor="#FFFFFF"
                 />
               </div>
             </motion.div>
             
-            {/* Game Code */}
+            {/* Game Code - Translated */}
             <motion.div 
               className="game-code-container mb-6 text-center z-30"
               variants={itemVariants}
             >
               <h2 className="text-lg font-semibold text-accent mb-1">
-                Game Code
+                Kod Igre
               </h2>
               <div className="game-code bg-secondary px-6 py-2 rounded-md text-2xl font-bold tracking-wider font-caviar text-white shadow-md">
-                {gameCode}
+                {gameCode || '...'}
               </div>
             </motion.div>
             
-            {/* Instructions */}
+            {/* Instructions - Translated */}
             <motion.div className="mb-6 max-w-sm text-center z-30" variants={itemVariants}>
               <p className="text-center text-accent mb-1 text-sm">
-                Skenirajte QR kod svojim mobilnim uređajem
+                Skenirajte QR kod ili unesite Kod Igre
               </p>
               <p className="text-center text-accent mb-1 opacity-90 text-sm">
-                da biste pristupili stranici za prijavu
+                na <span className="font-bold">foniskviz.site</span> da biste se pridružili
               </p>
             </motion.div>
             
-            {/* Button - Styled with higher prominence */}
+            {/* Button - Styled with higher prominence - Translated */}
             <motion.button 
               className="lobby-button bg-secondary hover:bg-secondary/90 text-white font-bold py-3 px-10 rounded-md transition-colors 
                 duration-300 flex items-center justify-center shadow-lg text-base mb-4 z-30 relative opacity-100 visible"
@@ -263,22 +265,22 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
               {/* Button glow effect - CSS now handles the base glow */}
               <div className="absolute inset-0 bg-secondary rounded-md blur-md opacity-30 animate-pulse -z-10"></div>
               
-              {/* Button content */}
+              {/* Button content - Translated */}
               <div className="flex items-center justify-center relative z-10">
-                <span className="mr-2">GO TO LOBBY</span>
+                <span className="mr-2">PREĐI U LOBI</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </div>
             </motion.button>
             
-            {/* Connected players indicator */}
+            {/* Connected players indicator - Translated */}
             <motion.div className="mt-1 flex items-center text-accent z-30" variants={itemVariants}>
               <div className="h-2 w-2 rounded-full bg-highlight animate-pulse mr-2"></div>
               <span className="text-xs opacity-80">
                 {teams.length === 0 
-                  ? "Waiting for teams to connect" 
-                  : `${teams.length} ${teams.length === 1 ? 'team' : 'teams'} connected`}
+                  ? "Čekamo timove da se povežu..." 
+                  : `${teams.length} ${teams.length === 1 ? 'tim povezan' : 'timova povezano'}`}
               </span>
             </motion.div>
           </motion.div>

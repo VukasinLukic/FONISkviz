@@ -170,7 +170,7 @@ export default function DevTools({ gameCode }: DevToolsProps) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 bg-red-500 text-white p-2 rounded-full shadow-lg z-50 hover:bg-red-600"
+        className="fixed bottom-4 right-4 bg-secondary text-white p-2 rounded-full shadow-lg z-50 hover:bg-secondary/90"
       >
         🛠️
       </button>
@@ -178,12 +178,12 @@ export default function DevTools({ gameCode }: DevToolsProps) {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-xl z-50 w-96 max-h-[80vh] overflow-y-auto">
+    <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-xl z-50 w-96 max-h-[80vh] overflow-y-auto border-2 border-secondary">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold text-gray-800">Dev Tools</h3>
+        <h3 className="text-lg font-bold text-secondary">Dev Tools</h3>
         <button
           onClick={() => setIsOpen(false)}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-secondary hover:text-secondary/80"
         >
           ✕
         </button>
@@ -192,7 +192,7 @@ export default function DevTools({ gameCode }: DevToolsProps) {
       <div className="space-y-4">
         {/* Game Controls */}
         <div className="space-y-2">
-          <h4 className="font-semibold text-sm text-gray-600">Game Controls</h4>
+          <h4 className="font-semibold text-sm text-secondary">Game Controls</h4>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={handleResetGame}
@@ -206,35 +206,35 @@ export default function DevTools({ gameCode }: DevToolsProps) {
 
         {/* Game State Controls */}
         <div className="space-y-2">
-          <h4 className="font-semibold text-sm text-gray-600">Force Game State</h4>
+          <h4 className="font-semibold text-sm text-secondary">Force Game State</h4>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => handleForceGameState('waiting')}
-              className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+              className="bg-secondary text-white px-3 py-1 rounded hover:bg-secondary/90"
             >
               Waiting
             </button>
             <button
               onClick={() => handleForceGameState('question_display')}
-              className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+              className="bg-secondary text-white px-3 py-1 rounded hover:bg-secondary/90"
             >
               Question
             </button>
             <button
               onClick={() => handleForceGameState('answer_collection')}
-              className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+              className="bg-secondary text-white px-3 py-1 rounded hover:bg-secondary/90"
             >
               Answers
             </button>
             <button
               onClick={() => handleForceGameState('answer_reveal')}
-              className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+              className="bg-secondary text-white px-3 py-1 rounded hover:bg-secondary/90"
             >
               Reveal
             </button>
             <button
               onClick={() => handleForceGameState('game_end')}
-              className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+              className="bg-secondary text-white px-3 py-1 rounded hover:bg-secondary/90"
             >
               End Game
             </button>
@@ -243,7 +243,7 @@ export default function DevTools({ gameCode }: DevToolsProps) {
 
         {/* Team Management */}
         <div className="space-y-2">
-          <h4 className="font-semibold text-sm text-gray-600">Team Management</h4>
+          <h4 className="font-semibold text-sm text-secondary">Team Management</h4>
           <div className="space-y-2">
             {teams.map(team => (
               <div key={team.id} className="bg-gray-50 p-2 rounded">
@@ -292,7 +292,7 @@ export default function DevTools({ gameCode }: DevToolsProps) {
         </div>
 
         {/* Debug Info */}
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-secondary border-t border-secondary/30 pt-2">
           <p>Game Code: {gameCode}</p>
           <p>Admin Mode: {localStorage.getItem('isAdmin') ? 'Yes' : 'No'}</p>
           <p>Total Teams: {teams.length}</p>

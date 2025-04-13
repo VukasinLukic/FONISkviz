@@ -4,50 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
+import { Database } from 'firebase/database';
 
-// Component to display tiebreaking rules
-const TiebreakingRules: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  
-  return (
-    <div className="relative z-40">
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="text-accent underline text-sm flex items-center"
-      >
-        {isOpen ? 'Sakrij pravila' : 'Kako se određuje pobednik?'}
-        <span className="ml-1">{isOpen ? '▲' : '▼'}</span>
-      </button>
-      
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="bg-accent/10 rounded-lg p-4 mt-2 text-accent text-sm overflow-hidden"
-          >
-            <h3 className="font-bold mb-2">Pravila za određivanje pobednika:</h3>
-            <ol className="list-decimal pl-5 space-y-2">
-              <li>
-                <span className="font-semibold">Ukupni poeni:</span> Tim sa najviše ukupnih poena je pobednik
-              </li>
-              <li>
-                <span className="font-semibold">Brzina odgovora:</span> Ako dva tima imaju isti broj poena, 
-                pobednik je onaj koji je više puta bio prvi sa tačnim odgovorom 
-              </li>
-              <li>
-                <span className="font-semibold">Vreme priključenja:</span> Ako je i dalje nerešeno, 
-                tim koji se prvi priključio kvizu ima prednost
-              </li>
-            </ol>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
+// Removing the TiebreakingRules component as requested
+// const TiebreakingRules: React.FC = () => { ... };
 
 const WaitingForPlayers: React.FC = () => {
   const [dots, setDots] = useState('');
@@ -90,6 +50,11 @@ const WaitingForPlayers: React.FC = () => {
       console.log('[WaitingForPlayers] Game status changed to question_display, navigating to question page.');
       navigate('/player/question');
     }
+    // Add other status navigations if needed (e.g., if admin resets)
+    else if (gameData?.status === 'finished' || gameData?.status === 'game_end') {
+       console.log('[WaitingForPlayers] Game ended, navigating to finished page.');
+       navigate('/player/finished');
+    }
   }, [gameData, navigate]);
 
   const getMascotPath = (mascotId: number) => {
@@ -101,7 +66,7 @@ const WaitingForPlayers: React.FC = () => {
     return (
       <div className="min-h-screen bg-primary p-4 flex flex-col items-center justify-center relative overflow-hidden">
         <AnimatedBackground />
-        <p className="text-accent text-xl font-caviar z-10">Loading game data...</p>
+        <p className="text-accent text-xl font-caviar z-10">Učitavanje podataka igre...</p>
       </div>
     );
   }
@@ -110,7 +75,8 @@ const WaitingForPlayers: React.FC = () => {
     return (
       <div className="min-h-screen bg-primary p-4 flex flex-col items-center justify-center relative overflow-hidden">
         <AnimatedBackground />
-        <p className="text-red-500 text-xl font-caviar z-10">Error loading game: {gameError.message}</p>
+        <p className="text-red-500 text-xl font-caviar z-10">Greška pri učitavanju igre: {gameError.message}</p>
+        <button onClick={() => navigate('/player')} className="mt-4 text-accent underline z-10">Nazad na prijavu</button>
       </div>
     );
   }
@@ -119,35 +85,27 @@ const WaitingForPlayers: React.FC = () => {
     <div className="min-h-screen bg-primary p-4 flex flex-col items-center justify-center relative overflow-hidden">
       <AnimatedBackground density="medium" />
       
-      <motion.div
-        className="z-30 absolute top-6 left-6"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Logo size="small" />
-      </motion.div>
-      
-      {/* Game code display */}
-      {teamData.gameCode && (
+      {/* Centered header container */}
+      <div className="w-full flex justify-center items-center z-40 absolute top-6 left-0 right-0 pt-6">
+        {/* Centered logo with proper padding */}
         <motion.div
-          className="z-30 absolute top-6 right-6 bg-secondary text-white px-4 py-2 rounded-lg"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.5 }}
+          className="ml-6" // Dodajte marginu levo
         >
-          Game Code: {teamData.gameCode}
+          <Logo size="large" className="w-64 h-64 md:w-64 md:h-64" />
         </motion.div>
-      )}
+      </div>
       
       <motion.div 
-        className="z-20 flex flex-col items-center"
+        className="z-20 flex flex-col items-center text-center"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
         <motion.h1 
-          className="text-4xl md:text-5xl font-bold text-accent mb-6 font-serif text-center"
+          className="text-4xl md:text-5xl font-bold text-accent mb-6 font-serif"
           initial={{ y: -20 }}
           animate={{ y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
@@ -158,14 +116,14 @@ const WaitingForPlayers: React.FC = () => {
         <motion.div 
           className="relative"
           initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
+          animate={{ scale: 1 }} 
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           {/* Pulse effect behind mascot */}
           <motion.div
-            className="absolute inset-0 bg-highlight rounded-full"
+            className="absolute inset-0 bg-special  rounded-full"
             animate={{
-              scale: [1, 1.1, 1],
+              scale: [1.1, 1.2, 1.1],
               opacity: [0.5, 0.2, 0.5]
             }}
             transition={{
@@ -194,7 +152,7 @@ const WaitingForPlayers: React.FC = () => {
             >
               <img 
                 src={getMascotPath(teamData.mascotId)}
-                alt={`Team mascot`}
+                alt={`Maskota tima`}
                 className="w-full h-full object-contain"
                 onError={() => setImageError(true)}
               />
@@ -223,16 +181,18 @@ const WaitingForPlayers: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <p className="text-accent text-xl font-caviar">
-            Waiting for the game to start{dots}
+            Čekamo da igra počne...
           </p>
           <p className="text-accent/70 text-sm mt-2">
-            The host will start the game when all teams are ready
+            Domaćin će započeti kviz uskoro
           </p>
           
-          {/* Tiebreaking Rules Component */}
+          {/* Tiebreaking Rules Component - REMOVED */}
+          {/* 
           <div className="mt-6 flex justify-center">
             <TiebreakingRules />
-          </div>
+          </div> 
+          */}
         </motion.div>
       </motion.div>
     </div>

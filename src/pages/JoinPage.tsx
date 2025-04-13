@@ -6,6 +6,7 @@ import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
 import { createTeam, getTeam, getGameData, getDb } from '../lib/firebase'; // Updated imports
 import { Database } from 'firebase/database'; // Import Database type
+import { ref, get } from 'firebase/database';
 
 const JoinPage: React.FC = () => {
   const [teamName, setTeamName] = useState('');
@@ -176,12 +177,12 @@ const JoinPage: React.FC = () => {
     setError(null);
     
     if (!teamName.trim()) {
-      setError("Please enter your team name");
+      setError("Unesite ime tima");
       return;
     }
     
     if (!gameCode.trim()) {
-      setError("Please enter the game code");
+      setError("Unesite kod igre");
       return;
     }
     
@@ -194,8 +195,18 @@ const JoinPage: React.FC = () => {
     try {
       console.log(`Registering team "${teamName}" with game code: ${gameCode}`);
       
-      // Create the team in Firebase
+      // Check if game exists before creating team
       const formattedGameCode = gameCode.trim().toUpperCase();
+      const gameRef = ref(dbInstance, `game/${formattedGameCode}`);
+      const gameSnapshot = await get(gameRef);
+      
+      if (!gameSnapshot.exists()) {
+        setError(`Igra sa kodom "${formattedGameCode}" nije pronađena.`);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Create the team in Firebase
       const teamId = await createTeam({
         name: teamName.trim(),
         mascotId: 1, // Default mascot, will be updated in MascotSelection
@@ -217,7 +228,7 @@ const JoinPage: React.FC = () => {
       navigate('/player/mascot');
     } catch (error) {
       console.error('Error registering team:', error);
-      setError(error instanceof Error ? error.message : "Failed to register team. Please try again.");
+      setError(error instanceof Error ? error.message : "Neuspešna registracija tima. Pokušajte ponovo.");
     } finally {
       setIsLoading(false);
     }
@@ -233,108 +244,116 @@ const JoinPage: React.FC = () => {
   }, []);
   
   return (
-    <div className="min-h-screen bg-primary p-4 flex flex-col overflow-hidden relative">
-      <AnimatedBackground />
+    <div className="min-h-screen bg-[#fdebc4] p-4 relative overflow-hidden flex flex-col items-center">
+      <AnimatedBackground density="low" />
       
-      {/* Logo at top */}
-      <div className="flex justify-center mt-6 mb-8">
-        <Logo size="medium" />
-      </div>
-      
-      <div className="max-w-md mx-auto w-full z-20 mt-6 flex-1 flex flex-col justify-center">
+      {/* Logo and title section - adjusted positioning */}
+      <div className="w-full flex justify-center mt-10 mb-8 z-40">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-accent/10 backdrop-blur-sm p-8 rounded-lg border border-accent/20 shadow-lg"
+          className="flex flex-col items-center"
         >
-          <h1 className="text-3xl text-accent font-bold mb-6 text-center font-serif">
-            Join Game
-          </h1>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Game Code Input */}
-            <div>
-              <label htmlFor="gameCode" className="block text-accent mb-2 font-medium">
-                Game Code
-              </label>
-              <input
-                type="text"
-                id="gameCode"
-                value={gameCode}
-                onChange={(e) => handleGameCodeChange(e.target.value)}
-                placeholder="Enter game code"
-                className="w-full px-4 py-2 rounded-md bg-black/30 text-accent border border-accent/50 focus:outline-none focus:ring-2 focus:ring-highlight placeholder-accent/50"
-                disabled={isLoading}
-                autoComplete="off"
-                maxLength={6}
-              />
-              
-              {/* Saved code indicator */}
-              {usingSavedCode && (
-                <div className="mt-2 text-xs text-accent/80 flex items-center justify-between">
-                  <span>
-                    {savedCodeIsOld 
-                      ? '⚠️ Using saved code from ' 
-                      : '✓ Using last used code from '
-                    }
-                    {savedCodeTimestamp}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleClearSavedCode}
-                    className="text-accent underline hover:text-highlight ml-2"
-                  >
-                    Clear
-                  </button>
-                </div>
-              )}
-            </div>
-            
-            {/* Team Name Input */}
-            <div>
-              <label htmlFor="teamName" className="block text-accent mb-2 font-medium">
-                Team Name
-              </label>
-              <input
-                type="text"
-                id="teamName"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                placeholder="Enter your team name"
-                className="w-full px-4 py-2 rounded-md bg-black/30 text-accent border border-accent/50 focus:outline-none focus:ring-2 focus:ring-highlight placeholder-accent/50"
-                disabled={isLoading}
-                autoComplete="off"
-                maxLength={30}
-              />
-            </div>
-            
-            {/* Submit Button */}
-            <div className="pt-2">
-              <MainButton
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3"
-              >
-                {isLoading ? 'Joining...' : 'Join Game'}
-              </MainButton>
-            </div>
-            
-            {/* Error Message */}
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="bg-red-500/20 border border-red-500/50 text-red-100 p-3 rounded-md text-sm"
-                >
-                  {error}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </form>
+          <div className="mb-6">
+            <Logo size="large" className="w-44 h-44" />
+          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="text-3xl md:text-4xl font-serif text-[#7d2a05] font-bold mb-3"
+          >
+            pridružite se kvizu!
+          </motion.div>
         </motion.div>
+      </div>
+      
+      <motion.div
+        className="w-full max-w-md z-40 mt-0"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <form 
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-5"
+        >
+          {/* Team name input */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[#7d2a05] font-medium text-left">
+              ime tima:
+            </label>
+            <input
+              type="text"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              placeholder="unesite ime ekipe..."
+              className="p-3 bg-transparent border border-[#db7e57] rounded-md text-[#7d2a05] focus:outline-none focus:ring-2 focus:ring-[#db7e57]"
+            />
+          </div>
+          
+          {/* Game code input */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[#7d2a05] font-medium text-left">
+              kod igre:
+            </label>
+            <input
+              type="text"
+              value={gameCode}
+              onChange={(e) => handleGameCodeChange(e.target.value)}
+              placeholder="unesite kod igre..."
+              className="p-3 bg-transparent border border-[#db7e57] rounded-md text-[#7d2a05] focus:outline-none focus:ring-2 focus:ring-[#db7e57]"
+            />
+          </div>
+          
+          {/* Error message */}
+          {error && (
+            <div className="bg-red-500/20 border border-red-500/50 text-red-800 p-2 rounded-md text-center">
+              {error}
+            </div>
+          )}
+          
+          {/* Join button */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="mt-2 bg-[#E67E50] hover:bg-[#d17347] text-white font-medium py-3 rounded-md transition-colors shadow-md"
+          >
+            {isLoading ? 'Učitavanje...' : 'uđi u partiju'}
+          </button>
+          
+          {/* Saved code section */}
+          {usingSavedCode && (
+            <div className="text-center mt-2">
+              <p className="text-[#7d2a05] text-sm">
+                Koristi se sačuvani kod od {savedCodeTimestamp}
+                {savedCodeIsOld && ' (star više od 12h)'}
+              </p>
+              <button
+                type="button"
+                onClick={handleClearSavedCode}
+                className="text-[#E67E50] underline text-sm mt-1"
+              >
+                Obriši sačuvani kod
+              </button>
+            </div>
+          )}
+        </form>
+      </motion.div>
+      
+      {/* Settings button in corner */}
+      <div className="absolute bottom-4 right-4">
+        <button
+          type="button"
+          onClick={() => navigate('/admin/settings')}
+          className="text-[#E67E50] rounded-full w-10 h-10 flex items-center justify-center border border-[#E67E50]"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
       </div>
     </div>
   );

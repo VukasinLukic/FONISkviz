@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   getQuestion, 
   submitAnswer,
@@ -11,11 +11,19 @@ import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
 
+// Define colors for answer options based on Tailwind config
+const answerColors = [
+  { bg: 'bg-highlight/80', hover: 'hover:bg-highlight/90', border: 'border-highlight' }, // A - highlight (yellowish)
+  { bg: 'bg-secondary/80', hover: 'hover:bg-secondary/90', border: 'border-secondary' }, // B - secondary (orange)
+  { bg: 'bg-accent/80', hover: 'hover:bg-accent/90', border: 'border-accent' }, // C - accent (light beige)
+  { bg: 'bg-special/80', hover: 'hover:bg-special/90', border: 'border-special' } // D - special (purple) instead of primary
+];
+
 const PlayerQuestionPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null); // Still needed for question ID
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -30,7 +38,7 @@ const PlayerQuestionPage = () => {
   // Listen to game status changes and navigate accordingly
   useEffect(() => {
     if (!gameCode || !teamId) {
-      setError("Missing game code or team ID. Redirecting...");
+      setError("Nema koda igre ili ID tima. Preusmeravanje...");
       setTimeout(() => navigate('/player'), 1500); // Redirect to join page
       return;
     }
@@ -48,13 +56,18 @@ const PlayerQuestionPage = () => {
           navigate('/player/waiting');
           break;
         case 'answer_collection':
-          navigate('/player/waiting-answer');
+          // Only navigate if an answer has been submitted
+          if (selectedAnswer !== null) {
+             navigate('/player/waiting-answer');
+          }
           break;
         case 'answer_reveal':
           navigate('/player/answer-result');
           break;
         case 'leaderboard':
-          navigate('/player/score');
+          // Assuming we don't have a specific player leaderboard page for MVP
+          // Maybe navigate to waiting if needed, or just let it stay (depends on desired flow)
+          // navigate('/player/waiting'); // Example
           break;
         case 'game_end':
         case 'finished':
@@ -65,11 +78,11 @@ const PlayerQuestionPage = () => {
           break;
       }
     }
-  }, [game, gameLoading, gameError, gameCode, teamId, navigate]);
+  }, [game, gameLoading, gameError, gameCode, teamId, navigate, selectedAnswer]);
 
-  // Fetch the specific question details when game data is available/changes
+  // Fetch the question ID when game data is available/changes
   useEffect(() => {
-    const fetchQuestion = async () => {
+    const fetchQuestionData = async () => {
       if (gameLoading || !game || gameError || game.currentQuestionIndex === undefined) {
         setCurrentQuestion(null);
         return;
@@ -79,32 +92,33 @@ const PlayerQuestionPage = () => {
         setError(null); // Clear local errors
         const questionId = game.questionOrder[game.currentQuestionIndex];
         if (!questionId) {
-          setError("Invalid question ID.");
+          setError("Nevažeći ID pitanja.");
           return;
         }
-        console.log('PlayerQuestionPage: Fetching question with ID:', questionId);
+        console.log('PlayerQuestionPage: Fetching question data for ID:', questionId);
+        // Fetch the minimal question data needed (just the ID for submitting)
         const question = await getQuestion(questionId);
         if (question) {
-          setCurrentQuestion(question);
+          setCurrentQuestion(question); // We need the full question for options/ID
           setSelectedAnswer(null); // Reset selected answer for new question
           setSubmitting(false); // Reset submitting state
         } else {
-          setError(`Question ${questionId} not found`);
+          setError(`Pitanje ${questionId} nije pronađeno`);
         }
       } catch (err) {
-        console.error("Error fetching question:", err);
-        setError("Failed to load question details");
+        console.error("Error fetching question data:", err);
+        setError("Greška pri učitavanju podataka pitanja");
       }
     };
 
     if (game?.status === 'question_display') {
-       fetchQuestion();
+       fetchQuestionData();
     }
   }, [game, gameLoading, gameError]); // Depend on game data
 
   // Handle answer submission
   const handleSubmitAnswer = async (answerIndex: number) => {
-    if (!gameCode || !teamId || !currentQuestion || submitting) return;
+    if (!gameCode || !teamId || !currentQuestion || submitting || selectedAnswer !== null) return;
     
     try {
       setSubmitting(true);
@@ -113,24 +127,25 @@ const PlayerQuestionPage = () => {
       
       // Submit answer to Firebase
       await submitAnswer(gameCode, currentQuestion.id, teamId, {
-        selectedAnswer: currentQuestion.options[answerIndex],
+        selectedAnswer: currentQuestion.options[answerIndex], // Still submit the text
         answerIndex
       });
       
       console.log('PlayerQuestionPage: Answer submitted successfully, navigating to waiting-answer');
-      // Navigate to waiting page
+      // Navigate to waiting page AFTER submission is confirmed
       navigate('/player/waiting-answer');
     } catch (err) {
       console.error("Error submitting answer:", err);
-      setError("Failed to submit answer");
+      setError("Greška pri slanju odgovora");
       setSubmitting(false);
+      setSelectedAnswer(null); // Allow retry on error
     }
   };
   
-  if (gameLoading) {
+  if (gameLoading || !currentQuestion) { // Show loading until question is loaded
     return (
       <div className="min-h-screen bg-primary flex items-center justify-center">
-        <div className="text-accent text-xl">Loading question...</div>
+        <div className="text-accent text-xl">Učitavanje pitanja...</div>
       </div>
     );
   }
@@ -142,110 +157,82 @@ const PlayerQuestionPage = () => {
     return (
       <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4">
         <div className="bg-red-500/20 border border-red-500/50 text-red-100 p-4 rounded-lg max-w-md text-center">
-          <p className="text-lg font-bold mb-2">Error</p>
+          <p className="text-lg font-bold mb-2">Greška</p>
           <p>{displayError}</p>
         </div>
         <button 
           onClick={() => navigate('/player')}
           className="mt-4 text-accent underline"
         >
-          Return to Join Page
+          Nazad na Prijavu
         </button>
       </div>
     );
   }
   
   return (
-    <div className="min-h-screen bg-primary p-4 relative overflow-hidden">
-      <AnimatedBackground density="low" />
+    // Full screen container for the 4 buttons
+    <div className="min-h-screen h-screen bg-primary flex flex-col relative overflow-hidden">
+      {/* Small logo at top */}
       
-      {/* Logo at top */}
+      
+      {/* Timer Progress Bar */}
       <motion.div 
-        className="absolute top-6 left-6 z-40"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
+        className="w-full bg-white/20 rounded-full h-2 overflow-hidden mx-auto mt-16 z-10 px-4 max-w-xl"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
       >
-        <Logo size="small" />
-      </motion.div>
-      
-      {/* Team Name Display */}
-      <motion.div
-        className="absolute top-6 right-6 bg-secondary text-white px-4 py-2 rounded-lg font-bold z-40"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        Team: {teamName}
-      </motion.div>
-      
-      {/* Debug Info */}
-      <div className="absolute bottom-4 left-4 text-xs text-accent/50 z-40">
-        Status: {game?.status || 'unknown'} | Question: {game?.currentQuestionIndex ?? 'unknown'}
-      </div>
-      
-      {/* Question Display */}
-      <div className="max-w-4xl mx-auto pt-24 z-30 relative">
         <motion.div
-          className="bg-accent/10 backdrop-blur-sm p-8 rounded-lg border border-accent/20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Question Number */}
-          <motion.div 
-            className="text-center mb-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <h2 className="text-2xl text-accent font-bold">
-              Question {(game?.currentQuestionIndex || 0) + 1}
-            </h2>
-          </motion.div>
-          
-          {/* Question Text */}
-          <motion.div
-            className="text-center mb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <h1 className="text-4xl text-accent font-bold font-serif">
-              {currentQuestion?.text || 'Loading question...'}
-            </h1>
-          </motion.div>
-          
-          {/* Answer Buttons */}
-          <motion.div
-            className="grid grid-cols-1 gap-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-          >
-            {currentQuestion?.options.map((option, index) => (
-              <motion.button
-                key={index}
-                onClick={() => handleSubmitAnswer(index)}
-                disabled={submitting || selectedAnswer !== null}
-                className={`w-full p-6 rounded-lg text-lg font-bold transition-all
-                  ${selectedAnswer === index 
-                    ? 'bg-highlight text-white' 
-                    : 'bg-accent/5 hover:bg-accent/10 text-accent'}
-                  ${submitting || selectedAnswer !== null ? 'opacity-50 cursor-not-allowed' : ''}
-                  border border-accent/20`}
-                whileHover={submitting || selectedAnswer !== null ? {} : { scale: 1.02 }}
-                whileTap={submitting || selectedAnswer !== null ? {} : { scale: 0.98 }}
-              >
-                <span className="font-bold mr-4">
-                  {String.fromCharCode(65 + index)}
-                </span>
-                {option}
-              </motion.button>
-            ))}
-          </motion.div>
-        </motion.div>
+          className="h-full bg-secondary rounded-full"
+          initial={{ width: "100%" }}
+          animate={{ width: "0%" }}
+          transition={{ 
+            duration: 30, 
+            ease: "linear"
+          }}
+        />
+      </motion.div>
+      
+      {/* 4 Big Buttons Grid - taking most of screen */}
+      <div className="flex-grow grid grid-cols-2 grid-rows-2 gap-2 p-2 mt-4">
+        {currentQuestion?.options.map((_, index) => {
+          const color = answerColors[index % answerColors.length];
+          const isSelected = selectedAnswer === index;
+          const isDisabled = submitting || selectedAnswer !== null;
+
+          return (
+            <motion.button
+              key={index}
+              onClick={() => handleSubmitAnswer(index)}
+              disabled={isDisabled}
+              className={`flex items-center justify-center w-full h-full rounded-lg text-white font-bold text-6xl md:text-8xl 
+                         border-4 ${color.border} ${color.bg} 
+                         transition-all duration-300 ease-in-out 
+                         ${isDisabled ? 'opacity-50 cursor-not-allowed' : `${color.hover} hover:border-white/50`} 
+                         ${isSelected ? 'ring-4 ring-white ring-offset-4 ring-offset-primary' : ''}`
+              }
+              whileTap={isDisabled ? {} : { scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+            >
+              {String.fromCharCode(65 + index)} 
+            </motion.button>
+          );
+        })}
       </div>
+
+      {/* Error display at bottom */} 
+      {error && (
+           <motion.div 
+             className="absolute bottom-4 left-4 right-4 bg-red-500/20 border border-red-500/50 text-red-100 px-4 py-3 rounded-md text-center z-20"
+             initial={{ opacity: 0 }} 
+             animate={{ opacity: 1 }}
+           >
+             {error}
+           </motion.div>
+      )}
     </div>
   );
 };

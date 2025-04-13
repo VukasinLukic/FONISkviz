@@ -437,6 +437,26 @@ export const getTeamAnswerResult = async (
   return withRetry(attemptGetResult, 2, 'getTeamAnswerResult');
 };
 
+// Helper function to get all answers for a specific game
+export const getAllAnswersForGame = async (
+  gameCode: string
+): Promise<Record<string, Record<string, Answer>>> => {
+  return withRetry(async () => {
+    const db = await getDb();
+    const path = `answers/${gameCode}`;
+    console.log(`[Firebase] getAllAnswersForGame: path="${path}"`);
+    if (!gameCode || /[.#$[]]/g.test(gameCode)) throw new Error(`Invalid gameCode: ${gameCode}`);
+
+    const snapshot = await get(ref(db, path));
+    if (!snapshot.exists()) {
+      console.log(`[Firebase] No answers found for game ${gameCode}`);
+      return {}; // Return empty object if no answers node exists
+    }
+    
+    return snapshot.val() as Record<string, Record<string, Answer>>;
+  }, MAX_RETRIES, 'getAllAnswersForGame');
+};
+
 // === NOVO: Score functions ===
 export const updateTeamScore = async (
   gameCode: string,

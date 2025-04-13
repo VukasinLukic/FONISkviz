@@ -9,7 +9,7 @@ interface LogoProps {
 }
 
 const Logo: React.FC<LogoProps> = ({
-  size = 'medium',
+  size = 'large',
   animate = false,
   className = '',
   onClick
@@ -20,7 +20,7 @@ const Logo: React.FC<LogoProps> = ({
   const sizeClasses = {
     small: 'w-10 h-10',
     medium: 'w-16 h-16',
-    large: 'w-24 h-24'
+    large: 'w-64 h-64'
   };
   
   useEffect(() => {
@@ -46,7 +46,7 @@ const Logo: React.FC<LogoProps> = ({
   
   return (
     <div 
-      className={`logo-container ${className}`}
+      className={`logo-container ${className} p-0 m-0`}
       onClick={onClick}
     >
       <img 

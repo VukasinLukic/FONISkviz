@@ -7,6 +7,7 @@ import AnimatedBackground from '../components/AnimatedBackground';
 import { motion } from 'framer-motion';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
 import { Database } from 'firebase/database';
+import { getMascotImageUrl } from '../lib/utils';
 
 interface GameData {
   currentQuestionIndex: number;
@@ -30,11 +31,13 @@ export default function PlayerWaitingPage() {
   const [error, setError] = useState<string | null>(null);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>("Never");
+  const [imageError, setImageError] = useState(false);
 
   // Get data from localStorage
   const teamId = localStorage.getItem('teamId');
   const teamName = localStorage.getItem('teamName');
   const gameCode = localStorage.getItem('gameCode');
+  const mascotId = parseInt(localStorage.getItem('mascotId') || '1');
 
   // Use the real-time hook
   const { gameData: game, error: gameError, loading: gameLoading } = useGameRealtimeState(gameCode);
@@ -152,63 +155,113 @@ export default function PlayerWaitingPage() {
   const displayError = error || gameError?.message;
 
   return (
-    <div className="min-h-screen bg-primary p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex flex-col items-center">
       <AnimatedBackground density="low" />
       
-      {/* Logo */}
-      <div className="absolute top-6 left-6 z-40">
-        <Logo size="small" />
-      </div>
-      
-      {/* Game Code Display */}
-      <div className="absolute top-6 right-6 bg-secondary text-white px-4 py-2 rounded-lg font-bold z-40">
-        Game Code: {gameCode}
-      </div>
-
-      {/* Debug Info */}
-      <div className="absolute bottom-4 left-4 right-4 text-xs text-accent/80 z-40 bg-primary/50 p-2 rounded">
-        <div>Status: {game?.status || (gameLoading ? 'loading...' : 'unknown')}</div>
-        <div>Last updated: {lastUpdated}</div>
-        <button 
-          onClick={checkFirebaseAgain}
-          className="mt-1 px-2 py-1 bg-accent/20 rounded text-accent"
-        >
-          Check Firebase Now
-        </button>
-        <div className="mt-2 max-h-32 overflow-auto">
-          {debugLogs.map((log, i) => (
-            <div key={i} className="text-xs text-accent/60 border-t border-accent/10 py-1">
-              {log}
-            </div>
-          ))}
-        </div>
-        {displayError && (
-          <div className="mt-4 text-red-500 bg-red-500/10 p-3 rounded-lg">
-            {displayError}
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="h-full flex flex-col items-center justify-center pt-20">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 20 }}
+      {/* Balanced header container */}
+      <div className="w-full flex justify-between items-center px-6 pt-6 z-40">
+        {/* Logo on the left */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Team Info */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-accent mb-2">{teamName}</h2>
-          </div>
-
-          <h1 className="text-3xl font-bold text-accent mb-4">
-            Waiting for the game to start...
-          </h1>
-          <p className="text-accent/80">
-            The host will start the game when all teams are ready
-          </p>
+          <Logo size="medium" className="w-20 h-20" />
         </motion.div>
+        
+        {/* Game code on the right */}
+        <motion.div
+          className="bg-secondary text-white px-4 py-2 rounded-lg shadow-md"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <p className="text-sm">Kod Igre</p>
+          <p className="text-lg font-bold tracking-wider">{gameCode}</p>
+        </motion.div>
+      </div>
+      
+      {/* Team Name Display centered */}
+      <motion.div
+        className="text-accent text-xl font-bold font-serif mt-8 mb-8 z-40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        Tim: {teamName}
+      </motion.div>
+
+      {/* Debug Info - Hidden in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute bottom-16 left-4 right-4 text-xs text-accent/80 z-40 bg-primary/50 p-2 rounded">
+          <div>Status: {game?.status || (gameLoading ? 'loading...' : 'unknown')}</div>
+          <div>Last updated: {lastUpdated}</div>
+          <button 
+            onClick={checkFirebaseAgain}
+            className="mt-1 px-2 py-1 bg-accent/20 rounded text-accent"
+          >
+            Check Firebase Now
+          </button>
+          <div className="mt-2 max-h-32 overflow-auto">
+            {debugLogs.map((log, i) => (
+              <div key={i} className="text-xs text-accent/60 border-t border-accent/10 py-1">
+                {log}
+              </div>
+            ))}
+          </div>
+          {displayError && (
+            <div className="mt-4 text-red-500 bg-red-500/10 p-3 rounded-lg">
+              {displayError}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="flex-grow flex flex-col items-center justify-center">
+        <div className="text-center z-30 mb-8">
+          <h1 className="text-4xl text-accent font-bold mb-6 font-serif">
+            Čekamo da igra uskoro počne...
+          </h1>
+        </div>
+        
+        {/* Mascot Display - Larger with more padding */}
+        {mascotId > 0 && !imageError ? (
+          <motion.div
+            className="w-52 h-52 md:w-64 md:h-64 flex items-center justify-center p-4 bg-accent/10 rounded-full shadow-inner"
+            animate={{
+              scale: [1, 1.05, 1],
+              rotate: [0, 2, 0, -2, 0]
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              repeatType: "reverse"
+            }}
+          >
+            <img 
+              src={getMascotImageUrl(mascotId)}
+              alt="Team mascot"
+              className="w-full h-full object-contain"
+              onError={() => setImageError(true)}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            className="w-40 h-40 bg-accent/30 rounded-full flex items-center justify-center"
+            animate={{
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, 0, -5, 0]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              repeatType: "reverse"
+            }}
+          >
+            <span className="text-accent text-4xl">?</span>
+          </motion.div>
+        )}
       </div>
     </div>
   );

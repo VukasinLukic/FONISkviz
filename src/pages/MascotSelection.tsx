@@ -93,16 +93,18 @@ const MascotSelection: React.FC = () => {
     <div className="min-h-screen bg-primary p-4 relative overflow-hidden">
       <AnimatedBackground density="low" />
       
-      <motion.div
-        className="z-30 absolute top-6 left-6"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Logo size="small" />
-      </motion.div>
+      {/* Centered logo at top */}
+      <div className="w-full flex justify-center mt-8 mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Logo size="large" className="w-44 h-44" />
+        </motion.div>
+      </div>
       
-      <div className="max-w-2xl mx-auto pt-24 z-20 relative flex flex-col items-center">
+      <div className="max-w-2xl mx-auto z-20 relative flex flex-col items-center">
         <motion.h1 
           className="text-3xl md:text-4xl font-bold text-accent mb-8 text-center font-serif"
           initial={{ opacity: 0, y: -20 }}

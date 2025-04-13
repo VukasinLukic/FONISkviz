@@ -115,45 +115,39 @@ const PlayerAnswerResultPage = () => {
     return (
       <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4">
         <div className="bg-red-500/20 border border-red-500/50 text-red-100 p-4 rounded-lg max-w-md text-center">
-          <p className="text-lg font-bold mb-2">Error</p>
+          <p className="text-lg font-bold mb-2">Greška</p>
           <p>{displayError}</p>
         </div>
         <button 
           onClick={() => navigate('/player')}
           className="mt-4 text-accent underline"
         >
-          Return to Join Page
+          Nazad na prijavu
         </button>
       </div>
     );
   }
   
   return (
-    <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex items-center justify-center">
+    <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex flex-col items-center">
       <AnimatedBackground density="low" />
       
-      {/* Logo at top */}
-      <motion.div 
-        className="absolute top-6 left-6 z-40"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Logo size="small" />
-      </motion.div>
-      
-      {/* Team Name Display */}
-      <motion.div
-        className="absolute top-6 right-6 bg-secondary text-white px-4 py-2 rounded-lg font-bold z-40"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        Team: {teamName}
-      </motion.div>
+      {/* Centered logo at top */}
+      <div className="w-full flex justify-center pt-10 pb-4 z-40">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Logo size="large" className="w-44 h-44" />
+        </motion.div>
+      </div>
+
+      {/* Team Name Display - enhanced with background */}
+     
       
       {/* Result Display */}
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center flex-grow max-w-xl w-full">
         {isPageLoading ? (
           <motion.div
             className="w-16 h-16 border-4 border-accent rounded-full border-t-transparent"
@@ -166,7 +160,7 @@ const PlayerAnswerResultPage = () => {
           />
         ) : displayResult && (
           <motion.div
-            className="text-center z-30 bg-secondary/20 p-8 rounded-2xl backdrop-blur-sm"
+            className="text-center z-30 bg-secondary/30 p-8 rounded-2xl backdrop-blur-sm w-full shadow-lg border border-accent/20"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -175,17 +169,17 @@ const PlayerAnswerResultPage = () => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.3, type: "spring" }}
-              className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center
-                ${displayResult.isCorrect ? 'bg-green-500' : 'bg-red-500'}`}
+              className={`w-32 h-32 mx-auto mb-6 rounded-full flex items-center justify-center
+                ${displayResult.isCorrect ? 'bg-green-500/80' : 'bg-red-500/80'} shadow-lg`}
             >
               {displayResult.isCorrect ? (
-                <span className="text-5xl">✓</span>
+                <span className="text-7xl text-white">✓</span>
               ) : (
-                <span className="text-5xl">✗</span>
+                <span className="text-7xl text-white">✗</span>
               )}
             </motion.div>
             
-            <h1 className="text-4xl font-bold mb-4 font-serif text-accent">
+            <h1 className="text-4xl font-bold mb-6 font-serif text-accent">
               {displayResult.answerIndex === -1 
                 ? 'Niste odgovorili' 
                 : displayResult.isCorrect 
@@ -193,28 +187,53 @@ const PlayerAnswerResultPage = () => {
                   : 'Netačan odgovor'}
             </h1>
             
-            <div className="space-y-4 text-accent/80">
+            {/* Always show both answers for clarity */}
+            <div className="space-y-6">
+              {/* Correct answer box - prominent display */}
+              
+              
+              {/* Your answer box */}
               {displayResult.answerIndex !== -1 && (
-                  <p>
-                    Vaš odgovor: <span className="font-bold">{displayResult.selectedAnswer}</span>
+                <div className={`p-5 rounded-lg border-2 ${displayResult.isCorrect ? 'bg-green-500/20 border-green-500/40' : 'bg-red-500/20 border-red-500/40'}`}>
+                  <p className={`text-lg mb-1 ${displayResult.isCorrect ? 'text-green-200' : 'text-red-200'}`}>
+                    Vaš odgovor:
                   </p>
+                  <p className="font-bold text-2xl text-white">
+                    {displayResult.selectedAnswer}
+                  </p>
+                </div>
               )}
-              {(!displayResult.isCorrect || displayResult.answerIndex === -1) && (
-                <p>
-                  Tačan odgovor: <span className="font-bold">{displayResult.correctAnswer}</span>
-                </p>
-              )}
-              <p className="text-2xl font-bold text-accent mt-6">
-                +{displayResult.pointsAwarded} poena
-              </p>
             </div>
             
-            <p className="text-accent/60 mt-8">
-              Sačekajte sledeće pitanje...
-            </p>
+            <motion.div
+              className="mt-10 bg-accent/30 p-6 rounded-xl border border-accent/40 shadow-inner"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <p className="text-4xl font-bold text-white">
+                +{displayResult.pointsAwarded} poena
+              </p>
+            </motion.div>
           </motion.div>
         )}
       </div>
+      
+      <motion.div
+        className="text-accent text-2xl font-bold font-serif mb-6 z-40 bg-accent/10 px-6 py-2 rounded-lg"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        Tim: {teamName}
+      </motion.div>
+      
+      {/* Debug Info - hidden in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute bottom-4 left-4 text-xs text-accent/30 z-40">
+          Status: {game?.status || (gameLoading ? 'loading...' : 'unknown')}
+        </div>
+      )}
     </div>
   );
 };

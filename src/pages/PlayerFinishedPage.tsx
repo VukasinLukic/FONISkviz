@@ -29,9 +29,18 @@ const PlayerFinishedPage = () => {
   // Use the real-time hook (still useful for status check)
   const { gameData: game, error: gameError, loading: gameLoading } = useGameRealtimeState(gameCode);
 
+  // Helper function to get rank text
+  const getRankText = (rank: number, total: number) => {
+    if (rank === 1) return `Osvojili ste prvo mesto od ${total} timova!`;
+    if (rank === 2) return `Osvojili ste drugo mesto od ${total} timova!`;
+    if (rank === 3) return `Osvojili ste treće mesto od ${total} timova!`;
+    
+    return `Osvojili ste ${rank}. mesto od ${total} timova.`;
+  };
+
   useEffect(() => {
     if (!gameCode || !teamId) {
-      setError("Missing game code or team ID. Redirecting...");
+      setError("Nedostaje kod igre ili ID tima. Preusmeravanje...");
       setTimeout(() => navigate('/player'), 1500);
       return;
     }
@@ -118,7 +127,7 @@ const PlayerFinishedPage = () => {
 
       } catch (err: any) {
         console.error("Error fetching/calculating final player result:", err);
-        setError(`Error fetching final result: ${err.message}`);
+        setError(`Greška pri učitavanju finalnih rezultata: ${err.message}`);
       } finally {
         setLoading(false);
       }
@@ -148,45 +157,39 @@ const PlayerFinishedPage = () => {
     return (
       <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4">
         <div className="bg-red-500/20 border border-red-500/50 text-red-100 p-4 rounded-lg max-w-md text-center">
-          <p className="text-lg font-bold mb-2">Error</p>
+          <p className="text-lg font-bold mb-2">Greška</p>
           <p>{displayError}</p>
         </div>
         <button 
           onClick={() => navigate('/')}
           className="mt-4 text-accent underline"
         >
-          Return to Home
+          Nazad na Početnu
         </button>
       </div>
     );
   }
   
   return (
-    <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex flex-col items-center">
       <AnimatedBackground density="low" />
       
-      {/* Logo */}
-      <motion.div 
-        className="absolute top-6 left-6 z-40"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Logo size="small" />
-      </motion.div>
+      {/* Logo at top center - BIGGER */}
+      <div className="w-full flex justify-center pt-6 pb-3">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Logo size="large" className="w-44 h-44 md:w-52 md:h-52 mb-4 ml-10" />
+        </motion.div>
+      </div>
       
-      {/* Team Name Display */}
-      <motion.div
-        className="absolute top-6 right-6 bg-secondary text-white px-4 py-2 rounded-lg font-bold z-40 shadow-sm"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        Tim: {teamName || '...'} {/* Show name from localStorage while loading */}
-      </motion.div>
+      {/* Team Name Display - improved layout */}
+      
       
       {/* Main Content Area */}
-      <div className="flex flex-col items-center justify-center w-full flex-grow">
+      <div className="flex flex-col items-center justify-center w-full flex-grow max-w-xl">
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center items-center h-64">
@@ -215,64 +218,99 @@ const PlayerFinishedPage = () => {
         {/* Final Score Display */}
         {!loading && !displayError && teamScore && (
           <motion.div
-            className="text-center z-30 bg-secondary/10 p-8 rounded-2xl backdrop-blur-sm shadow-lg border border-accent/20 w-full max-w-md"
+            className="text-center z-30 bg-secondary/30 p-8 rounded-2xl backdrop-blur-sm shadow-lg border border-accent/20 w-full max-w-md"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Mascot & Rank */} 
+            {/* Mascot & Trophy/Rank */} 
             <motion.div
               initial={{ scale: 0 }} 
               animate={{ scale: 1 }} 
               transition={{ delay: 0.2, type: "spring", stiffness: 120 }} 
-              className="relative mx-auto mb-6 w-36 h-36"
+              className="relative mx-auto mb-8 w-40 h-40"
             >
-              {/* Rank Badge */}
-              <div className={`absolute -top-2 -right-2 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold border-2 shadow-md
-                  ${teamScore.rank === 1 ? 'bg-yellow-400 border-yellow-300 text-yellow-900' : 
-                    teamScore.rank === 2 ? 'bg-gray-300 border-gray-200 text-gray-800' : 
-                    teamScore.rank === 3 ? 'bg-amber-600 border-amber-500 text-amber-100' : 
-                    'bg-accent/80 border-accent/50 text-primary'}
-              `}>
-                {teamScore.rank}
-              </div>
+              {/* Trophy or Rank Badge */}
+              {teamScore.rank === 1 ? (
+                <div className="absolute -top-4 -right-4 z-10">
+                  <svg 
+                    className="w-20 h-20 text-yellow-400 filter drop-shadow-lg" 
+                    fill="currentColor" 
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fillRule="evenodd" d="M10 1l2.928 6.378 6.538.95-4.733 4.908 1.12 6.765L10 16.844l-5.853 3.157 1.12-6.765L.533 8.328l6.538-.95L10 1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              ) : (
+                <div className={`absolute -top-2 -right-2 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold border-4 shadow-md z-10
+                    ${teamScore.rank === 2 ? 'bg-gray-300 border-gray-200 text-gray-800' : 
+                      teamScore.rank === 3 ? 'bg-amber-600 border-amber-500 text-amber-100' : 
+                      'bg-accent/80 border-accent/50 text-primary'}
+                `}>
+                  {teamScore.rank}
+                </div>
+              )}
+              
               {/* Mascot Image */}
               <img 
                 src={getMascotImageUrl(teamScore.mascotId)} 
                 alt={`${teamScore.name} mascot`} 
-                className="w-full h-full rounded-full object-cover bg-accent/20 border-4 border-secondary/50 shadow-lg"
+                className="w-full h-full rounded-full object-cover bg-accent/20 border-6 border-secondary/50 shadow-lg"
               />
             </motion.div>
             
-            <h2 className="text-2xl font-bold text-accent mb-2 font-serif">
-              Vaša finalna pozicija
-            </h2>
+            <h1 className="text-4xl font-bold mb-6 font-serif text-accent">
+              Rezultati kviza
+            </h1>
             
-            <p className="text-accent/80 mb-6">
-              {teamScore.rank}. mesto od ukupno {teamScore.totalTeams} {teamScore.totalTeams === 1 ? 'tima' : 'timova'}
-            </p>
-            
-            <div className="text-4xl font-bold text-accent mb-8">
-              {teamScore.totalScore}
-              <span className="text-xl ml-2">poena</span>
+            <div className="bg-secondary/20 rounded-xl p-6 mb-8 border border-accent/30 shadow-inner">
+              <p className="text-2xl text-accent/90 mb-4 font-serif">
+                {getRankText(teamScore.rank, teamScore.totalTeams)}
+              </p>
+              
+              {teamScore.rank === 1 && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: [0, 1.2, 1] }}
+                  transition={{ delay: 0.5, duration: 0.7 }}
+                  className="text-6xl mb-2"
+                >
+                  🏆
+                </motion.div>
+              )}
             </div>
             
-            {/* Play Again Button */}
             <motion.div
-              className="mt-8"
+              className="mt-4 bg-accent/20 p-5 rounded-xl border border-accent/30 shadow-inner"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.4 }}
             >
-              <Button
-                onClick={handlePlayAgain}
-                className="w-full bg-accent hover:bg-accent/90 text-primary px-8 py-4 text-lg font-bold shadow-lg"
-              >
-                Igraj Ponovo
-              </Button>
+              <div className="text-accent text-xl mb-2">Ukupan rezultat</div>
+              <div className="text-4xl font-bold text-accent">
+                {teamScore.totalScore} poena
+              </div>
             </motion.div>
+            
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handlePlayAgain}
+              className="mt-10 bg-accent/90 hover:bg-accent text-primary font-bold py-3 px-8 rounded-full text-lg shadow-lg transition-all duration-300"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              Igraj ponovo
+            </motion.button>
           </motion.div>
         )}
+      </div>
+      
+      {/* Debug Info */}
+      <div className="absolute bottom-4 left-4 text-xs text-accent/30 z-40">
+        Status: {game?.status || (gameLoading ? 'učitavanje...' : 'nepoznato')}
       </div>
     </div>
   );
