@@ -85,7 +85,7 @@ const PlayerWaitingAnswerPage = () => {
   }
   
   return (
-    <div className="min-h-screen bg-primary p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex items-center justify-center">
       <AnimatedBackground density="low" />
       
       {/* Logo at top */}
@@ -114,7 +114,7 @@ const PlayerWaitingAnswerPage = () => {
       </div>
       
       {/* Waiting Message */}
-      <div className="h-full flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center">
         <motion.div
           className="text-center z-30"
           initial={{ opacity: 0, y: 20 }}

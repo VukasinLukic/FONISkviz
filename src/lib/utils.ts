@@ -8,3 +8,12 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+// Function to get the mascot image URL based on its ID
+export function getMascotImageUrl(mascotId: number | undefined | null): string {
+  if (mascotId === null || mascotId === undefined || mascotId < 1 || mascotId > 9) {
+    // Return a default/placeholder image or an empty string if the ID is invalid
+    return '/assets/default-mascot.svg'; // Adjust the default path as needed
+  }
+  return `/assets/maskota${mascotId} 1.svg`;
+}

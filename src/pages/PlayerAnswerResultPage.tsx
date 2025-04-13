@@ -129,7 +129,7 @@ const PlayerAnswerResultPage = () => {
   }
   
   return (
-    <div className="min-h-screen bg-primary p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex items-center justify-center">
       <AnimatedBackground density="low" />
       
       {/* Logo at top */}
@@ -153,7 +153,7 @@ const PlayerAnswerResultPage = () => {
       </motion.div>
       
       {/* Result Display */}
-      <div className="h-full flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center">
         {isPageLoading ? (
           <motion.div
             className="w-16 h-16 border-4 border-accent rounded-full border-t-transparent"

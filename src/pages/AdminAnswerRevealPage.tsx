@@ -12,17 +12,25 @@ import {
   GameStatus, 
   getTeamsForGame, 
   getTeamAnswerResult, 
-  Question // Import Question type
+  Question, 
+  getAllScoresForGame,
+  TeamScore
 } from '../lib/firebase';
 import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
 import { onValue, ref, update, Database } from 'firebase/database';
 import { Button } from '../components/ui/button';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
+import { getMascotImageUrl } from '../lib/utils';
 
-interface TeamAnswerDisplay extends Answer {
+// Interface for the processed answer data we want to display
+interface TeamAnswerDisplay {
   teamId: string;
   teamName: string;
+  selectedAnswer: string | null; // Null if unanswered
+  isCorrect: boolean | null;    // Null if unanswered
+  pointsAwarded: number | null; // Null if unanswered
+  answerIndex: number | null;   // Null if unanswered
 }
 
 // Interface for ranked teams (similar to AdminLeaderboardPage)
@@ -54,14 +62,22 @@ const AdminAnswerRevealPage = () => {
       return;
     }
 
-    if (game.status !== 'answer_reveal') {
-      console.log('AdminAnswerRevealPage: Status is not answer_reveal. Current status:', game.status);
-      // If status changed away from answer_reveal (e.g., to next question), stop processing
-      // Navigation should be handled by the button click or other components
-      setLoading(false);
+    // WAIT for the correct status AND results to be ready!
+    if (game.status !== 'answer_reveal' || game.resultsReady !== true) {
+      console.log(`AdminAnswerRevealPage: Waiting. Status: ${game.status}, Results Ready: ${game.resultsReady}`);
+      // If status is reveal but results aren't ready, show loading/waiting
+      // If status is not reveal, other pages handle navigation or it's an old state
+      setLoading(game.status === 'answer_reveal'); // Show loading only if we are expecting results soon
+      // Clear potentially stale data if status changed away
+      if (game.status !== 'answer_reveal') {
+          setTeamAnswers([]);
+          setRankedTeams([]);
+          setCurrentQuestion(null);
+      }
       return;
     }
 
+    // --- Proceed only if status is 'answer_reveal' and resultsReady is true --- 
     const processAndFetchData = async () => {
       setLoading(true);
       console.log('AdminAnswerRevealPage: Processing answers and ranks for reveal...');
@@ -79,34 +95,69 @@ const AdminAnswerRevealPage = () => {
         setCurrentQuestion(questionData);
         setIsLastQuestion(currentQuestionIndex >= game.questions.length - 1);
 
-        // --- 2. Get Processed Answers for THIS Question --- 
-        const questionAnswers = game.answers?.[currentQuestionId] || {}; 
-        const allTeamsForGame = await getTeamsForGame(gameCode); // Fetch fresh team data
-        const teamsMap = new Map(allTeamsForGame.map(team => [team.id, team]));
-        
-        const processedAnswersArray: TeamAnswerDisplay[] = [];
-        for (const teamId in questionAnswers) {
-            const team = teamsMap.get(teamId);
-            const teamName = team?.name || `Team ${teamId.substring(0, 4)}`;
-            const processedAnswer = await getTeamAnswerResult(gameCode, currentQuestionId, teamId);
+        // --- 2. Get ALL Active Teams --- 
+        const allTeamsForGame = await getTeamsForGame(gameCode);
+        const activeTeams = allTeamsForGame.filter(team => team.isActive !== false);
+        console.log(`AdminAnswerRevealPage: Found ${activeTeams.length} active teams.`);
 
-            if (processedAnswer) {
-                processedAnswersArray.push({
-                    ...(processedAnswer as Answer),
-                    teamId: teamId,
-                    teamName: teamName
-                });
+        // --- 3. Get Processed Answers for THIS Question (Handles null) --- 
+        const answerPromises = activeTeams.map(async (team) => {
+            const result = await getTeamAnswerResult(gameCode, currentQuestionId, team.id);
+            return { team, result }; // Return both team and result (or null)
+        });
+        
+        const teamResults = await Promise.all(answerPromises);
+
+        const processedAnswersArray: TeamAnswerDisplay[] = teamResults.map(({ team, result }) => {
+            if (result) {
+                // Team answered and result is processed
+                return {
+                    teamId: team.id,
+                    teamName: team.name || `Team ${team.id.substring(0, 4)}`,
+                    selectedAnswer: result.selectedAnswer,
+                    isCorrect: result.isCorrect,
+                    pointsAwarded: result.pointsAwarded,
+                    answerIndex: result.answerIndex
+                };
             } else {
-                 console.warn(`AdminAnswerRevealPage: Could not get processed answer for team ${teamId}. Skipping display.`);
+                // Team did not answer (result is null)
+                return {
+                    teamId: team.id,
+                    teamName: team.name || `Team ${team.id.substring(0, 4)}`,
+                    selectedAnswer: "Nije odgovoreno", // Display text for unanswered
+                    isCorrect: null,
+                    pointsAwarded: 0, // Award 0 points explicitly here for sorting/display
+                    answerIndex: -1
+                };
             }
-        }
+        });
+
+        // Sort: Correct answers first, then by points (highest first), then alphabetically
+        processedAnswersArray.sort((a, b) => {
+            const aCorrect = a.isCorrect ?? false;
+            const bCorrect = b.isCorrect ?? false;
+            if (aCorrect !== bCorrect) return bCorrect ? 1 : -1; // Correct answers first
+            const aPoints = a.pointsAwarded ?? 0;
+            const bPoints = b.pointsAwarded ?? 0;
+            if (aPoints !== bPoints) return bPoints - aPoints; // Higher points first
+            return a.teamName.localeCompare(b.teamName); // Alphabetical for ties
+        });
+        
         setTeamAnswers(processedAnswersArray);
 
-        // --- 3. Calculate Overall Ranks --- 
-        // Use the `allTeamsForGame` fetched earlier, as it contains the latest scores
-        // Remove the incorrect check for game.teams
-        const teamsArray = [...allTeamsForGame] // Create a mutable copy
-          .sort((a, b) => b.points - a.points); // Sort by points
+        // --- 4. Fetch ALL Current Scores --- 
+        const allScores = await getAllScoresForGame(gameCode);
+        console.log("AdminAnswerRevealPage: Fetched scores:", allScores);
+
+        // --- 5. Combine Active Teams with their latest Scores --- 
+        const teamsWithScores = activeTeams.map(team => ({
+          ...team,
+          points: allScores[team.id]?.totalScore || 0 // Get score from fetched scores, default to 0
+        }));
+
+        // --- 6. Calculate Overall Ranks using combined data --- 
+        const teamsArray = [...teamsWithScores]
+          .sort((a, b) => b.points - a.points); // Sort by combined points
 
         const rankedTeamsData: RankedTeam[] = [];
         if (teamsArray.length > 0) {
@@ -117,7 +168,7 @@ const AdminAnswerRevealPage = () => {
               currentRank = index + 1;
               previousPoints = team.points;
             }
-            // Add the calculated rank to the team object
+            // Note: We push the team object from teamsWithScores which has the correct points
             rankedTeamsData.push({ ...team, rank: currentRank }); 
           });
         }
@@ -169,6 +220,11 @@ const AdminAnswerRevealPage = () => {
   
   const displayError = error || gameError?.message;
 
+  // Derive correct answer text here for clarity
+  const correctAnswerText = currentQuestion?.options && typeof currentQuestion?.correctAnswerIndex === 'number' && currentQuestion.correctAnswerIndex >= 0
+    ? currentQuestion.options[currentQuestion.correctAnswerIndex]
+    : "N/A"; // Fallback if data is missing
+
   if (displayError) {
     return (
       <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4">
@@ -218,90 +274,113 @@ const AdminAnswerRevealPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            {/* Question & Answer Info */}
-            <div className="bg-secondary/20 p-6 rounded-xl backdrop-blur-sm mb-6">
-              <h2 className="text-xl font-bold text-accent mb-3">
+            {/* --- Question & Answer Info --- */}
+            <div className="bg-secondary/20 p-8 rounded-xl backdrop-blur-md mb-8 text-center shadow-lg">
+              <h2 className="text-2xl md:text-3xl font-bold text-accent mb-4 font-serif">
                 Pitanje {game.currentQuestionIndex + 1}:
               </h2>
-              <p className="text-lg text-accent/90 mb-3">
+              <p className="text-xl md:text-2xl lg:text-3xl text-accent/95 mb-6 font-serif leading-relaxed">
                 {currentQuestion.text}
               </p>
-              <p className="text-lg font-bold text-green-400">
-                Tačan odgovor: {currentQuestion.correctAnswer}
-              </p>
+              <div className="border-t-2 border-accent/30 pt-5 mt-5">
+                <p className="text-lg md:text-xl text-accent/80 mb-2">Tačan odgovor je:</p>
+                <p className="text-3xl md:text-4xl font-bold text-green-400 tracking-wide">
+                  {correctAnswerText} 
+                </p>
+              </div>
             </div>
             
-            {/* Combined Answers and Leaderboard Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* --- Combined Answers and Leaderboard Section --- */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               {/* Section 1: Individual Team Answers for this Question */}
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-accent mb-2">Odgovori Timova:</h3>
+              <div className="space-y-4 bg-primary/40 backdrop-blur-sm p-5 rounded-lg shadow-md">
+                <h3 className="text-xl md:text-2xl font-semibold text-accent mb-4 border-b border-accent/20 pb-3">Odgovori Timova:</h3>
                 {teamAnswers.length > 0 ? (
-                  teamAnswers.map((answer) => (
+                  teamAnswers.map((answer, index) => (
                     <motion.div
                       key={answer.teamId}
-                      className={`p-3 rounded-lg backdrop-blur-sm flex justify-between items-center text-sm
-                        ${answer.isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'}`}
-                      initial={{ opacity: 0, x: -10 }}
+                      className={`p-4 rounded-lg flex justify-between items-center transition-colors duration-300 
+                        ${answer.isCorrect === null 
+                          ? 'bg-gray-500/30 border border-gray-400/40' // Gray for unanswered (isCorrect is null)
+                          : answer.isCorrect 
+                            ? 'bg-green-500/30 border border-green-400/40' // Green for correct
+                            : 'bg-red-500/30 border border-red-400/40' // Red for incorrect
+                        }`}
+                      initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: Math.random() * 0.2 }}
+                      transition={{ delay: index * 0.05 }}
                     >
-                      <div>
-                        <span className="font-bold text-accent">{answer.teamName}</span>
-                        <span className="text-accent/80 ml-2">({answer.selectedAnswer})</span>
+                      <div className="flex-1 mr-4 min-w-0">
+                        <span className="font-bold text-accent text-lg block truncate mb-1" title={answer.teamName}>{answer.teamName}</span>
+                        <span className={`text-sm ${answer.isCorrect === null ? 'text-accent/60 italic' : 'text-accent/80'}`}>
+                          Odgovor: {answer.selectedAnswer} {/* Will show "Nije odgovoreno" if null */}
+                        </span>
                       </div>
-                      <span className="font-bold text-accent">
-                        +{answer.pointsAwarded}
-                      </span>
+                      {/* Only show points if they answered */}
+                      {answer.isCorrect !== null && (
+                        <span className={`font-bold text-xl whitespace-nowrap ${answer.isCorrect ? 'text-green-300' : 'text-accent/90'}`}>
+                          +{answer.pointsAwarded ?? 0} pts
+                        </span>
+                      )}
                     </motion.div>
                   ))
                 ) : (
-                  <p className="text-accent/60 italic">Nema zabeleženih odgovora za ovo pitanje.</p>
+                  <p className="text-accent/60 italic text-center py-5">Nema aktivnih timova.</p>
                 )}
               </div>
 
               {/* Section 2: Overall Leaderboard */}
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-accent mb-2">Trenutna Rang Lista:</h3>
+              <div className="space-y-4 bg-primary/40 backdrop-blur-sm p-5 rounded-lg shadow-md">
+                <h3 className="text-xl md:text-2xl font-semibold text-accent mb-4 border-b border-accent/20 pb-3">Trenutna Rang Lista:</h3>
                 {rankedTeams.length > 0 ? (
                   rankedTeams.map((team, index) => (
                     <motion.div
                       key={team.id}
-                      className={`p-3 rounded-lg backdrop-blur-sm flex items-center text-sm
-                        bg-secondary/10 border border-transparent
-                        ${index === 0 ? '!border-yellow-400/50' : ''}
-                        ${index === 1 ? '!border-gray-400/50' : ''}
-                        ${index === 2 ? '!border-amber-600/50' : ''}`
+                      className={`p-4 rounded-lg flex items-center 
+                        bg-secondary/20 border 
+                        ${index === 0 ? 'border-yellow-400/70 shadow-md shadow-yellow-500/20' : 
+                          index === 1 ? 'border-gray-400/70' : 
+                          index === 2 ? 'border-amber-600/70' : 'border-secondary/30'}` 
                       }
-                      initial={{ opacity: 0, x: 10 }}
+                      initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <div className="w-8 h-8 mr-3 flex items-center justify-center text-base font-bold text-accent">
-                        {team.rank}
+                      <img 
+                        src={getMascotImageUrl(team.mascotId)}
+                        alt={`${team.name} mascot`} 
+                        className="w-10 h-10 mr-4 flex-shrink-0 rounded-full object-cover border-2 border-accent/30"
+                      />
+                      <div className="flex-1 min-w-0 mr-3">
+                        <span className="font-bold text-accent text-lg block truncate">{team.name}</span>
                       </div>
-                      <div className="flex-1">
-                        <span className="font-bold text-accent">{team.name}</span>
-                      </div>
-                      <div className="text-lg font-bold text-accent">
-                        {team.points}
+                      <div className="text-2xl font-bold text-accent whitespace-nowrap">
+                        {team.points} pts
                       </div>
                     </motion.div>
                   ))
                 ) : (
-                   <p className="text-accent/60 italic">Nema timova za prikaz.</p>
+                   <p className="text-accent/60 italic text-center py-5">Nema timova za prikaz.</p>
                 )}
               </div>
             </div>
             
-            {/* Next Step Button */}
-            <div className="flex justify-center pt-4">
-              <Button
-                onClick={handleNextStep}
-                className="bg-accent hover:bg-accent/80 text-primary px-10 py-4 text-lg font-bold"
+            {/* --- Next Step Button --- */}
+            <div className="flex justify-center pt-8 pb-4">
+              <motion.div
+                style={{ transformOrigin: 'center' }}
+                animate={{
+                  scale: [1, 1.03, 1],
+                  transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+                }}
               >
-                {isLastQuestion ? 'Završi kviz' : 'Sledeće pitanje'}
-              </Button>
+                <Button
+                  onClick={handleNextStep}
+                  className="bg-accent hover:bg-accent/80 text-primary px-12 py-5 text-xl font-bold shadow-lg rounded-lg"
+                >
+                  {isLastQuestion ? '🏆 Završi kviz 🏆' : '➡️ Sledeće pitanje'}
+                </Button>
+              </motion.div>
             </div>
           </motion.div>
         )}

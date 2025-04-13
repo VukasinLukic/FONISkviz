@@ -407,20 +407,12 @@ export const getTeamAnswerResult = async (
   gameCode: string,
   questionId: string,
   teamId: string
-): Promise<Answer> => {
+): Promise<Answer | null> => {
   console.log(`[Firebase] getTeamAnswerResult: path="answers/${gameCode}/${questionId}/${teamId}"`);
-  const attemptGetResult = async (): Promise<Answer> => {
+  const attemptGetResult = async (): Promise<Answer | null> => {
     const db = await getDb();
     const answerRef = ref(db, `answers/${gameCode}/${questionId}/${teamId}`);
     const snapshot = await get(answerRef);
-
-    // Default object for unanswered questions
-    const defaultAnswer: Answer = {
-      selectedAnswer: "Nije odgovoreno",
-      isCorrect: false,
-      pointsAwarded: 0,
-      answerIndex: -1
-    };
 
     if (snapshot.exists()) {
       const result = snapshot.val() as Answer;
@@ -428,14 +420,15 @@ export const getTeamAnswerResult = async (
       if (typeof result.pointsAwarded === 'number') {
         return result;
       }
-      console.warn('[Firebase] getTeamAnswerResult: Answer found but lacks pointsAwarded, returning default.');
-      return defaultAnswer; // Return default if points are missing (processing incomplete)
+      // If pointsAwarded is missing, the answer exists but isn't fully processed yet.
+      // Return null temporarily, the UI should handle this as "processing" or wait.
+      console.warn('[Firebase] getTeamAnswerResult: Answer found but lacks pointsAwarded.');
+      return null; // Indicate not ready / not processed yet
     }
-    console.log(`[Firebase] getTeamAnswerResult: No answer record found for team ${teamId}, returning default.`);
-    return defaultAnswer; // Return default if no snapshot exists
+    console.log(`[Firebase] getTeamAnswerResult: No answer record found for team ${teamId}, returning null.`);
+    return null; // Return null if no snapshot exists (means team didn't answer)
   };
-  // Use fewer retries as we expect data to be there shortly after status change
-  return withRetry(attemptGetResult, 2, 'getTeamAnswerResult'); 
+  return withRetry(attemptGetResult, 2, 'getTeamAnswerResult');
 };
 
 // === NOVO: Score functions ===
@@ -513,9 +506,9 @@ export const processQuestionResults = async (gameCode: string, questionId: strin
 
     // Get all active teams for this game
     const allTeams = await getTeamsForGame(gameCode);
-    const activeTeams = allTeams.filter(team => team.isActive !== false); // Assuming isActive might be missing or true
+    const activeTeams = allTeams.filter(team => team.isActive !== false);
 
-    const updatePaths: { [path: string]: any } = {}; // Use 'any' for multi-path updates
+    const updatePaths: { [path: string]: any } = {};
     
     for (const team of activeTeams) {
       const teamId = team.id;
@@ -523,27 +516,28 @@ export const processQuestionResults = async (gameCode: string, questionId: strin
 
       let isCorrect = false;
       let pointsAwarded = 0;
-      let selectedAnswerText = "Nije odgovoreno";
-      let answerIndex = -1; // Default for no answer
+      let selectedAnswerText = "Nije odgovoreno"; // Default text
+      let answerIndex = -1; // Default index for no answer
 
-      if (submittedAnswer) {
+      if (submittedAnswer && typeof submittedAnswer.answerIndex === 'number' && submittedAnswer.answerIndex !== -1) {
         // Player answered, calculate score
         isCorrect = submittedAnswer.answerIndex === question.correctAnswerIndex;
         pointsAwarded = isCorrect ? 100 : 0; // Simple scoring
         selectedAnswerText = submittedAnswer.selectedAnswer;
         answerIndex = submittedAnswer.answerIndex;
       } else {
-        // Player did NOT answer
+        // Player did NOT answer, points remain 0
         console.log(`[Firebase] Team ${teamId} did not answer question ${questionId}. Awarding 0 points.`);
+        // Ensure selectedAnswerText and answerIndex remain their default 'unanswered' values
       }
 
       // Prepare updates for the /answers node for this team
       const answerPath = `answers/${gameCode}/${questionId}/${teamId}`;
+      // We ALWAYS write the calculated result to ensure the node exists
       updatePaths[`${answerPath}/isCorrect`] = isCorrect;
       updatePaths[`${answerPath}/pointsAwarded`] = pointsAwarded;
-      // Store the selected answer text and index even if they didn't answer
-      updatePaths[`${answerPath}/selectedAnswer`] = selectedAnswerText;
-      updatePaths[`${answerPath}/answerIndex`] = answerIndex;
+      updatePaths[`${answerPath}/selectedAnswer`] = selectedAnswerText; // Write the text ('Nije odgovoreno' or actual answer)
+      updatePaths[`${answerPath}/answerIndex`] = answerIndex; // Write the index (-1 or actual index)
 
       // Prepare updates for the /scores node
       const currentScoreRef = ref(db, `scores/${gameCode}/${teamId}`);
@@ -559,7 +553,7 @@ export const processQuestionResults = async (gameCode: string, questionId: strin
     // Perform all updates atomically
     if (Object.keys(updatePaths).length > 0) {
         console.log('[Firebase] Updating answers and scores:', updatePaths);
-        await update(ref(db), updatePaths); // Update multiple paths in /answers and /scores
+        await update(ref(db), updatePaths);
     } else {
         console.log('[Firebase] No active teams found or no updates needed.');
     }

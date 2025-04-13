@@ -4,21 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'Caviar Dreams';
-  src: url('/fonts/CaviarDreams-Bold.ttf') format('truetype');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Caviar Dreams';
-  src: url('/fonts/CaviarDreams-Italic.ttf') format('truetype');
-  font-weight: normal;
-  font-style: italic;
-  font-display: swap;
-}
+/* Removed @font-face rules for Caviar Dreams - handled by FontLoader.tsx */
 
 :root {
   font-family: 'Caviar Dreams', system-ui, sans-serif;
