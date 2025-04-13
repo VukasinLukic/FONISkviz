@@ -29,7 +29,14 @@ const SplashScreen = () => {
       if (!allQuestions || allQuestions.length === 0) {
         throw new Error("No questions found in the database. Seed questions first.");
       }
-      const questionOrder = allQuestions.map(q => q.id).sort(() => Math.random() - 0.5);
+      // Shuffle all question IDs
+      const allQuestionIds = allQuestions.map(q => q.id).sort(() => Math.random() - 0.5);
+      // Use ALL shuffled questions for the game
+      const questionOrder = allQuestionIds;
+
+      if (questionOrder.length === 0) {
+        throw new Error("Cannot start game with 0 questions.");
+      }
 
       const initialData = {
         currentQuestionIndex: 0,

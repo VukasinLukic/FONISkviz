@@ -93,7 +93,7 @@ const AdminAnswerRevealPage = () => {
           throw new Error("Current question data not found in game state.");
         }
         setCurrentQuestion(questionData);
-        setIsLastQuestion(currentQuestionIndex >= game.questions.length - 1);
+        setIsLastQuestion(currentQuestionIndex >= game.questionOrder.length - 1);
 
         // --- 2. Get ALL Active Teams --- 
         const allTeamsForGame = await getTeamsForGame(gameCode);
@@ -188,19 +188,25 @@ const AdminAnswerRevealPage = () => {
   }, [game, gameLoading, gameError, gameCode, navigate]); // Rerun when game data changes
   
   const handleNextStep = async () => {
-    if (!gameCode || !game) return;
+    if (!gameCode || !game || !game.questionOrder) return;
+
+    const currentQuestionIndex = game.currentQuestionIndex;
+    const totalQuestions = game.questionOrder.length;
     
-    const nextStatus = isLastQuestion ? 'game_end' : 'question_display';
+    // Check if this is the last question based on questionOrder array
+    const isFinalQuestion = currentQuestionIndex >= totalQuestions - 1;
+    
+    const nextStatus = isFinalQuestion ? 'game_end' : 'question_display';
 
     try {
       const updates: Partial<Game> = { status: nextStatus };
       
       if (nextStatus === 'question_display') {
-        updates.currentQuestionIndex = game.currentQuestionIndex + 1;
+        updates.currentQuestionIndex = currentQuestionIndex + 1;
         updates.resultsReady = false; // Reset flag for the new question
         console.log(`[AdminAnswerRevealPage] Advancing to question index: ${updates.currentQuestionIndex}`);
       } else {
-          console.log(`[AdminAnswerRevealPage] Ending game`);
+          console.log(`[AdminAnswerRevealPage] Reached the end of questions. Setting status to game_end.`);
       }
       
       await updateGameData(gameCode, updates);

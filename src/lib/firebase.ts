@@ -98,6 +98,7 @@ export interface Answer {
   isCorrect: boolean;
   pointsAwarded: number;
   answerIndex: number;
+  submittedAt?: number; // Add timestamp
 }
 
 export interface TeamScore {
@@ -353,7 +354,7 @@ export const submitAnswer = async (
   gameCode: string,
   questionId: string,
   teamId: string,
-  answerData: Omit<Answer, 'isCorrect' | 'pointsAwarded'>
+  answerData: Omit<Answer, 'isCorrect' | 'pointsAwarded' | 'submittedAt'> // Omit generated fields
 ): Promise<void> => {
   return withRetry(async () => {
     const db = await getDb();
@@ -363,7 +364,12 @@ export const submitAnswer = async (
     if (!questionId || /[.#$\[\]]/g.test(questionId)) throw new Error(`Invalid questionId: ${questionId}`);
     if (!teamId || /[.#$\[\]]/g.test(teamId)) throw new Error(`Invalid teamId: ${teamId}`);
 
-    await set(ref(db, path), answerData);
+    const dataToSubmit: Partial<Answer> = {
+        ...answerData,
+        submittedAt: Date.now() // Add current timestamp
+    };
+
+    await set(ref(db, path), dataToSubmit);
   }, MAX_RETRIES, 'submitAnswer');
 };
 
@@ -499,69 +505,93 @@ export const processQuestionResults = async (gameCode: string, questionId: strin
       throw new Error(`Question with ID ${questionId} not found in game data.`);
     }
 
-    // Get answers submitted by players for this question
     const answersRef = ref(db, `answers/${gameCode}/${questionId}`);
     const answersSnapshot = await get(answersRef);
-    const submittedAnswers = answersSnapshot.exists() ? answersSnapshot.val() : {};
+    const submittedAnswersData = answersSnapshot.exists() ? answersSnapshot.val() : {};
 
-    // Get all active teams for this game
     const allTeams = await getTeamsForGame(gameCode);
     const activeTeams = allTeams.filter(team => team.isActive !== false);
 
     const updatePaths: { [path: string]: any } = {};
-    
+    let fastestCorrectTeamId: string | null = null;
+    let minTimestamp = Infinity;
+
+    // --- First Pass: Identify fastest correct answer --- 
     for (const team of activeTeams) {
       const teamId = team.id;
-      const submittedAnswer = submittedAnswers[teamId] as Answer | undefined;
+      const submittedAnswer = submittedAnswersData[teamId] as Answer | undefined;
+      
+      if (submittedAnswer && typeof submittedAnswer.answerIndex === 'number' && submittedAnswer.answerIndex === question.correctAnswerIndex && submittedAnswer.submittedAt) {
+          if (submittedAnswer.submittedAt < minTimestamp) {
+              minTimestamp = submittedAnswer.submittedAt;
+              fastestCorrectTeamId = teamId;
+          }
+      }
+    }
+
+    console.log(`[Firebase] Fastest correct answer from team: ${fastestCorrectTeamId || 'None'}`);
+
+    // --- Second Pass: Calculate points and prepare updates --- 
+    for (const team of activeTeams) {
+      const teamId = team.id;
+      const submittedAnswer = submittedAnswersData[teamId] as Answer | undefined;
 
       let isCorrect = false;
       let pointsAwarded = 0;
-      let selectedAnswerText = "Nije odgovoreno"; // Default text
-      let answerIndex = -1; // Default index for no answer
+      let selectedAnswerText = "Nije odgovoreno";
+      let answerIndex = -1;
 
       if (submittedAnswer && typeof submittedAnswer.answerIndex === 'number' && submittedAnswer.answerIndex !== -1) {
-        // Player answered, calculate score
-        isCorrect = submittedAnswer.answerIndex === question.correctAnswerIndex;
-        pointsAwarded = isCorrect ? 100 : 0; // Simple scoring
         selectedAnswerText = submittedAnswer.selectedAnswer;
         answerIndex = submittedAnswer.answerIndex;
+        isCorrect = submittedAnswer.answerIndex === question.correctAnswerIndex;
+        
+        if (isCorrect) {
+          pointsAwarded = 100; // Base points for correct answer
+          if (teamId === fastestCorrectTeamId) {
+            pointsAwarded += 50; // Bonus for fastest
+            console.log(`[Firebase] Awarding +50 bonus to team ${teamId} for speed.`);
+          }
+        } else {
+          pointsAwarded = 0; // Incorrect answer
+        }
       } else {
-        // Player did NOT answer, points remain 0
-        console.log(`[Firebase] Team ${teamId} did not answer question ${questionId}. Awarding 0 points.`);
-        // Ensure selectedAnswerText and answerIndex remain their default 'unanswered' values
+        // Player did not answer
+        pointsAwarded = 0;
       }
 
-      // Prepare updates for the /answers node for this team
+      // Prepare updates for the /answers node
       const answerPath = `answers/${gameCode}/${questionId}/${teamId}`;
-      // We ALWAYS write the calculated result to ensure the node exists
       updatePaths[`${answerPath}/isCorrect`] = isCorrect;
       updatePaths[`${answerPath}/pointsAwarded`] = pointsAwarded;
-      updatePaths[`${answerPath}/selectedAnswer`] = selectedAnswerText; // Write the text ('Nije odgovoreno' or actual answer)
-      updatePaths[`${answerPath}/answerIndex`] = answerIndex; // Write the index (-1 or actual index)
+      updatePaths[`${answerPath}/selectedAnswer`] = selectedAnswerText;
+      updatePaths[`${answerPath}/answerIndex`] = answerIndex;
+      // Ensure submittedAt is preserved if it existed
+      if (submittedAnswer?.submittedAt) {
+          updatePaths[`${answerPath}/submittedAt`] = submittedAnswer.submittedAt;
+      } else if (answerIndex === -1) {
+          // Optionally add a timestamp even for non-answers, or set to null/0
+          // updatePaths[`${answerPath}/submittedAt`] = null; 
+      }
 
       // Prepare updates for the /scores node
       const currentScoreRef = ref(db, `scores/${gameCode}/${teamId}`);
       const currentScoreSnapshot = await get(currentScoreRef);
       const currentScoreData = currentScoreSnapshot.exists() 
         ? currentScoreSnapshot.val() as TeamScore 
-        : { totalScore: 0 }; // Start with 0 if no score exists
+        : { totalScore: 0 };
       
-      // Add pointsAwarded (which is 0 if no answer) to the total score
       updatePaths[`scores/${gameCode}/${teamId}/totalScore`] = (currentScoreData.totalScore || 0) + pointsAwarded;
     }
 
-    // Perform all updates atomically
+    // ... (Perform updates, calculate ranks, set resultsReady) ...
     if (Object.keys(updatePaths).length > 0) {
-        console.log('[Firebase] Updating answers and scores:', updatePaths);
+        console.log('[Firebase] Updating answers and scores:', JSON.stringify(updatePaths).substring(0, 500) + '...'); // Log truncated updates
         await update(ref(db), updatePaths);
     } else {
         console.log('[Firebase] No active teams found or no updates needed.');
     }
-
-    // Calculate Ranks after scores are updated
     await calculateRanks(gameCode);
-
-    // Finally, set the resultsReady flag for this question/game state
     console.log(`[Firebase] Setting resultsReady to true for game ${gameCode}`);
     await update(ref(db, `game/${gameCode}`), { resultsReady: true });
 
