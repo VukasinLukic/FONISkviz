@@ -10,6 +10,7 @@ import {
 import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
+import { Timer } from '../components/Timer';
 
 // Define colors for answer options based on Tailwind config
 const answerColors = [
@@ -26,6 +27,7 @@ const PlayerQuestionPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null); // Still needed for question ID
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isTimeUp, setIsTimeUp] = useState(false); // Added state for time up
 
   // Get team data from localStorage
   const teamId = localStorage.getItem('teamId');
@@ -102,6 +104,7 @@ const PlayerQuestionPage = () => {
           setCurrentQuestion(question); // We need the full question for options/ID
           setSelectedAnswer(null); // Reset selected answer for new question
           setSubmitting(false); // Reset submitting state
+          setIsTimeUp(false); // Reset time up state for new question
         } else {
           setError(`Pitanje ${questionId} nije pronađeno`);
         }
@@ -142,6 +145,12 @@ const PlayerQuestionPage = () => {
     }
   };
   
+  // Handle timer completion
+  const handleTimeUp = () => {
+    console.log("PlayerQuestionPage: Time's up!");
+    setIsTimeUp(true);
+  };
+  
   if (gameLoading || !currentQuestion) { // Show loading until question is loaded
     return (
       <div className="min-h-screen bg-primary flex items-center justify-center">
@@ -176,30 +185,28 @@ const PlayerQuestionPage = () => {
       {/* Small logo at top */}
       
       
-      {/* Timer Progress Bar */}
+      {/* Timer Component at the top */}
       <motion.div 
-        className="w-full bg-white/20 rounded-full h-2 overflow-hidden mx-auto mt-16 z-10 px-4 max-w-xl"
+        className="w-full flex justify-center mx-auto mt-16 mb-4 z-10 px-4 max-w-xl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <motion.div
-          className="h-full bg-secondary rounded-full"
-          initial={{ width: "100%" }}
-          animate={{ width: "0%" }}
-          transition={{ 
-            duration: 30, 
-            ease: "linear"
-          }}
-        />
+        <Timer 
+           duration={30} 
+           color="secondary" 
+           size="md" 
+           onComplete={handleTimeUp} // Added onComplete handler
+         />
       </motion.div>
       
       {/* 4 Big Buttons Grid - taking most of screen */}
-      <div className="flex-grow grid grid-cols-2 grid-rows-2 gap-2 p-2 mt-4">
+      <div className="flex-grow grid grid-cols-2 grid-rows-2 gap-2 p-2">
         {currentQuestion?.options.map((_, index) => {
           const color = answerColors[index % answerColors.length];
           const isSelected = selectedAnswer === index;
-          const isDisabled = submitting || selectedAnswer !== null;
+          // Updated disabled logic to include isTimeUp
+          const isDisabled = submitting || selectedAnswer !== null || isTimeUp; 
 
           return (
             <motion.button
@@ -222,6 +229,17 @@ const PlayerQuestionPage = () => {
           );
         })}
       </div>
+
+      {/* Time Up Message */} 
+      {isTimeUp && selectedAnswer === null && (
+        <motion.div
+           className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-secondary/80 border border-secondary text-white px-6 py-3 rounded-lg text-center z-20 shadow-lg"
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+        >
+           Vreme je isteklo!
+        </motion.div>
+      )}
 
       {/* Error display at bottom */} 
       {error && (

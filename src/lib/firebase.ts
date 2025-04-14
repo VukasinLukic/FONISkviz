@@ -18,14 +18,14 @@ import { getAnalytics, isSupported } from 'firebase/analytics'; // Import analyt
 
 // Firebase Configuration from Environment Variables
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyC5_ywn6qbreNzdg2b_xMDWnkng5zK_IYM",
+  authDomain: "fonis-kviz.firebaseapp.com",
+  databaseURL: "https://fonis-kviz-default-rtdb.firebaseio.com",
+  projectId: "fonis-kviz",
+  storageBucket: "fonis-kviz.firebasestorage.app",
+  messagingSenderId: "586466014031",
+  appId: "1:586466014031:web:6c7e5f922e3c3fdd284b3a",
+  measurementId: "G-KWC12DCZ4E"
 };
 
 // Initialize Firebase App
@@ -360,16 +360,50 @@ export const submitAnswer = async (
     const db = await getDb();
     const path = `answers/${gameCode}/${questionId}/${teamId}`;
     console.log(`[Firebase] submitAnswer: path="${path}"`);
-    if (!gameCode || /[.#$\[\]]/g.test(gameCode)) throw new Error(`Invalid gameCode: ${gameCode}`);
-    if (!questionId || /[.#$\[\]]/g.test(questionId)) throw new Error(`Invalid questionId: ${questionId}`);
-    if (!teamId || /[.#$\[\]]/g.test(teamId)) throw new Error(`Invalid teamId: ${teamId}`);
+    if (!gameCode || /[.#$[]]/g.test(gameCode)) throw new Error(`Invalid gameCode: ${gameCode}`);
+    if (!questionId || /[.#$[]]/g.test(questionId)) throw new Error(`Invalid questionId: ${questionId}`);
+    if (!teamId || /[.#$[]]/g.test(teamId)) throw new Error(`Invalid teamId: ${teamId}`);
 
     const dataToSubmit: Partial<Answer> = {
         ...answerData,
         submittedAt: Date.now() // Add current timestamp
     };
 
+    // Write the answer first
     await set(ref(db, path), dataToSubmit);
+    console.log(`[Firebase] Answer submitted for team ${teamId} on question ${questionId}.`);
+
+    // --- Check if all active players have answered --- 
+    try {
+        // Fetch active teams
+        const allTeams = await getTeamsForGame(gameCode);
+        const activeTeams = allTeams.filter(team => team.isActive !== false);
+        const activeTeamCount = activeTeams.length;
+        
+        if (activeTeamCount === 0) {
+            console.log("[Firebase] No active teams found, skipping check.");
+            return; // No need to check if there are no active teams
+        }
+
+        // Fetch submitted answers for this question
+        const submittedAnswers = await getAnswersForQuestion(gameCode, questionId);
+        const submittedAnswerCount = Object.keys(submittedAnswers).length;
+
+        console.log(`[Firebase] Answer check: Submitted: ${submittedAnswerCount}, Active Teams: ${activeTeamCount}`);
+
+        // If counts match, change game status
+        if (submittedAnswerCount >= activeTeamCount) {
+            console.log("[Firebase] All active teams have answered. Setting status to 'answer_collection'.");
+            // Call setGameStatus to update the status (uses its own retry logic)
+            await setGameStatus(gameCode, 'answer_collection');
+        }
+    } catch (checkError) {
+        // Log the error but don't fail the whole submitAnswer operation
+        // The answer was submitted, this check is a secondary action.
+        console.error("[Firebase] Error during check for all answers submitted:", checkError);
+    }
+    // --------------------------------------------------
+
   }, MAX_RETRIES, 'submitAnswer');
 };
 

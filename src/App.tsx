@@ -19,6 +19,7 @@ import PlayerAnswerResultPage from './pages/PlayerAnswerResultPage';
 import AdminWinnersPage from './pages/AdminWinnersPage';
 import PlayerFinishedPage from './pages/PlayerFinishedPage';
 import AdminAnswerRevealPage from './pages/AdminAnswerRevealPage';
+import BreakPage from './pages/BreakPage';
 import { getDb } from './lib/firebase';
 import { FirebaseApp } from 'firebase/app';
 import { Database } from 'firebase/database';
@@ -45,6 +46,7 @@ const appRoutes: AppRoute[] = [
   { path: '/admin/lobby', element: <LobbyPage /> },
   { path: '/admin/question', element: <AdminQuestionPage /> },
   { path: '/admin/answer', element: <AdminAnswerRevealPage /> },
+  { path: '/admin/break', element: <BreakPage /> },
   { path: '/admin/winners', element: <AdminWinnersPage /> },
   { path: '/test', element: <TestPage /> }
 ];

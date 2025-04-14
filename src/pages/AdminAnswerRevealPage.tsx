@@ -38,6 +38,8 @@ interface RankedTeam extends Team {
   rank: number;
 }
 
+const QUESTIONS_PER_CATEGORY = 8; // Define category size
+
 const AdminAnswerRevealPage = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +48,7 @@ const AdminAnswerRevealPage = () => {
   const [teamAnswers, setTeamAnswers] = useState<TeamAnswerDisplay[]>([]);
   const [rankedTeams, setRankedTeams] = useState<RankedTeam[]>([]); // State for ranked teams
   const [isLastQuestion, setIsLastQuestion] = useState(false); // State to know if it's the last question
+  const [isNavigating, setIsNavigating] = useState(false); // Add state to prevent double nav
   
   const gameCode = localStorage.getItem('gameCode');
   const { gameData: game, error: gameError, loading: gameLoading } = useGameRealtimeState(gameCode);
@@ -65,16 +68,10 @@ const AdminAnswerRevealPage = () => {
     // WAIT for the correct status AND results to be ready!
     if (game.status !== 'answer_reveal' || game.resultsReady !== true) {
       console.log(`AdminAnswerRevealPage: Waiting. Status: ${game.status}, Results Ready: ${game.resultsReady}`);
-      // If status is reveal but results aren't ready, show loading/waiting
-      // If status is not reveal, other pages handle navigation or it's an old state
-      setLoading(game.status === 'answer_reveal'); // Show loading only if we are expecting results soon
-      // Clear potentially stale data if status changed away
-      if (game.status !== 'answer_reveal') {
-          setTeamAnswers([]);
-          setRankedTeams([]);
-          setCurrentQuestion(null);
-      }
-      return;
+      // Show loading only if we are expecting results soon (status is reveal but results not ready)
+      setLoading(game.status === 'answer_reveal'); 
+      // Removed the state clearing logic here as navigation should handle unmounting
+      return; // Return early if not the right status/ready state
     }
 
     // --- Proceed only if status is 'answer_reveal' and resultsReady is true --- 
@@ -188,42 +185,85 @@ const AdminAnswerRevealPage = () => {
   }, [game, gameLoading, gameError, gameCode, navigate]); // Rerun when game data changes
   
   const handleNextStep = async () => {
-    if (!gameCode || !game || !game.questionOrder) return;
+    if (!gameCode || !game || !game.questionOrder || isNavigating) return; // Prevent double click
+
+    setIsNavigating(true); // Indicate navigation process started
 
     const currentQuestionIndex = game.currentQuestionIndex;
     const totalQuestions = game.questionOrder.length;
-    
-    // Check if this is the last question based on questionOrder array
-    const isFinalQuestion = currentQuestionIndex >= totalQuestions - 1;
-    
-    const nextStatus = isFinalQuestion ? 'game_end' : 'question_display';
+    const nextQuestionIndex = currentQuestionIndex + 1;
+    const isEndOfGame = nextQuestionIndex >= totalQuestions;
+    const isBreakTime = (nextQuestionIndex > 0) && (nextQuestionIndex % QUESTIONS_PER_CATEGORY === 0) && !isEndOfGame;
 
+    let nextStatus: GameStatus;
+    let nextRoute: string;
+    const updates: Partial<Game> = {};
+    let shouldNavigate = true; // Flag to control navigation after update
+
+    if (isEndOfGame) {
+      nextStatus = 'game_end';
+      nextRoute = `/admin/winners?gameCode=${gameCode}`;
+      updates.status = nextStatus;
+      console.log(`[AdminAnswerRevealPage] Preparing for game_end.`);
+    } else if (isBreakTime) {
+      nextStatus = 'leaderboard'; // Set status to trigger break
+      nextRoute = `/admin/break?gameCode=${gameCode}`; // Store route for later
+      updates.status = nextStatus;
+      console.log(`[AdminAnswerRevealPage] Preparing for break.`);
+      // Navigation will be handled by useEffect reacting to status change
+      shouldNavigate = false; 
+    } else {
+      nextStatus = 'question_display';
+      nextRoute = `/admin/question?gameCode=${gameCode}`;
+      updates.status = nextStatus;
+      updates.currentQuestionIndex = nextQuestionIndex;
+      updates.resultsReady = false;
+      console.log(`[AdminAnswerRevealPage] Preparing for next question.`);
+    }
+      
     try {
-      const updates: Partial<Game> = { status: nextStatus };
-      
-      if (nextStatus === 'question_display') {
-        updates.currentQuestionIndex = currentQuestionIndex + 1;
-        updates.resultsReady = false; // Reset flag for the new question
-        console.log(`[AdminAnswerRevealPage] Advancing to question index: ${updates.currentQuestionIndex}`);
-      } else {
-          console.log(`[AdminAnswerRevealPage] Reached the end of questions. Setting status to game_end.`);
-      }
-      
+      console.log(`[AdminAnswerRevealPage] Updating game state:`, updates);
       await updateGameData(gameCode, updates);
+      console.log(`[AdminAnswerRevealPage] Game state updated.`);
       
-      // Explicitly navigate after updating the status
-      if (nextStatus === 'question_display') {
-        navigate(`/admin/question?gameCode=${gameCode}`);
-      } else if (nextStatus === 'game_end') {
-        navigate(`/admin/winners?gameCode=${gameCode}`);
+      // Navigate immediately ONLY if not going to break page
+      if (shouldNavigate) {
+         console.log(`[AdminAnswerRevealPage] Navigating immediately to ${nextRoute}`);
+         navigate(nextRoute); 
+      } else {
+         // If going to break, navigation is handled by useEffect
+         // Reset isNavigating flag here as the next step is handled by useEffect
+         setIsNavigating(false);
       }
 
     } catch (err) {
       setError("Failed to update game state");
       console.error(err);
+      setIsNavigating(false); // Reset on error
     }
+    // If navigation happens immediately, isNavigating will be reset when component unmounts
   };
   
+  // NEW useEffect to handle navigation to BreakPage after status update
+  useEffect(() => {
+    // Check if the status is leaderboard and we weren't already navigating
+    if (game?.status === 'leaderboard' && !isNavigating) {
+        // Check if the intended next step was indeed the break page
+        // We deduce this: if status is leaderboard, it must have come from the isBreakTime logic
+        const currentQuestionIndex = game.currentQuestionIndex;
+        const totalQuestions = game.questionOrder.length;
+        const nextQuestionIndex = currentQuestionIndex + 1;
+        const isEndOfGame = nextQuestionIndex >= totalQuestions;
+        const shouldBeBreakTime = (nextQuestionIndex > 0) && (nextQuestionIndex % QUESTIONS_PER_CATEGORY === 0) && !isEndOfGame;
+        
+        if (shouldBeBreakTime) {
+            console.log("[AdminAnswerRevealPage] Status changed to leaderboard, navigating to break page.");
+            setIsNavigating(true); // Prevent potential race conditions
+            navigate(`/admin/break?gameCode=${gameCode}`);
+        }
+    }
+  }, [game?.status, gameCode, navigate, isNavigating, game?.currentQuestionIndex, game?.questionOrder?.length]);
+
   const displayError = error || gameError?.message;
 
   // Derive correct answer text here for clarity

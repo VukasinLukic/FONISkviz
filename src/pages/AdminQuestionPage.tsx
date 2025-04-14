@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -18,6 +18,7 @@ import { Button } from '../components/ui/button';
 import DevTools from '../components/DevTools';
 import { onValue, ref, getDatabase, Database } from 'firebase/database';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
+import { Timer } from '../components/Timer';
 
 // Define colors for answer options based on Tailwind config
 const answerColors = [
@@ -97,8 +98,8 @@ const AdminQuestionPage = () => {
     fetchQuestion();
   }, [game, gameLoading, gameError]);
 
-  // Handle revealing the answer (now processing)
-  const handleProcessAndReveal = async () => {
+  // Handle revealing the answer (now processing) - Wrapped in useCallback
+  const handleProcessAndReveal = useCallback(async () => {
     if (!gameCode || !game || processing || gameError || !currentQuestion?.id) {
       console.warn('[handleProcessAndReveal] Prevented execution. Conditions:', {
         gameCode: !!gameCode,
@@ -134,11 +135,20 @@ const AdminQuestionPage = () => {
     } catch (err) {
       console.error("[AdminQuestionPage] Error processing and revealing answer:", err);
       setError("Failed to reveal answer or process results");
-    } finally {
-       setProcessing(false); // Reset processing state on error or completion (though navigation happens on success)
+       // Reset processing state only on error, navigation handles success case normally
+       setProcessing(false); 
+    } 
+    // Removed finally block to avoid setting processing false on successful navigation
+  }, [gameCode, game, processing, gameError, currentQuestion, navigate, setError, setProcessing]); // Dependencies for useCallback
+
+  // Added useEffect to automatically process when all players have answered
+  useEffect(() => {
+    if (game?.status === 'answer_collection' && !processing && gameCode) {
+      console.log('[AdminQuestionPage] All players answered (status: answer_collection). Automatically processing and revealing.');
+      handleProcessAndReveal();
     }
-  };
-  
+  }, [game?.status, processing, gameCode, handleProcessAndReveal]);
+
   if (gameLoading) {
     return (
       <div className="min-h-screen bg-primary flex items-center justify-center">
@@ -263,22 +273,28 @@ const AdminQuestionPage = () => {
             ))}
           </motion.div>
           
-          {/* Timer Progress Bar */}
+          {/* Timer Area: Numerical Timer + Progress Bar */}
           <motion.div 
-            className="mt-8 w-full bg-white/20 rounded-full h-4 overflow-hidden"
+            className="mt-10 w-full flex flex-col items-center" // Use flex-col to stack timer and bar
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <motion.div
-              className="h-full bg-secondary rounded-full"
-              initial={{ width: "100%" }}
-              animate={{ width: "0%" }}
-              transition={{ 
-                duration: 30, 
-                ease: "linear"
-              }}
-            />
+             {/* Numerical Timer */}
+             <Timer duration={30} color="secondary" size="lg" /> 
+             
+             {/* Large Progress Bar */}
+             <div className="mt-4 w-full max-w-2xl bg-white/20 rounded-full h-5 overflow-hidden"> 
+               <motion.div
+                 className="h-full bg-secondary rounded-full"
+                 initial={{ width: "100%" }}
+                 animate={{ width: "0%" }}
+                 transition={{ 
+                   duration: 30, // Match timer duration
+                   ease: "linear"
+                 }}
+               />
+             </div>
           </motion.div>
         </motion.div>
       </div>
