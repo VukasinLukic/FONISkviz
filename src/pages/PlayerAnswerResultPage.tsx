@@ -175,7 +175,7 @@ const PlayerAnswerResultPage = () => {
               {displayResult.isCorrect ? (
                 <span className="text-7xl text-white">✓</span>
               ) : (
-                <span className="text-7xl text-white">✗</span>
+                <span className="text-7xl text-white">X</span>
               )}
             </motion.div>
             

@@ -3,13 +3,16 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import MainButton from '../components/MainButton';
 import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
-import { motion } from 'framer-motion';
+import { motion, useAnimation, PanInfo } from 'framer-motion';
 import { updateTeam, getDb } from '../lib/firebase';
 import { Database } from 'firebase/database';
 import { getMascotImageUrl } from '../lib/utils';
 
+// Maksimalni ID maskota
+const MAX_MASCOT_ID = 18;
+
 const MascotSelection: React.FC = () => {
-  const [selectedMascot, setSelectedMascot] = useState<number | null>(null);
+  const [currentMascot, setCurrentMascot] = useState<number>(1);
   const [imageError, setImageError] = useState<Record<number, boolean>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -17,6 +20,7 @@ const MascotSelection: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [dbInstance, setDbInstance] = useState<Database | null>(null);
+  const controls = useAnimation();
   
   // Get team data from localStorage
   const [teamData, setTeamData] = useState({
@@ -44,9 +48,37 @@ const MascotSelection: React.FC = () => {
     fetchDb();
   }, []);
 
-  const handleMascotSelect = (mascotId: number) => {
-    setSelectedMascot(mascotId);
-    setErrorMessage(null); // Clear any previous errors
+  const handleNextMascot = () => {
+    if (currentMascot < MAX_MASCOT_ID) {
+      controls.start({ opacity: 0 })
+        .then(() => {
+          setCurrentMascot(prev => prev + 1);
+          controls.start({ opacity: 1 });
+        });
+    }
+  };
+
+  const handlePrevMascot = () => {
+    if (currentMascot > 1) {
+      controls.start({ opacity: 0 })
+        .then(() => {
+          setCurrentMascot(prev => prev - 1);
+          controls.start({ opacity: 1 });
+        });
+    }
+  };
+
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const threshold = 50; // minimalna distanca za promenu maskote
+    
+    if (info.offset.x < -threshold && currentMascot < MAX_MASCOT_ID) {
+      handleNextMascot();
+    } else if (info.offset.x > threshold && currentMascot > 1) {
+      handlePrevMascot();
+    } else {
+      // Vrati na centralnu poziciju ako drag nije prešao threshold
+      controls.start({ x: 0 });
+    }
   };
 
   const handleImageError = (mascotId: number) => {
@@ -55,23 +87,32 @@ const MascotSelection: React.FC = () => {
       ...prev,
       [mascotId]: true
     }));
+    
+    // Ako trenutna maskota ne može da se učita, pomeri na sledeću
+    if (mascotId === currentMascot) {
+      if (currentMascot < MAX_MASCOT_ID) {
+        setCurrentMascot(prev => prev + 1);
+      } else if (currentMascot > 1) {
+        setCurrentMascot(prev => prev - 1);
+      }
+    }
   };
 
   const handleSubmit = async () => {
-    if (selectedMascot !== null && teamData.teamId) {
+    if (currentMascot && teamData.teamId) {
       setIsLoading(true);
       try {
         if (!dbInstance) throw new Error("DB not initialized");
         setErrorMessage(null);
         setSuccessMessage(null);
-        console.log(`Updating mascot to ${selectedMascot}`);
+        console.log(`Updating mascot to ${currentMascot}`);
         
-        await updateTeam(teamData.teamId, { mascotId: selectedMascot });
+        await updateTeam(teamData.teamId, { mascotId: currentMascot });
         
         // Save mascot ID to localStorage
-        localStorage.setItem('mascotId', selectedMascot.toString());
+        localStorage.setItem('mascotId', currentMascot.toString());
         
-        console.log(`Mascot updated successfully to ${selectedMascot}`);
+        console.log(`Mascot updated successfully to ${currentMascot}`);
         setSuccessMessage("Maskota uspešno izabrana!");
         
         // Add a short delay before navigation to show the success message
@@ -89,24 +130,35 @@ const MascotSelection: React.FC = () => {
     }
   };
 
+  // Proveri da li je trenutna maskota dostupna, ako nije preskoči je
+  useEffect(() => {
+    if (imageError[currentMascot]) {
+      if (currentMascot < MAX_MASCOT_ID) {
+        setCurrentMascot(prev => prev + 1);
+      } else if (currentMascot > 1) {
+        setCurrentMascot(prev => prev - 1);
+      }
+    }
+  }, [currentMascot, imageError]);
+
   return (
-    <div className="min-h-screen bg-primary p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex flex-col">
       <AnimatedBackground density="low" />
       
       {/* Centered logo at top */}
-      <div className="w-full flex justify-center mt-8 mb-10">
+      <div className="w-full flex justify-center mt-2 mb-2">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Logo size="large" className="w-44 h-44" />
+          <Logo size="large" className="w-28 h-28" />
         </motion.div>
       </div>
       
-      <div className="max-w-2xl mx-auto z-20 relative flex flex-col items-center">
+      <div className="flex-grow flex flex-col items-center justify-center max-w-xl mx-auto z-20 relative">
         <motion.h1 
-          className="text-3xl md:text-4xl font-bold text-accent mb-8 text-center font-serif"
+          className="text-2xl md:text-3xl font-bold text-accent mb-1 text-center font-serif"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -114,40 +166,102 @@ const MascotSelection: React.FC = () => {
           {teamData.teamName}, izaberite maskotu:
         </motion.h1>
         
-        <motion.div 
-          className="grid grid-cols-3 gap-4 mb-8"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((mascotId) => (
-            !imageError[mascotId] && (
-              <motion.button
-                key={mascotId}
-                onClick={() => handleMascotSelect(mascotId)}
-                className={`p-4 rounded-lg transition-all ${
-                  selectedMascot === mascotId
-                    ? 'ring-4 ring-highlight bg-highlight/20'
-                    : 'hover:bg-accent/20 bg-accent/10'
-                }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+        {/* Glavni deo - pregled maskote */}
+        <div className="w-full flex flex-col items-center justify-center mt-1 mb-4">
+          {/* Avatar pregled - povećan i kreativniji */}
+          <motion.div 
+            className="relative bg-accent/20 w-80 h-80 rounded-3xl flex items-center justify-center p-4 border-[3px] border-accent/40 backdrop-blur-sm shadow-xl mb-4"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* Kontejner za maskotu sa animacijom i drag funkcionalnostima */}
+            <motion.div
+              className="w-full h-full flex items-center justify-center p-4 z-10"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              onDragEnd={handleDragEnd}
+              animate={controls}
+              initial={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              {!imageError[currentMascot] && (
                 <img
-                  src={getMascotImageUrl(mascotId)}
-                  alt={`Maskota ${mascotId}`}
-                  className="w-24 h-24 md:w-32 md:h-32 object-contain"
-                  onError={() => handleImageError(mascotId)}
+                  src={getMascotImageUrl(currentMascot)}
+                  alt={`Maskota ${currentMascot}`}
+                  className="w-full h-full object-contain scale-125 transform-gpu"
+                  style={{ 
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+                    maxWidth: '80%',
+                    maxHeight: '80%'
+                  }}
+                  onError={() => handleImageError(currentMascot)}
                 />
+              )}
+            </motion.div>
+          </motion.div>
+          
+          {/* Indikator trenutne maskote - sada postavljen niže */}
+          <div className="flex justify-center mb-4">
+            <div className="bg-accent/20 px-5 py-1.5 rounded-full backdrop-blur-sm border border-accent/30 shadow-md">
+              <span className="text-accent font-medium text-lg">{currentMascot} / {MAX_MASCOT_ID}</span>
+            </div>
+          </div>
+          
+          {/* Kontrole za navigaciju - sada ispod kvadrata i veće */}
+          <div className="flex items-center justify-center w-full mt-2 gap-8">
+            {currentMascot > 1 ? (
+              <motion.button
+                onClick={handlePrevMascot}
+                className="bg-accent/20 hover:bg-accent/40 w-16 h-16 rounded-full flex items-center justify-center transition-colors border-2 border-accent/30 shadow-md"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                </svg>
               </motion.button>
-            )
-          ))}
-        </motion.div>
+            ) : (
+              <div className="w-16"></div> // Placeholder za poravnanje kada nema prethodnog dugmeta
+            )}
+            
+            {currentMascot < MAX_MASCOT_ID ? (
+              <motion.button
+                onClick={handleNextMascot}
+                className="bg-accent/20 hover:bg-accent/40 w-16 h-16 rounded-full flex items-center justify-center transition-colors border-2 border-accent/30 shadow-md"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </motion.button>
+            ) : (
+              <div className="w-16"></div> // Placeholder za poravnanje kada nema sledećeg dugmeta
+            )}
+          </div>
+        </div>
+        
+        {/* Pomoćni tekst za swipe */}
+        <motion.p
+          className="text-accent/70 text-sm mb-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+        >
+          prevucite prstom levo ili desno za pregled svih maskota
+        </motion.p>
         
         {/* Error message */}
         {errorMessage && (
           <motion.div 
-            className="bg-red-500/20 border border-red-500/50 text-red-100 px-4 py-3 rounded-md mb-4 text-center"
+            className="bg-red-500/20 border border-red-500/50 text-red-100 px-4 py-3 rounded-md mb-4 text-center w-full"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -158,7 +272,7 @@ const MascotSelection: React.FC = () => {
         {/* Success message */}
         {successMessage && (
           <motion.div 
-            className="bg-green-500/20 border border-green-500/50 text-green-100 px-4 py-3 rounded-md mb-4 text-center"
+            className="bg-green-500/20 border border-green-500/50 text-green-100 px-4 py-3 rounded-md mb-4 text-center w-full"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -166,23 +280,22 @@ const MascotSelection: React.FC = () => {
           </motion.div>
         )}
         
-        <motion.div
+        {/* Veliko dugme za izbor postavljeno na dnu */}
+        <motion.button
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className="bg-secondary text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:bg-secondary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg w-3/4 mt-4"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.98 }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="w-full max-w-md"
+          transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <MainButton
-            onClick={handleSubmit}
-            disabled={!selectedMascot || isLoading}
-            className="w-full py-3 text-lg"
-          >
-            {isLoading ? 'Učitavanje...' : 'Potvrdi izbor'}
-          </MainButton>
-        </motion.div>
+          {isLoading ? 'učitavanje...' : 'izaberi ovu maskotu'}
+        </motion.button>
       </div>
     </div>
   );
 };
 
-export default MascotSelection; 
+export default MascotSelection;

@@ -5,6 +5,7 @@ import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
 import { Database } from 'firebase/database';
+import { getMascotImageUrl } from '../lib/utils';
 
 // Removing the TiebreakingRules component as requested
 // const TiebreakingRules: React.FC = () => { ... };
@@ -56,10 +57,6 @@ const WaitingForPlayers: React.FC = () => {
        navigate('/player/finished');
     }
   }, [gameData, navigate]);
-
-  const getMascotPath = (mascotId: number) => {
-    return `/assets/maskota${mascotId} 1.svg`;
-  };
 
   // Handle loading and error states for game data
   if (gameLoading) {
@@ -151,7 +148,7 @@ const WaitingForPlayers: React.FC = () => {
               }}
             >
               <img 
-                src={getMascotPath(teamData.mascotId)}
+                src={getMascotImageUrl(teamData.mascotId)}
                 alt={`Maskota tima`}
                 className="w-full h-full object-contain"
                 onError={() => setImageError(true)}

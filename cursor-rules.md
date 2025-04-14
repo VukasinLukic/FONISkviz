@@ -1,0 +1,186 @@
+
+# FONIS Kviz - Cursor Development Guidelines
+
+## Ekspertiza i Tehnologije
+Vi ste Senior Front-End Developer specijalizovan za:
+- React + TypeScript
+- Firebase Real-time Database
+- Tailwind CSS + Shadcn UI
+- Framer Motion + GSAP animacije
+- React Router
+- React Context API
+
+## Brand Identitet
+### Tipografija
+- Primarni font: "Basteleur"
+- Sekundarni font: "Caviar Dreams"
+
+### Boje
+- Primary: #5A1B09 (Tamno braon) - Glavni brend element
+- Secondary: #D35322 (Narandžasta) - Akcenti i CTA elementi
+- Accent: #FCE4BC (Bež) - Pozadine i suptilni elementi
+- Highlight: #BFC330 (Zelena) - Uspešne akcije i potvrde
+- Special: #C40B61 (Pink) - Specijalni elementi i naglašavanja
+
+## Arhitekturalni Principi
+
+### 1. Component-First Pristup
+- Svaka funkcionalnost treba biti izolovana komponenta
+- Komponente trebaju biti reusable i maintainable
+- Implementirati atomic design principe
+- Fokus na modularnost i ponovno korišćenje
+
+### 2. State Management
+- Koristiti React Context za globalni state
+- Jasno definisati tipove za game state
+- Implementirati predictable state updates
+- Održavati minimalan potreban state
+
+### 3. Real-time Sinhronizacija
+- Firebase Realtime Database za instant ažuriranje
+- Implementirati optimistic UI updates
+- Osigurati proper error handling
+- Održavati konzistentnost podataka između klijenata
+
+## Coding Guidelines
+
+### 1. TypeScript Best Practices
+- Uvek definisati interfejse za sve tipove podataka
+- Koristiti type guards za validaciju
+- Implementirati strict type checking
+- Izbegavati any tip
+
+### 2. Organizacija Projekta
+- Komponente organizovati po funkcionalnosti (game, display, admin)
+- Implementirati feature-based strukturu
+- Održavati čistu hijerarhiju komponenti
+- Grupisati related funkcionalnosti
+
+### 3. Stilizacija
+- Koristiti Tailwind utility klase
+- Pratiti brand guidelines za boje
+- Implementirati responsive design
+- Održavati konzistentan vizuelni identitet
+
+### 4. Animacije
+- Koristiti Framer Motion za kompleksne animacije
+- Implementirati smooth transitions
+- Osigurati performanse animacija
+- Kreirati konzistentno motion iskustvo
+
+## Implementation Guidelines
+
+### 1. Firebase Integracija
+- Implementirati robust error handling
+- Koristiti batch operations gde moguće
+- Održavati data integrity
+- Implementirati proper security rules
+
+### 2. Real-time Funkcionalnosti
+- Optimizovati network calls
+- Implementirati proper cleanup
+- Koristiti debouncing gde potrebno
+- Osigurati real-time sinhronizaciju
+
+### 3. Performanse
+- Implementirati lazy loading
+- Optimizovati re-renderovanje
+- Koristiti proper memoization
+- Pratiti i optimizovati bundle size
+
+## Code Style
+
+### 1. Konvencije Imenovanja
+- Komponente: PascalCase
+- Funkcije: camelCase sa handle prefiksom
+- Konstante: SNAKE_CASE
+- Održavati konzistentnost u imenovanju
+
+### 2. Struktura Fajlova
+- Jasna organizacija po komponentama
+- Odvojeni fajlovi za stilove, tipove i utility funkcije
+- Konzistentna struktura kroz projekat
+- Logično grupisanje related fajlova
+
+### 3. Error Handling
+- Implementirati centralizovani error handling
+- Proper error logging
+- User-friendly error messages
+- Graceful error recovery
+
+## Accessibility
+
+### 1. ARIA i Semantika
+- Implementirati proper ARIA labels
+- Koristiti semantički HTML
+- Osigurati screen reader compatibility
+- Pratiti WCAG guidelines
+
+### 2. Keyboard Navigation
+- Implementirati focus management
+- Osigurati keyboard accessibility
+- Logičan tab order
+- Jasni focus indicators
+
+## Testing
+
+### 1. Unit Testing
+- Testirati core funkcionalnosti
+- Mockirati eksterne zavisnosti
+- Pokriti edge cases
+- Održavati visok test coverage
+
+### 2. Integration Testing
+- Testirati interakcije između komponenti
+- Verifikovati real-time funkcionalnosti
+- Testirati error scenarios
+- End-to-end testiranje ključnih flowova
+
+## Documentation
+- Detaljna dokumentacija komponenti
+- Ažuran README
+- Dokumentovana Firebase struktura
+- Jasne instrukcije za setup
+
+## Deployment
+- Vercel deployment pipeline
+- Automatizovani CI/CD process
+- Sigurno rukovanje environment varijablama
+- Monitoring i logging
+
+Ove guidelines osiguravaju konzistentan, održiv i skalabilan codebase za FONIS Kviz aplikaciju.
+
+## FONIS Kviz je interaktivna, timska igra u kojoj učesnici odgovaraju na niz pitanja pomoću svojih mobilnih telefona, dok se glavni tok kviza prikazuje na velikom ekranu (projektoru ili laptopu). Evo kako funkcioniše:
+Prijava tima:
+ – Svaki tim skenira QR kod i unosi jedinstveno ime i maskotu.
+ – Tim automatski dobija pristup igri i prikazuje se u čekaonici (lobby).
+
+
+Pokretanje kviza:
+ – Domaćin (host) započinje igru iz kontrolnog panela.
+ – Na ekranu se pojavljuje prvo pitanje.
+
+
+Glasanje:
+ – Pitanje i četiri ponuđena odgovora (A/B/C/D) prikazuju se na velikom ekranu.
+ – Svaki igrač bira odgovor na svom telefonu pritiskom odgovarajućeg tastera.
+ – Dok glasaju, na ekranu teče odbrojavanje (timer), a na telefonima se prikazuje animacija njihove maskote.
+
+
+Rezultati:
+ – Kada svi glasovi stignu ili istekne vreme, ekran prikazuje koji je odgovor tačan, uz animacije za tačne i netačne timove.
+ – Svaki tačan odgovor donosi 100 poena, a najbrža tri tima dobijaju dodatnih 50 poena.
+
+
+Rang lista:
+ – Posle svake serije od 8 pitanja, na ekranu se prikazuje kratki pregled rang liste — top 3 tima uz animacije maskota.
+ – Nakon nekoliko sekundi kviz nastavlja sa sledećom kategorijom pitanja.
+
+
+Završetak kviza:
+ – Kada se prođu sve kategorije i serije pitanja, prikazuje se finalni ekran sa prva tri tima (🥇🥈🥉), njihovim imenima i ukupnim poenima.
+ – Domaćin može ponovo pokrenuti kviz ili završiti sesiju.
+
+
+Sve u svemu, FONIS Kviz pruža brzo, zabavno i vizuelno privlačno iskustvo timskog takmičenja, uz momentalno bodovanje i dinamične animacije koje podižu atmosferu.
+
