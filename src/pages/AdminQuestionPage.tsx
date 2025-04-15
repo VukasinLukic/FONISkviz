@@ -19,6 +19,7 @@ import DevTools from '../components/DevTools';
 import { onValue, ref, getDatabase, Database } from 'firebase/database';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
 import { Timer } from '../components/Timer';
+import ImagePopup from '../components/ui/ImagePopup';
 
 // Extend the Question interface to include the category field
 interface Question extends FirebaseQuestion {
@@ -41,6 +42,7 @@ const AdminQuestionPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [processing, setProcessing] = useState(false);
   const initialStatusSet = useRef(false);
+  const [isImagePopupOpen, setIsImagePopupOpen] = useState(false);
 
   // Extract gameCode from URL query parameters
   const searchParams = new URLSearchParams(location.search);
@@ -257,7 +259,8 @@ const AdminQuestionPage = () => {
                 <img 
                   src={currentQuestion.imageUrl} 
                   alt="Question image" 
-                  className="max-w-full w-auto max-h-[260px] rounded-xl shadow-lg border-4 border-accent/30 object-contain mx-auto"
+                  className="max-w-full w-auto max-h-[260px] rounded-xl shadow-lg border-4 border-accent/30 object-contain mx-auto cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setIsImagePopupOpen(true)}
                   onError={(e) => {
                     console.error("Failed to load question image:", currentQuestion.imageUrl);
                     e.currentTarget.style.display = 'none';
@@ -300,7 +303,7 @@ const AdminQuestionPage = () => {
                      <span className="inline-block w-10 h-10 rounded-full bg-accent/20 text-white mb-2">
                        {String.fromCharCode(65 + index)}
                      </span>
-                     <p>{option}</p>
+                     <p className="text-white">{option}</p>
                    </div>
                  ))}
                  {/* Add empty divs if less than 4 options to maintain grid */}
@@ -342,6 +345,16 @@ const AdminQuestionPage = () => {
         <div>Kod: {gameCode}</div>
         <div>Status: {game?.status || 'nepoznat'}</div>
       </motion.div>
+      
+      {/* Image Popup */}
+      {currentQuestion?.imageUrl && (
+        <ImagePopup
+          imageUrl={currentQuestion.imageUrl}
+          isOpen={isImagePopupOpen}
+          onClose={() => setIsImagePopupOpen(false)}
+          alt={`Question image for: ${currentQuestion.text}`}
+        />
+      )}
       
       {/* DevTools remain */}
       {localStorage.getItem('isAdmin') === 'true' && (

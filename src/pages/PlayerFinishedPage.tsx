@@ -171,30 +171,38 @@ const PlayerFinishedPage = () => {
   }
   
   return (
-    <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex flex-col items-center">
+    <div className="min-h-screen bg-primary p-2 sm:p-4 relative overflow-hidden flex flex-col items-center">
       <AnimatedBackground density="low" />
       
       {/* Logo at top center - BIGGER */}
-      <div className="w-full flex justify-center pt-6 pb-3">
+      <div className="w-full flex justify-center pt-2 sm:pt-6 pb-0 sm:pb-3">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="responsive-logo"
         >
-          <Logo size="large" className="w-44 h-44 md:w-52 md:h-52 mb-4 ml-10" />
+          <Logo size="large" className="w-28 h-28 sm:w-44 sm:h-44 md:w-52 md:h-52 mb-0 sm:mb-4" />
         </motion.div>
       </div>
       
-      {/* Team Name Display - improved layout */}
-      
+      {/* Team Name Display - For smaller screens */}
+      <motion.div
+        className="text-accent text-xl sm:text-2xl font-bold font-basteleur mb-1 sm:mb-4 z-40 bg-accent/10 px-4 sm:px-6 py-1 sm:py-2 rounded-lg"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        Tim: {teamName}
+      </motion.div>
       
       {/* Main Content Area */}
-      <div className="flex flex-col items-center justify-center w-full flex-grow max-w-xl">
+      <div className="flex flex-col items-center justify-center w-full flex-grow max-w-xl px-2 sm:px-0">
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center items-center h-64">
             <motion.div
-              className="w-16 h-16 border-4 border-accent rounded-full border-t-transparent"
+              className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-accent rounded-full border-t-transparent"
               animate={{ rotate: 360 }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
             />
@@ -218,7 +226,7 @@ const PlayerFinishedPage = () => {
         {/* Final Score Display */}
         {!loading && !displayError && teamScore && (
           <motion.div
-            className="text-center z-30 bg-secondary/30 p-8 rounded-2xl backdrop-blur-sm shadow-lg border border-accent/20 w-full max-w-md"
+            className="text-center z-30 bg-secondary/30 p-4 sm:p-8 rounded-2xl backdrop-blur-sm shadow-lg border border-accent/20 w-full max-w-md"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -228,13 +236,13 @@ const PlayerFinishedPage = () => {
               initial={{ scale: 0 }} 
               animate={{ scale: 1 }} 
               transition={{ delay: 0.2, type: "spring", stiffness: 120 }} 
-              className="relative mx-auto mb-8 w-40 h-40"
+              className="relative mx-auto mb-4 sm:mb-8 w-24 h-24 sm:w-40 sm:h-40"
             >
               {/* Trophy or Rank Badge */}
               {teamScore.rank === 1 ? (
-                <div className="absolute -top-4 -right-4 z-10">
+                <div className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 z-10">
                   <svg 
-                    className="w-20 h-20 text-yellow-400 filter drop-shadow-lg" 
+                    className="w-12 h-12 sm:w-20 sm:h-20 text-yellow-400 filter drop-shadow-lg" 
                     fill="currentColor" 
                     viewBox="0 0 20 20"
                     xmlns="http://www.w3.org/2000/svg"
@@ -243,7 +251,7 @@ const PlayerFinishedPage = () => {
                   </svg>
                 </div>
               ) : (
-                <div className={`absolute -top-2 -right-2 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold border-4 shadow-md z-10
+                <div className={`absolute -top-1 sm:-top-2 -right-1 sm:-right-2 w-10 h-10 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold border-4 shadow-md z-10
                     ${teamScore.rank === 2 ? 'bg-gray-300 border-gray-200 text-gray-800' : 
                       teamScore.rank === 3 ? 'bg-amber-600 border-amber-500 text-amber-100' : 
                       'bg-accent/80 border-accent/50 text-primary'}
@@ -256,16 +264,16 @@ const PlayerFinishedPage = () => {
               <img 
                 src={getMascotImageUrl(teamScore.mascotId)} 
                 alt={`${teamScore.name} mascot`} 
-                className="w-full h-full rounded-full object-cover bg-accent/20 border-6 border-secondary/50 shadow-lg"
+                className="w-full h-full rounded-full object-cover bg-accent/20 border-4 sm:border-6 border-secondary/50 shadow-lg"
               />
             </motion.div>
             
-            <h1 className="text-4xl font-bold mb-6 font-serif text-accent">
+            <h1 className="text-2xl sm:text-4xl font-bold mb-4 sm:mb-6 font-basteleur text-accent">
               Rezultati kviza
             </h1>
             
-            <div className="bg-secondary/20 rounded-xl p-6 mb-8 border border-accent/30 shadow-inner">
-              <p className="text-2xl text-accent/90 mb-4 font-serif">
+            <div className="bg-secondary/20 rounded-xl p-3 sm:p-6 mb-4 sm:mb-8 border border-accent/30 shadow-inner">
+              <p className="text-base sm:text-2xl text-accent/90 mb-2 sm:mb-4 font-basteleur">
                 {getRankText(teamScore.rank, teamScore.totalTeams)}
               </p>
               
@@ -274,7 +282,7 @@ const PlayerFinishedPage = () => {
                   initial={{ scale: 0 }}
                   animate={{ scale: [0, 1.2, 1] }}
                   transition={{ delay: 0.5, duration: 0.7 }}
-                  className="text-6xl mb-2"
+                  className="text-4xl sm:text-6xl mb-2"
                 >
                   🏆
                 </motion.div>
@@ -282,13 +290,13 @@ const PlayerFinishedPage = () => {
             </div>
             
             <motion.div
-              className="mt-4 bg-accent/20 p-5 rounded-xl border border-accent/30 shadow-inner"
+              className="mt-2 sm:mt-4 bg-accent/20 p-3 sm:p-5 rounded-xl border border-accent/30 shadow-inner"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <div className="text-accent text-xl mb-2">Ukupan rezultat</div>
-              <div className="text-4xl font-bold text-accent">
+              <div className="text-accent text-lg sm:text-xl mb-1 sm:mb-2">Ukupan rezultat</div>
+              <div className="text-2xl sm:text-4xl font-bold text-accent">
                 {teamScore.totalScore} poena
               </div>
             </motion.div>
@@ -297,7 +305,7 @@ const PlayerFinishedPage = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handlePlayAgain}
-              className="mt-10 bg-accent/90 hover:bg-accent text-primary font-bold py-3 px-8 rounded-full text-lg shadow-lg transition-all duration-300"
+              className="mt-6 sm:mt-10 bg-accent/90 hover:bg-accent text-primary font-bold py-2 sm:py-3 px-6 sm:px-8 rounded-full text-base sm:text-lg shadow-lg transition-all duration-300"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
@@ -309,9 +317,11 @@ const PlayerFinishedPage = () => {
       </div>
       
       {/* Debug Info */}
-      <div className="absolute bottom-4 left-4 text-xs text-accent/30 z-40">
-        Status: {game?.status || (gameLoading ? 'učitavanje...' : 'nepoznato')}
-      </div>
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute bottom-4 left-4 text-xs text-accent/30 z-40">
+          Status: {game?.status || (gameLoading ? 'učitavanje...' : 'nepoznato')}
+        </div>
+      )}
     </div>
   );
 };
