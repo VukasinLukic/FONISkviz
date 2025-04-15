@@ -136,64 +136,64 @@ const testQuestions = [
   {
     id: 'q17',
     text: 'Ko živi ovde?',
-    options: ['Carrie Bradshaw', 'Rachel Green', 'Jess Day', 'Mindy Lahiri'],
-    correctAnswerIndex: 0, // Carrie Bradshaw
+    options: ['Rachel Green', 'Carrie Bradshaw', 'Mindy Lahiri', 'Jess Day'],
+    correctAnswerIndex: 1, // Carrie Bradshaw is now at index 1
     category: 'Ko živi ovde?',
     imageUrl: '/assets/questions/Carrie_sex_i_grad.jpg'
   },
   {
     id: 'q18',
     text: 'Ko živi ovde?',
-    options: ['Charlie Harper', 'Chandler Bing', 'Barney Stinson', 'Jake Peralta'],
-    correctAnswerIndex: 0, // Charlie Harper
+    options: ['Chandler Bing', 'Jake Peralta', 'Charlie Harper', 'Barney Stinson'],
+    correctAnswerIndex: 2, // Charlie Harper is now at index 2
     category: 'Ko živi ovde?',
     imageUrl: '/assets/questions/Charlie_Dva_ipo_muskarca.jpg'
   },
   {
     id: 'q19',
     text: 'Ko živi ovde?',
-    options: ['Hannah Montana', 'Lizzie McGuire', 'Raven Baxter', 'Alex Russo'],
-    correctAnswerIndex: 0, // Hannah Montana
+    options: ['Alex Russo', 'Lizzie McGuire', 'Hannah Montana', 'Raven Baxter'],
+    correctAnswerIndex: 2, // Hannah Montana is now at index 2
     category: 'Ko živi ovde?',
     imageUrl: '/assets/questions/Hannah_Montana.jpg'
   },
   {
     id: 'q20',
     text: 'Ko živi ovde?',
-    options: ['Frodo Baggins', 'Harry Potter', 'Lucy Pevensie', 'Percy Jackson'],
-    correctAnswerIndex: 0, // Frodo Baggins
+    options: ['Harry Potter', 'Lucy Pevensie', 'Percy Jackson', 'Frodo Baggins'],
+    correctAnswerIndex: 3, // Frodo Baggins is now at index 3
     category: 'Ko živi ovde?',
     imageUrl: '/assets/questions/Hobit_Gospodar_prstenova.jpg'
   },
   {
     id: 'q21',
     text: 'Ko živi ovde?',
-    options: ['Lorelai Gilmore', 'Sarah Braverman', 'Tami Taylor', 'Rebecca Pearson'],
-    correctAnswerIndex: 0, // Lorelai Gilmore
+    options: ['Tami Taylor', 'Lorelai Gilmore', 'Rebecca Pearson', 'Sarah Braverman'],
+    correctAnswerIndex: 1, // Lorelai Gilmore is now at index 1
     category: 'Ko živi ovde?',
     imageUrl: '/assets/questions/Lorelai_Gilmore_girls.jpg'
   },
   {
     id: 'q22',
     text: 'Ko živi ovde?',
-    options: ['The Addams Family', 'Casper the Friendly Ghost', 'Beetlejuice', 'Ghostbusters'],
-    correctAnswerIndex: 0, // The Addams Family
+    options: ['Beetlejuice', 'Casper the Friendly Ghost', 'The Addams Family', 'Ghostbusters'],
+    correctAnswerIndex: 2, // The Addams Family is now at index 2
     category: 'Ko živi ovde?',
     imageUrl: '/assets/questions/Porodica_Adams.jpg'
   },
   {
     id: 'q23',
     text: 'Ko živi ovde?',
-    options: ['Serena van der Woodsen', 'Elena Gilbert', 'Aria Montgomery', 'Marissa Cooper'],
-    correctAnswerIndex: 0, // Serena van der Woodsen
+    options: ['Marissa Cooper', 'Elena Gilbert', 'Serena van der Woodsen', 'Aria Montgomery'],
+    correctAnswerIndex: 2, // Serena van der Woodsen is now at index 2
     category: 'Ko živi ovde?',
     imageUrl: '/assets/questions/Serena_Gossip_girl.jpg'
   },
   {
     id: 'q24',
     text: 'Ko živi ovde?',
-    options: ['Ted Mosby', 'Ross Geller', 'Nick Miller', 'Jim Halpert'],
-    correctAnswerIndex: 0, // Ted Mosby
+    options: ['Ross Geller', 'Ted Mosby', 'Jim Halpert', 'Nick Miller'],
+    correctAnswerIndex: 1, // Ted Mosby is now at index 1
     category: 'Ko živi ovde?',
     imageUrl: '/assets/questions/Ted_How_I_met_your_mother.jpg'
   },
@@ -201,66 +201,185 @@ const testQuestions = [
   {
     id: 'q25',
     text: 'Koji film/serija je u pitanju?',
-    options: ['Ćari', 'Buffy the Vampire Slayer', 'Sabrina the Teenage Witch', 'Witches of East End'],
-    correctAnswerIndex: 0, // Ćari (Charmed)
+    options: ['Sabrina the Teenage Witch', 'Buffy the Vampire Slayer', 'Ćari', 'Witches of East End'],
+    correctAnswerIndex: 2, // Ćari is now at index 2
     category: 'Koji film/serija je u pitanju?',
     imageUrl: '/assets/questions/Cari.jpg'
   },
   {
     id: 'q26',
     text: 'Koji film/serija je u pitanju?',
-    options: ['Harry Potter i odaja tajni', 'Fantastične zveri i gde ih naći', 'Harry Potter i kamen mudrosti', 'Harry Potter i zatočenik Azkabana'],
-    correctAnswerIndex: 0, // Harry Potter i odaja tajni
+    options: ['Harry Potter i kamen mudrosti', 'Harry Potter i odaja tajni', 'Fantastične zveri i gde ih naći', 'Harry Potter i zatočenik Azkabana'],
+    correctAnswerIndex: 1, // Harry Potter i odaja tajni is now at index 1
     category: 'Koji film/serija je u pitanju?',
     imageUrl: '/assets/questions/Harry_Potter_2.jpg'
   },
   {
     id: 'q27',
     text: 'Koji film/serija je u pitanju?',
-    options: ['Lajanje na zvezde', 'Munje!', 'Sedam i po', 'Mala noćna muzika'],
-    correctAnswerIndex: 0, // Lajanje na zvezde
+    options: ['Mala noćna muzika', 'Munje!', 'Sedam i po', 'Lajanje na zvezde'],
+    correctAnswerIndex: 3, // Lajanje na zvezde is now at index 3
     category: 'Koji film/serija je u pitanju?',
     imageUrl: '/assets/questions/Lajanje_na_zvezde.jpg'
   },
   {
     id: 'q28',
     text: 'Koji film/serija je u pitanju?',
-    options: ['Ljubav, navika, panika', 'Porodično blago', 'Lisice', 'Mješoviti brak'],
-    correctAnswerIndex: 0, // Ljubav, navika, panika
+    options: ['Porodično blago', 'Ljubav, navika, panika', 'Mješoviti brak', 'Lisice'],
+    correctAnswerIndex: 1, // Ljubav, navika, panika is now at index 1
     category: 'Koji film/serija je u pitanju?',
     imageUrl: '/assets/questions/Ljubav_navika_panika.jpg'
   },
   {
     id: 'q29',
     text: 'Koji film/serija je u pitanju?',
-    options: ['Mi nismo anđeli', 'Munje!', 'Mrtav ladan', 'Sedam i po'],
-    correctAnswerIndex: 0, // Mi nismo anđeli
+    options: ['Munje!', 'Mrtav ladan', 'Mi nismo anđeli', 'Sedam i po'],
+    correctAnswerIndex: 2, // Mi nismo anđeli is now at index 2
     category: 'Koji film/serija je u pitanju?',
     imageUrl: '/assets/questions/Mi_nismo_andjeli.jpg'
   },
   {
     id: 'q30',
     text: 'Koji film/serija je u pitanju?',
-    options: ['Otvorena vrata', 'Porodično blago', 'Stižu dolari', 'Kursadžije'],
-    correctAnswerIndex: 0, // Otvorena vrata
+    options: ['Stižu dolari', 'Kursadžije', 'Porodično blago', 'Otvorena vrata'],
+    correctAnswerIndex: 3, // Otvorena vrata is now at index 3
     category: 'Koji film/serija je u pitanju?',
     imageUrl: '/assets/questions/Otvorena_vrata.jpg'
   },
   {
     id: 'q31',
     text: 'Koji film/serija je u pitanju?',
-    options: ['Pretty Little Liars', 'Gossip Girl', 'Riverdale', 'The Vampire Diaries'],
-    correctAnswerIndex: 0, // Pretty Little Liars
+    options: ['Riverdale', 'Pretty Little Liars', 'The Vampire Diaries', 'Gossip Girl'],
+    correctAnswerIndex: 1, // Pretty Little Liars is now at index 1
     category: 'Koji film/serija je u pitanju?',
     imageUrl: '/assets/questions/Pretty_little_liars.jpg'
   },
   {
     id: 'q32',
     text: 'Koji film/serija je u pitanju?',
-    options: ['White Chicks', 'Norbit', 'Big Momma\'s House', 'The Hot Chick'],
-    correctAnswerIndex: 0, // White Chicks
+    options: ['Big Momma\'s House', 'Norbit', 'White Chicks', 'The Hot Chick'],
+    correctAnswerIndex: 2, // White Chicks is now at index 2
     category: 'Koji film/serija je u pitanju?',
     imageUrl: '/assets/questions/White_chicks.jpg'
+  },
+  {
+    id: 'q33',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Andjela Anakonda',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Andjela_Anakonda.jpg'
+  },
+  {
+    id: 'q34',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Galakticki fudbal',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Galakticki_fudbal.jpg'
+  },
+  {
+    id: 'q35',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Hajdi',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Hajdi.jpg'
+  },
+  {
+    id: 'q36',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Kod lioko',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Kod_lioko.jpg'
+  },
+  {
+    id: 'q37',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Kraljevstvo macaka',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Kraljevstvo_macaka.jpg'
+  },
+  {
+    id: 'q38',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Nodi',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Nodi.jpg'
+  },
+  {
+    id: 'q39',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Pingvini sa Madagaskara',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Pingvini_sa_madagaskara.jpg'
+  },
+  {
+    id: 'q40',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Super spijunke',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Super_spijunke.jpg'
+  },
+  {
+    id: 'q40',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Super spijunke',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Super_spijunke.jpg'
+  },
+  {
+    id: 'q41',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Danica Zivkovic',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Danica_Zivkovic.jpg'
+  },
+  {
+    id: 'q42',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Danny',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Danny.jpg'
+  },
+  {
+    id: 'q43',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Filip Lazarevic',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Filip_Lazarevic.jpg'
+  },
+  {
+    id: 'q44',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Jovana Gole',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Jovana_Gole.jpg'
+  },
+  {
+    id: 'q45',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Kosta Acimovic',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Kosta_Acimovic.jpg'
+  },
+  {
+    id: 'q46',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Matija Vujic',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Matija_Vujic.jpg'
+  },
+  {
+    id: 'q47',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Mihajlo Dunjic',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Mihajlo_Dunjic.jpg'
+  },
+  {
+    id: 'q48',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Zeljana Kosanin',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Zeljana_Kosanin.jpg'
   }
 ];
 

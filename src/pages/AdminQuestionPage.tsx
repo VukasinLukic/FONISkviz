@@ -245,7 +245,7 @@ const AdminQuestionPage = () => {
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
           {/* Display content based on question category */}
-          {(currentQuestion?.category === "Ko živi ovde?" || currentQuestion?.category === "Koji film/serija je u pitanju?") && currentQuestion?.imageUrl ? (
+          {(currentQuestion?.category === "Ko živi ovde?" || currentQuestion?.category === "Koji film/serija je u pitanju?" || currentQuestion?.category === "Pogodite crtani" || currentQuestion?.category === "Pogodite fonisovca") && currentQuestion?.imageUrl ? (
             <>
               {/* Title for image-based categories */}
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-6 font-basteleur">
@@ -272,42 +272,45 @@ const AdminQuestionPage = () => {
             </h2>
           )}
           
-          {/* Is this a true/false question? */}
-          {currentQuestion && currentQuestion.options && currentQuestion.options.length === 2 && 
-           currentQuestion.options[0] === 'Tačno' && currentQuestion.options[1] === 'Netačno' ? (
-            /* True/False format - 2 buttons stacked */
-            <div className="grid grid-cols-1 gap-8 max-w-3xl mx-auto">
-              {/* True option */}
-              <div className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[0]}`}>
-                <p className="text-3xl md:text-4xl text-white">Tačno</p>
-              </div>
-              
-              {/* False option */}
-              <div className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[3]}`}>
-                <p className="text-3xl md:text-4xl text-white">Netačno</p>
-              </div>
-            </div>
-          ) : (
-            /* Regular 4-option format */
-            <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 ${currentQuestion?.category === "Ko živi ovde?" ? "w-full max-w-4xl" : ""}`}>
-              {currentQuestion?.options?.map((option, index) => (
-                <div 
-                  key={index}
-                  className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[index]}`}
-                >
-                  <span className="inline-block w-10 h-10 rounded-full bg-accent/20 text-white mb-2">
-                    {String.fromCharCode(65 + index)}
-                  </span>
-                  <p>{option}</p>
+          {/* Conditionally render options based on category */}
+          {currentQuestion?.category !== "Pogodite crtani" && (
+             // Is this a true/false question?
+             currentQuestion && currentQuestion.options && currentQuestion.options.length === 2 && 
+             currentQuestion.options[0] === 'Tačno' && currentQuestion.options[1] === 'Netačno' ? (
+              /* True/False format - 2 buttons stacked */
+              <div className="grid grid-cols-1 gap-8 max-w-3xl mx-auto">
+                {/* True option */}
+                <div className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[0]}`}>
+                  <p className="text-3xl md:text-4xl text-white">Tačno</p>
                 </div>
-              ))}
-              {/* Add empty divs if less than 4 options to maintain grid */}
-              {currentQuestion?.options && currentQuestion.options.length < 4 && currentQuestion.options.length > 2 && 
-                Array.from({ length: 4 - (currentQuestion.options.length || 0) }).map((_, i) => (
-                  <div key={`empty-${i}`} className="hidden md:block"></div>
-                ))
-              }
-            </div>
+                
+                {/* False option */}
+                <div className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[3]}`}>
+                  <p className="text-3xl md:text-4xl text-white">Netačno</p>
+                </div>
+              </div>
+             ) : (
+               /* Regular 4-option format */
+               <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 ${currentQuestion?.category === "Ko živi ovde?" ? "w-full max-w-4xl" : ""}`}>
+                 {currentQuestion?.options?.map((option, index) => (
+                   <div 
+                     key={index}
+                     className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[index]}`}
+                   >
+                     <span className="inline-block w-10 h-10 rounded-full bg-accent/20 text-white mb-2">
+                       {String.fromCharCode(65 + index)}
+                     </span>
+                     <p>{option}</p>
+                   </div>
+                 ))}
+                 {/* Add empty divs if less than 4 options to maintain grid */}
+                 {currentQuestion?.options && currentQuestion.options.length < 4 && currentQuestion.options.length > 2 && 
+                   Array.from({ length: 4 - (currentQuestion.options.length || 0) }).map((_, i) => (
+                     <div key={`empty-${i}`} className="hidden md:block"></div>
+                   ))
+                 }
+               </div>
+             )
           )}
         </motion.div>
       </div>

@@ -12,7 +12,9 @@ const CATEGORY_NAMES = [
   "Ko zna Zna?", 
   "Istina ili Laž",
   "Ko živi ovde?",
-  "Koji film/serija je u pitanju?"
+  "Koji film/serija je u pitanju?",
+  "Pogodite crtani",
+  "Pogodite fonisovca"
 ];
 const QUESTIONS_PER_CATEGORY = 8;
 

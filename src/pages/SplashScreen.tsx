@@ -69,16 +69,43 @@ const SplashScreen = () => {
           const bNum = parseInt(b.id.substring(1));
           return aNum - bNum; // Numeric sort to ensure proper order
         })
+        .map(q => q.id);  
+        
+        // Filter, sort, and map questions for "Pogodite crtani"
+      const pogoditeCrtaniQuestions = allQuestions
+        .filter(q => q.category === "Pogodite crtani")
+        .sort((a, b) => {
+          // Assuming IDs like q33, q34...
+          const aNum = parseInt(a.id.substring(1));
+          const bNum = parseInt(b.id.substring(1));
+          return aNum - bNum;
+        })
         .map(q => q.id);
+
+          // Filter, sort, and map questions for "Pogodite fonisovca"
+      const pogoditeFonisovcaQuestions = allQuestions
+      .filter(q => q.category === "Pogodite fonisovca")
+      .sort((a, b) => {
+        // Assuming IDs like q33, q34...
+        const aNum = parseInt(a.id.substring(1));
+        const bNum = parseInt(b.id.substring(1));
+        return aNum - bNum;
+      })
+      .map(q => q.id);
+
+          
+
       
       // Verify the sorted question order
       console.log('Ko zna Zna? questions order:', koZnaZnaQuestions);
       console.log('Istina ili Laž questions order:', istinaLazQuestions);
       console.log('Ko živi ovde? questions order:', koZiviOvdeQuestions);
       console.log('Koji film/serija je u pitanju? questions order:', kojiFilmSerijaQuestions);
-      
+      console.log('Pogodite crtani questions order:', pogoditeCrtaniQuestions);
+      console.log('Pogodite Fonisovca questions order:', pogoditeFonisovcaQuestions);
+
       // Combine categories in the correct order
-      const questionOrder = [...koZnaZnaQuestions, ...istinaLazQuestions, ...koZiviOvdeQuestions, ...kojiFilmSerijaQuestions];
+      const questionOrder = [...koZnaZnaQuestions, ...istinaLazQuestions, ...koZiviOvdeQuestions, ...kojiFilmSerijaQuestions, ...pogoditeCrtaniQuestions, ...pogoditeFonisovcaQuestions];
       console.log('Final question order:', questionOrder);
 
       if (questionOrder.length === 0) {

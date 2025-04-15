@@ -23,8 +23,9 @@ console.log('Firebase initialized successfully.');
 interface Question {
   id: string;
   text: string;
-  options: string[];
-  correctAnswerIndex: number;
+  options?: string[];
+  correctAnswerIndex?: number;
+  correctAnswer?: string;
   category: string;
   imageUrl?: string;
 }
@@ -271,6 +272,118 @@ const testQuestions: Question[] = [
     correctAnswerIndex: 0, // White Chicks
     category: 'Koji film/serija je u pitanju?',
     imageUrl: '/assets/questions/White_chicks.jpg'
+  },
+  {
+    id: 'q33',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Andjela Anakonda',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Andjela_Anakonda.jpg'
+  },
+  {
+    id: 'q34',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Galakticki fudbal',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Galakticki_fudbal.jpg'
+  },
+  {
+    id: 'q35',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Hajdi',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Hajdi.jpg'
+  },
+  {
+    id: 'q36',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Kod lioko',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Kod_lioko.jpg'
+  },
+  {
+    id: 'q37',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Kraljevstvo macaka',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Kraljevstvo_macaka.jpg'
+  },
+  {
+    id: 'q38',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Nodi',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Nodi.jpg'
+  },
+  {
+    id: 'q39',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Pingvini sa Madagaskara',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Pingvini_sa_madagaskara.jpg'
+  },
+  {
+    id: 'q40',
+    text: 'Pogodite crtani',
+    correctAnswer: 'Super spijunke',
+    category: 'Pogodite crtani',
+    imageUrl: '/assets/questions/Super_spijunke.jpg'
+  },
+  {
+    id: 'q41',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Danica Zivkovic',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Danica_Zivkovic.jpg'
+  },
+  {
+    id: 'q42',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Danny',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Danny.jpg'
+  },
+  {
+    id: 'q43',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Filip Lazarevic',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Filip_Lazarevic.jpg'
+  },
+  {
+    id: 'q44',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Jovana Gole',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Jovana_Gole.jpg'
+  },
+  {
+    id: 'q45',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Kosta Acimovic',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Kosta_Acimovic.jpg'
+  },
+  {
+    id: 'q46',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Matija Vujic',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Matija_Vujic.jpg'
+  },
+  {
+    id: 'q47',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Mihajlo Dunjic',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Mihajlo_Dunjic.jpg'
+  },
+  {
+    id: 'q48',
+    text: 'Pogodite fonisovca',
+    correctAnswer: 'Zeljana Kosanin',
+    category: 'Pogodite fonisovca',
+    imageUrl: '/assets/questions/Zeljana_Kosanin.jpg'
   }
 ];
 

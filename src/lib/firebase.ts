@@ -572,20 +572,29 @@ export const processQuestionResults = async (gameCode: string, questionId: strin
     let fastestCorrectTeamId: string | null = null;
     let minTimestamp = Infinity;
 
-    // --- First Pass: Identify fastest correct answer --- 
-    for (const team of activeTeams) {
-      const teamId = team.id;
-      const submittedAnswer = submittedAnswersData[teamId] as Answer | undefined;
-      
-      if (submittedAnswer && typeof submittedAnswer.answerIndex === 'number' && submittedAnswer.answerIndex === question.correctAnswerIndex && submittedAnswer.submittedAt) {
-          if (submittedAnswer.submittedAt < minTimestamp) {
-              minTimestamp = submittedAnswer.submittedAt;
-              fastestCorrectTeamId = teamId;
+    // --- First Pass: Identify fastest correct answer (Only for non-text input categories) ---
+    fastestCorrectTeamId = null; // Reset before pass
+    minTimestamp = Infinity;
+    if (question.category !== "Pogodite crtani" && question.category !== "Pogodite fonisovca") {
+        for (const team of activeTeams) {
+          const teamId = team.id;
+          const submittedAnswer = submittedAnswersData[teamId] as Answer | undefined;
+          
+          // Check based on index for non-text categories
+          if (submittedAnswer && typeof submittedAnswer.answerIndex === 'number' && 
+              submittedAnswer.answerIndex !== -1 && // Ensure an answer was selected
+              submittedAnswer.answerIndex === question.correctAnswerIndex && 
+              submittedAnswer.submittedAt) {
+              if (submittedAnswer.submittedAt < minTimestamp) {
+                  minTimestamp = submittedAnswer.submittedAt;
+                  fastestCorrectTeamId = teamId;
+              }
           }
-      }
+        }
+        console.log(`[Firebase] Fastest correct answer (non-text) from team: ${fastestCorrectTeamId || 'None'}`);
+    } else {
+        console.log(`[Firebase] Skipping fastest answer check for text-based category: ${question.category}`);
     }
-
-    console.log(`[Firebase] Fastest correct answer from team: ${fastestCorrectTeamId || 'None'}`);
 
     // --- Second Pass: Calculate points and prepare updates --- 
     for (const team of activeTeams) {
@@ -597,23 +606,45 @@ export const processQuestionResults = async (gameCode: string, questionId: strin
       let selectedAnswerText = "Nije odgovoreno";
       let answerIndex = -1;
 
-      if (submittedAnswer && typeof submittedAnswer.answerIndex === 'number' && submittedAnswer.answerIndex !== -1) {
-        selectedAnswerText = submittedAnswer.selectedAnswer;
-        answerIndex = submittedAnswer.answerIndex;
-        isCorrect = submittedAnswer.answerIndex === question.correctAnswerIndex;
-        
-        if (isCorrect) {
-          pointsAwarded = 100; // Base points for correct answer
-          if (teamId === fastestCorrectTeamId) {
-            pointsAwarded += 50; // Bonus for fastest
-            console.log(`[Firebase] Awarding +50 bonus to team ${teamId} for speed.`);
+      if (submittedAnswer) {
+        // Check if it's one of the special text input categories
+        if (question.category === "Pogodite crtani" || question.category === "Pogodite fonisovca") {
+          selectedAnswerText = submittedAnswer.selectedAnswer || ""; // Store the typed text
+          answerIndex = -1; // Index is not applicable
+          
+          // Normalize both the submitted answer and the correct answer
+          const normalizedSubmitted = selectedAnswerText.trim().toLowerCase().replace(/_/g, ' ');
+          const normalizedCorrect = (question.correctAnswer || "").trim().toLowerCase().replace(/_/g, ' ');
+          
+          isCorrect = normalizedSubmitted === normalizedCorrect && normalizedSubmitted !== "";
+          pointsAwarded = isCorrect ? 100 : 0; // No speed bonus for this type
+          
+        } else if (typeof submittedAnswer.answerIndex === 'number' && submittedAnswer.answerIndex !== -1) {
+          // Original logic for index-based answers
+          selectedAnswerText = submittedAnswer.selectedAnswer;
+          answerIndex = submittedAnswer.answerIndex;
+          isCorrect = submittedAnswer.answerIndex === question.correctAnswerIndex;
+          
+          if (isCorrect) {
+            pointsAwarded = 100; // Base points
+            // Award speed bonus only if fastestCorrectTeamId was determined (i.e., not a text-based category)
+            if (teamId === fastestCorrectTeamId) { 
+              pointsAwarded += 50; // Bonus for fastest
+              console.log(`[Firebase] Awarding +50 bonus to team ${teamId} for speed.`);
+            }
+          } else {
+            pointsAwarded = 0; // Incorrect answer
           }
         } else {
-          pointsAwarded = 0; // Incorrect answer
+             // Submitted answer exists but has no valid index (shouldn't happen often)
+             pointsAwarded = 0;
+             selectedAnswerText = submittedAnswer.selectedAnswer || "Nevalidan Odgovor";
         }
       } else {
-        // Player did not answer
-        pointsAwarded = 0;
+          // Player did not submit any answer
+          pointsAwarded = 0;
+          selectedAnswerText = "Nije odgovoreno";
+          answerIndex = -1;
       }
 
       // Prepare updates for the /answers node

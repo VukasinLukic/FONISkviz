@@ -266,10 +266,20 @@ const AdminAnswerRevealPage = () => {
 
   const displayError = error || gameError?.message;
 
-  // Derive correct answer text here for clarity
-  const correctAnswerText = currentQuestion?.options && typeof currentQuestion?.correctAnswerIndex === 'number' && currentQuestion.correctAnswerIndex >= 0
-    ? currentQuestion.options[currentQuestion.correctAnswerIndex]
-    : "N/A"; // Fallback if data is missing
+  // Derive correct answer text more explicitly
+  let derivedCorrectAnswerText = 'N/A'; // Default
+  if (currentQuestion) {
+      if (currentQuestion.category === 'Pogodite crtani') {
+          // For this category, directly use the correctAnswer field
+          derivedCorrectAnswerText = currentQuestion.correctAnswer || 'Greška: Tačan odgovor nedostaje u podacima pitanja';
+      } else if (currentQuestion.options && typeof currentQuestion.correctAnswerIndex === 'number' && currentQuestion.correctAnswerIndex >= 0) {
+          // For other categories, use the index
+          derivedCorrectAnswerText = currentQuestion.options[currentQuestion.correctAnswerIndex];
+      } else if (currentQuestion.correctAnswer) {
+          // Fallback for potentially malformed non-text questions that might have correctAnswer
+           derivedCorrectAnswerText = currentQuestion.correctAnswer;
+      }
+  }
 
   if (displayError) {
     return (
@@ -360,7 +370,7 @@ const AdminAnswerRevealPage = () => {
               <div className="border-t-2 border-accent/30 pt-5 mt-5">
                 <p className="text-lg md:text-xl text-accent/80 mb-2">Tačan odgovor je:</p>
                 <p className="text-3xl md:text-4xl font-bold text-green-400 tracking-wide">
-                  {correctAnswerText} 
+                  {derivedCorrectAnswerText} 
                 </p>
               </div>
             </div>

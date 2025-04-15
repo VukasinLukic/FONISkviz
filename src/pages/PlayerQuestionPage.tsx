@@ -11,6 +11,8 @@ import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
 import { Timer } from '../components/Timer';
+import { Input } from "../components/ui/Input";
+import { Button } from "../components/ui/button";
 
 // Define colors for answer options based on Tailwind config
 const answerColors = [
@@ -34,6 +36,8 @@ const PlayerQuestionPage = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false); // Added state for time up
+  const [typedAnswer, setTypedAnswer] = useState("");
+  const [answerSubmitted, setAnswerSubmitted] = useState(false);
 
   // Get team data from localStorage
   const teamId = localStorage.getItem('teamId');
@@ -156,7 +160,181 @@ const PlayerQuestionPage = () => {
     console.log("PlayerQuestionPage: Time's up!");
     setIsTimeUp(true);
   };
-  
+
+  // Handle typed answer submission
+  const handleSubmitTypedAnswer = async () => {
+    console.log('[handleSubmitTypedAnswer] Triggered. Current typedAnswer:', typedAnswer);
+    console.log('[handleSubmitTypedAnswer] Checking conditions:', { 
+        gameCodeExists: !!gameCode, 
+        teamIdExists: !!teamId, 
+        currentQuestionExists: !!currentQuestion, 
+        submitting, 
+        answerSubmitted 
+    });
+    if (!gameCode || !teamId || !currentQuestion || submitting || answerSubmitted) { 
+      console.warn('[handleSubmitTypedAnswer] Submission prevented by condition check.');
+      return;
+    }
+
+    const normalizedAnswer = typedAnswer.trim().toLowerCase();
+    console.log('[handleSubmitTypedAnswer] Normalized answer to submit:', normalizedAnswer); // Log normalized value
+    if (!normalizedAnswer) {
+      setError("Molimo unesite odgovor.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError(null);
+      console.log('PlayerQuestionPage: Submitting typed answer:', normalizedAnswer);
+
+      // Submit typed answer to Firebase
+      // We use selectedAnswer to store the text, answerIndex is irrelevant (-1)
+      await submitAnswer(gameCode, currentQuestion.id, teamId, {
+        selectedAnswer: normalizedAnswer,
+        answerIndex: -1 
+      });
+      
+      setAnswerSubmitted(true); // Mark as submitted
+      console.log('PlayerQuestionPage: Typed answer submitted successfully, navigating to waiting-answer');
+      navigate('/player/waiting-answer');
+    } catch (err) {
+      console.error("Error submitting typed answer:", err);
+      setError("Greška pri slanju odgovora");
+      setSubmitting(false);
+      setAnswerSubmitted(false);
+    } finally {
+        // setSubmitting(false); // Keep submitting true to prevent resubmission
+    }
+  };
+
+  // Reset typed answer and submission state when question changes
+  useEffect(() => {
+    if (currentQuestion) {
+      console.log('[useEffect - currentQuestion change] Resetting typedAnswer and submission state for question:', currentQuestion.id);
+      setTypedAnswer("");
+      setAnswerSubmitted(false);
+      setSubmitting(false); // Also reset submitting flag
+    }
+  }, [currentQuestion]);
+
+  // Helper function to render the correct answer input/buttons
+  const renderAnswerArea = () => {
+    if (!currentQuestion) {
+        return <div className="flex-grow flex items-center justify-center"><p className="text-accent/70 italic">Učitavanje pitanja...</p></div>;
+    }
+
+    const isTextCategory = currentQuestion.category === "Pogodite crtani" || currentQuestion.category === "Pogodite fonisovca";
+
+    if (isTextCategory) {
+      // Render Input field for text categories
+      return (
+        <motion.div 
+            className="flex-grow flex flex-col items-center justify-center gap-4 p-6 max-w-md mx-auto w-full z-10"
+            key={`input-${currentQuestion.id}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Input 
+              type="text"
+              placeholder={`Unesite ime ${currentQuestion.category === "Pogodite crtani" ? 'crtanog filma' : 'fonisovca'}`}
+              value={typedAnswer}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  console.log('[Input onChange] New value:', e.target.value);
+                  setTypedAnswer(e.target.value);
+              }}
+              disabled={submitting || answerSubmitted || isTimeUp}
+              className="bg-accent/10 border-accent/30 text-white text-center text-xl placeholder:text-accent/50 rounded-lg p-4 w-full disabled:opacity-70"
+            />
+            <Button
+              onClick={() => { 
+                  console.log('[Button onClick] Clicked! Calling handleSubmitTypedAnswer...'); 
+                  handleSubmitTypedAnswer(); 
+              }}
+              disabled={submitting || answerSubmitted || isTimeUp || !typedAnswer.trim()}
+              className="bg-secondary hover:bg-secondary/90 text-white font-bold py-3 px-10 text-lg rounded-full transition-all duration-300 shadow-lg w-full disabled:opacity-50"
+            >
+              {submitting || answerSubmitted ? 'Odgovor poslat' : 'Pošalji odgovor'}
+            </Button>
+            {isTimeUp && !answerSubmitted && (
+                <p className='text-red-500 mt-2'>Vreme je isteklo!</p>
+            )}
+          </motion.div>
+      );
+    } else if (currentQuestion.options) {
+      // Render Buttons for categories with options
+      if (currentQuestion.options.length === 2) {
+          // True/False format
+          return (
+               <div className="flex-grow flex flex-col gap-4 p-6 max-w-3xl mx-auto w-full" key={`tf-${currentQuestion.id}`}>
+                {currentQuestion.options.map((option, index) => {
+                    const color = trueFalseColors[index % trueFalseColors.length];
+                    const isSelected = selectedAnswer === index;
+                    const isDisabled = submitting || selectedAnswer !== null || isTimeUp;
+                    return (
+                      <motion.button
+                        key={index}
+                        onClick={() => handleSubmitAnswer(index)}
+                        disabled={isDisabled}
+                        className={`flex items-center justify-center h-1/2 rounded-lg text-white font-bold text-4xl md:text-5xl
+                                  border-4 ${color.border} ${color.bg}
+                                  transition-all duration-300 ease-in-out
+                                  ${isDisabled ? 'opacity-50 cursor-not-allowed' : `${color.hover} hover:border-white/50`}
+                                  ${isSelected ? 'ring-4 ring-white ring-offset-4 ring-offset-primary' : ''}`
+                        }
+                        whileTap={isDisabled ? {} : { scale: 0.95 }}
+                        initial={{ opacity: 0, x: index === 0 ? -30 : 30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.15 }}
+                      >
+                        {option} 
+                      </motion.button>
+                    );
+                })}
+              </div>
+          );
+      } else {
+          // Regular 4-option format
+          return (
+              <div className="flex-grow grid grid-cols-2 grid-rows-2 gap-2 p-2" key={`abcd-${currentQuestion.id}`}>
+                {currentQuestion.options.map((_, index) => {
+                    const color = answerColors[index % answerColors.length];
+                    const isSelected = selectedAnswer === index;
+                    const isDisabled = submitting || selectedAnswer !== null || isTimeUp; 
+                    return (
+                      <motion.button
+                        key={index}
+                        onClick={() => handleSubmitAnswer(index)}
+                        disabled={isDisabled}
+                        className={`flex items-center justify-center w-full h-full rounded-lg text-white font-bold text-6xl md:text-8xl 
+                                   border-4 ${color.border} ${color.bg} 
+                                   transition-all duration-300 ease-in-out 
+                                   ${isDisabled ? 'opacity-50 cursor-not-allowed' : `${color.hover} hover:border-white/50`} 
+                                   ${isSelected ? 'ring-4 ring-white ring-offset-4 ring-offset-primary' : ''}`
+                        }
+                        whileTap={isDisabled ? {} : { scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                      >
+                        {String.fromCharCode(65 + index)} 
+                      </motion.button>
+                    );
+                })}
+              </div>
+          );
+      }
+    } else {
+       // Fallback if options are missing unexpectedly for a non-text category
+       return (
+           <div className="flex-grow flex items-center justify-center">
+                <p className="text-accent/70 italic">Greška: Nedostaju opcije za ovo pitanje.</p>
+            </div>
+       );
+    }
+  };
+
   if (gameLoading || !currentQuestion) { // Show loading until question is loaded
     return (
       <div className="min-h-screen bg-primary flex items-center justify-center">
@@ -216,8 +394,8 @@ const PlayerQuestionPage = () => {
         {currentQuestion?.text}
       </motion.div>
       
-      {/* Display image for "Ko živi ovde?" category questions */}
-      {currentQuestion?.category === "Ko živi ovde?" && currentQuestion?.imageUrl && (
+      {/* Display image for categories that use it */}
+      {(currentQuestion?.category === "Ko živi ovde?" || currentQuestion?.category === "Koji film/serija je u pitanju?" || currentQuestion?.category === "Pogodite crtani" || currentQuestion?.category === "Pogodite fonisovca") && currentQuestion?.imageUrl && (
         <motion.div 
           className="flex justify-center z-10 mb-4 px-4"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -236,68 +414,13 @@ const PlayerQuestionPage = () => {
         </motion.div>
       )}
       
-      {/* Buttons Grid - taking most of screen */}
-      {currentQuestion?.options.length === 2 ? (
-        // True/False format - 2 buttons stacked
-        <div className="flex-grow flex flex-col gap-4 p-6 max-w-3xl mx-auto w-full">
-          {currentQuestion.options.map((option, index) => {
-            const color = trueFalseColors[index % trueFalseColors.length];
-            const isSelected = selectedAnswer === index;
-            const isDisabled = submitting || selectedAnswer !== null || isTimeUp;
+      {/* --- Debugging Category --- */}
+      {/* {currentQuestion && ( ... Debug div removed ... )} */}
+      {/* --- End Debugging --- */}
 
-            return (
-              <motion.button
-                key={index}
-                onClick={() => handleSubmitAnswer(index)}
-                disabled={isDisabled}
-                className={`flex items-center justify-center h-1/2 rounded-lg text-white font-bold text-4xl md:text-5xl
-                          border-4 ${color.border} ${color.bg}
-                          transition-all duration-300 ease-in-out
-                          ${isDisabled ? 'opacity-50 cursor-not-allowed' : `${color.hover} hover:border-white/50`}
-                          ${isSelected ? 'ring-4 ring-white ring-offset-4 ring-offset-primary' : ''}`
-                }
-                whileTap={isDisabled ? {} : { scale: 0.95 }}
-                initial={{ opacity: 0, x: index === 0 ? -30 : 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.15 }}
-              >
-                {option} {/* Display actual option text instead of just the letter */}
-              </motion.button>
-            );
-          })}
-        </div>
-      ) : (
-        // Regular 4-option format - 2x2 grid
-        <div className="flex-grow grid grid-cols-2 grid-rows-2 gap-2 p-2">
-          {currentQuestion?.options.map((_, index) => {
-            const color = answerColors[index % answerColors.length];
-            const isSelected = selectedAnswer === index;
-            // Updated disabled logic to include isTimeUp
-            const isDisabled = submitting || selectedAnswer !== null || isTimeUp; 
-
-            return (
-              <motion.button
-                key={index}
-                onClick={() => handleSubmitAnswer(index)}
-                disabled={isDisabled}
-                className={`flex items-center justify-center w-full h-full rounded-lg text-white font-bold text-6xl md:text-8xl 
-                           border-4 ${color.border} ${color.bg} 
-                           transition-all duration-300 ease-in-out 
-                           ${isDisabled ? 'opacity-50 cursor-not-allowed' : `${color.hover} hover:border-white/50`} 
-                           ${isSelected ? 'ring-4 ring-white ring-offset-4 ring-offset-primary' : ''}`
-                }
-                whileTap={isDisabled ? {} : { scale: 0.95 }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                {String.fromCharCode(65 + index)} 
-              </motion.button>
-            );
-          })}
-        </div>
-      )}
-
+      {/* Render answer area based on question type */}
+      {renderAnswerArea()}
+      
       {/* Time Up Message */} 
       {isTimeUp && selectedAnswer === null && (
         <motion.div
