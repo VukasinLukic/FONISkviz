@@ -19,18 +19,8 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 console.log('Firebase initialized successfully.');
 
-// Struktura pitanja
-interface Question {
-  id: string;
-  text: string;
-  options: string[];
-  correctAnswerIndex: number;
-  category: string;
-  imageUrl?: string;
-}
-
 // Test pitanja za kviz
-const testQuestions: Question[] = [
+const testQuestions = [
   {
     id: 'q1',
     text: 'Sa kojom od sledećih boginja Zevs nije spavao:',

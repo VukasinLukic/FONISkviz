@@ -16,7 +16,7 @@
     "eject": "react-scripts eject",
     "build:scripts": "tsc -p tsconfig.scripts.json",
     "seed": "node --require ts-node/register src/scripts/seed.ts",
-    "seed-questions": "npm run build:scripts && ren dist\\scripts\\seed-questions.js seed-questions.cjs && node dist/scripts/seed-questions.cjs",
+    "seed-questions": "node src/scripts/seed-questions.cjs",
     "seed-real": "node --experimental-modules src/scripts/use-real-questions.js",
     "seed-fix": "node src/scripts/direct-question-fix.cjs",
     "reset": "node src/scripts/direct-reset.js",

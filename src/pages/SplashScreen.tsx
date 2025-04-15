@@ -29,10 +29,46 @@ const SplashScreen = () => {
       if (!allQuestions || allQuestions.length === 0) {
         throw new Error("No questions found in the database. Seed questions first.");
       }
-      // Shuffle all question IDs
-      const allQuestionIds = allQuestions.map(q => q.id).sort(() => Math.random() - 0.5);
-      // Use ALL shuffled questions for the game
-      const questionOrder = allQuestionIds;
+      
+      // Organize questions by category - Ko zna Zna? (q1-q8) first, then Istina ili Laž (q9-q16), then Ko živi ovde? (q17-q24)
+      const koZnaZnaQuestions = allQuestions
+        .filter(q => q.category === "Ko zna Zna?")
+        .sort((a, b) => {
+          // Extract the numeric part from the ID (e.g., 'q1' -> 1)
+          const aNum = parseInt(a.id.substring(1));
+          const bNum = parseInt(b.id.substring(1));
+          return aNum - bNum; // Numeric sort to ensure proper order
+        })
+        .map(q => q.id);
+      
+      const istinaLazQuestions = allQuestions
+        .filter(q => q.category === "Istina ili Laž")
+        .sort((a, b) => {
+          // Extract the numeric part from the ID (e.g., 'q9' -> 9)
+          const aNum = parseInt(a.id.substring(1));
+          const bNum = parseInt(b.id.substring(1));
+          return aNum - bNum; // Numeric sort to ensure proper order
+        })
+        .map(q => q.id);
+      
+      const koZiviOvdeQuestions = allQuestions
+        .filter(q => q.category === "Ko živi ovde?")
+        .sort((a, b) => {
+          // Extract the numeric part from the ID (e.g., 'q17' -> 17)
+          const aNum = parseInt(a.id.substring(1));
+          const bNum = parseInt(b.id.substring(1));
+          return aNum - bNum; // Numeric sort to ensure proper order
+        })
+        .map(q => q.id);
+      
+      // Verify the sorted question order
+      console.log('Ko zna Zna? questions order:', koZnaZnaQuestions);
+      console.log('Istina ili Laž questions order:', istinaLazQuestions);
+      console.log('Ko živi ovde? questions order:', koZiviOvdeQuestions);
+      
+      // Combine categories in the correct order
+      const questionOrder = [...koZnaZnaQuestions, ...istinaLazQuestions, ...koZiviOvdeQuestions];
+      console.log('Final question order:', questionOrder);
 
       if (questionOrder.length === 0) {
         throw new Error("Cannot start game with 0 questions.");

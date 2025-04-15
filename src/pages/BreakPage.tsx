@@ -7,16 +7,11 @@ import AnimatedBackground from '../components/AnimatedBackground';
 import { Game, GameStatus, updateGameData } from '../lib/firebase'; // Adjust path if necessary
 import { Button } from '../components/ui/button';
 
-// Define category names - adjust as needed
+// Update category names - now using three categories
 const CATEGORY_NAMES = [
-  "Opšte znanje", 
-  "Filmovi i Serije", 
-  "Muzika", 
-  "Sport", 
-  "Nauka i Tehnologija",
-  "Istorija",
-  "Geografija",
-  "Završna runda!"
+  "Ko zna Zna?", 
+  "Istina ili Laž",
+  "Ko živi ovde?"
 ];
 const QUESTIONS_PER_CATEGORY = 8;
 
@@ -37,8 +32,9 @@ const BreakPage: React.FC = () => {
     console.log(`[BreakPage] Category useEffect triggered. gameData exists: ${!!gameData}`);
     if (gameData && typeof gameData.currentQuestionIndex === 'number') {
       const nextQuestionIndex = gameData.currentQuestionIndex + 1;
+      // Calculate category index based on the question index (8 questions per category)
       const categoryIndex = Math.floor(nextQuestionIndex / QUESTIONS_PER_CATEGORY);
-      const calculatedName = CATEGORY_NAMES[categoryIndex] || `Runda ${categoryIndex + 1}`;
+      const calculatedName = CATEGORY_NAMES[categoryIndex] || "Završna runda";
       console.log(`[BreakPage] Calculated next category index: ${categoryIndex}, name: ${calculatedName}`);
       setNextCategoryName(calculatedName);
     } else {

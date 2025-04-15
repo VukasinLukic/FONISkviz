@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ref, onValue, off, Database } from 'firebase/database';
-import { getDb, Game } from '../lib/firebase'; // Corrected import path
+import { getDb, Game } from '../lib/firebase'; // Remove .ts extension
 
 export function useGameRealtimeState(gameCode: string | null): { gameData: Game | null; error: Error | null; loading: boolean } {
   const [gameData, setGameData] = useState<Game | null>(null);

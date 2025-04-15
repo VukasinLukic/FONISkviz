@@ -20,6 +20,12 @@ const answerColors = [
   { bg: 'bg-special/80', hover: 'hover:bg-special/90', border: 'border-special' } // D - special (purple) instead of primary
 ];
 
+// Define colors for true/false answers
+const trueFalseColors = [
+  { bg: 'bg-highlight/80', hover: 'hover:bg-highlight/90', border: 'border-highlight' }, // True/Tačno - green
+  { bg: 'bg-special/80', hover: 'hover:bg-special/90', border: 'border-special' }, // False/Netačno - red
+];
+
 const PlayerQuestionPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -200,35 +206,97 @@ const PlayerQuestionPage = () => {
          />
       </motion.div>
       
-      {/* 4 Big Buttons Grid - taking most of screen */}
-      <div className="flex-grow grid grid-cols-2 grid-rows-2 gap-2 p-2">
-        {currentQuestion?.options.map((_, index) => {
-          const color = answerColors[index % answerColors.length];
-          const isSelected = selectedAnswer === index;
-          // Updated disabled logic to include isTimeUp
-          const isDisabled = submitting || selectedAnswer !== null || isTimeUp; 
+      {/* Display question text */}
+      <motion.div
+        className="text-center text-white text-2xl md:text-3xl font-medium px-6 mb-4 z-10"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {currentQuestion?.text}
+      </motion.div>
+      
+      {/* Display image for "Ko živi ovde?" category questions */}
+      {currentQuestion?.category === "Ko živi ovde?" && currentQuestion?.imageUrl && (
+        <motion.div 
+          className="flex justify-center z-10 mb-4 px-4"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <img 
+            src={currentQuestion.imageUrl} 
+            alt="Question image" 
+            className="w-auto max-h-[180px] rounded-xl shadow-lg border-4 border-accent/30 object-contain mx-auto"
+            onError={(e) => {
+              console.error("Failed to load question image:", currentQuestion.imageUrl);
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        </motion.div>
+      )}
+      
+      {/* Buttons Grid - taking most of screen */}
+      {currentQuestion?.options.length === 2 ? (
+        // True/False format - 2 buttons stacked
+        <div className="flex-grow flex flex-col gap-4 p-6 max-w-3xl mx-auto w-full">
+          {currentQuestion.options.map((option, index) => {
+            const color = trueFalseColors[index % trueFalseColors.length];
+            const isSelected = selectedAnswer === index;
+            const isDisabled = submitting || selectedAnswer !== null || isTimeUp;
 
-          return (
-            <motion.button
-              key={index}
-              onClick={() => handleSubmitAnswer(index)}
-              disabled={isDisabled}
-              className={`flex items-center justify-center w-full h-full rounded-lg text-white font-bold text-6xl md:text-8xl 
-                         border-4 ${color.border} ${color.bg} 
-                         transition-all duration-300 ease-in-out 
-                         ${isDisabled ? 'opacity-50 cursor-not-allowed' : `${color.hover} hover:border-white/50`} 
-                         ${isSelected ? 'ring-4 ring-white ring-offset-4 ring-offset-primary' : ''}`
-              }
-              whileTap={isDisabled ? {} : { scale: 0.95 }}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
-              {String.fromCharCode(65 + index)} 
-            </motion.button>
-          );
-        })}
-      </div>
+            return (
+              <motion.button
+                key={index}
+                onClick={() => handleSubmitAnswer(index)}
+                disabled={isDisabled}
+                className={`flex items-center justify-center h-1/2 rounded-lg text-white font-bold text-4xl md:text-5xl
+                          border-4 ${color.border} ${color.bg}
+                          transition-all duration-300 ease-in-out
+                          ${isDisabled ? 'opacity-50 cursor-not-allowed' : `${color.hover} hover:border-white/50`}
+                          ${isSelected ? 'ring-4 ring-white ring-offset-4 ring-offset-primary' : ''}`
+                }
+                whileTap={isDisabled ? {} : { scale: 0.95 }}
+                initial={{ opacity: 0, x: index === 0 ? -30 : 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.15 }}
+              >
+                {option} {/* Display actual option text instead of just the letter */}
+              </motion.button>
+            );
+          })}
+        </div>
+      ) : (
+        // Regular 4-option format - 2x2 grid
+        <div className="flex-grow grid grid-cols-2 grid-rows-2 gap-2 p-2">
+          {currentQuestion?.options.map((_, index) => {
+            const color = answerColors[index % answerColors.length];
+            const isSelected = selectedAnswer === index;
+            // Updated disabled logic to include isTimeUp
+            const isDisabled = submitting || selectedAnswer !== null || isTimeUp; 
+
+            return (
+              <motion.button
+                key={index}
+                onClick={() => handleSubmitAnswer(index)}
+                disabled={isDisabled}
+                className={`flex items-center justify-center w-full h-full rounded-lg text-white font-bold text-6xl md:text-8xl 
+                           border-4 ${color.border} ${color.bg} 
+                           transition-all duration-300 ease-in-out 
+                           ${isDisabled ? 'opacity-50 cursor-not-allowed' : `${color.hover} hover:border-white/50`} 
+                           ${isSelected ? 'ring-4 ring-white ring-offset-4 ring-offset-primary' : ''}`
+                }
+                whileTap={isDisabled ? {} : { scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                {String.fromCharCode(65 + index)} 
+              </motion.button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Time Up Message */} 
       {isTimeUp && selectedAnswer === null && (

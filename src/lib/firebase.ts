@@ -16,21 +16,21 @@ import {
 import { initializeApp, FirebaseApp } from 'firebase/app'; // Import initializeApp and FirebaseApp
 import { getAnalytics, isSupported } from 'firebase/analytics'; // Import analytics
 
-// Firebase Configuration from Environment Variables
-const firebaseConfig = {
-  apiKey: "AIzaSyC5_ywn6qbreNzdg2b_xMDWnkng5zK_IYM",
-  authDomain: "fonis-kviz.firebaseapp.com",
-  databaseURL: "https://fonis-kviz-default-rtdb.firebaseio.com",
-  projectId: "fonis-kviz",
-  storageBucket: "fonis-kviz.firebasestorage.app",
-  messagingSenderId: "586466014031",
-  appId: "1:586466014031:web:6c7e5f922e3c3fdd284b3a",
-  measurementId: "G-KWC12DCZ4E"
-};
-
 // Initialize Firebase App
 let app: FirebaseApp;
 try {
+  // Firebase Configuration - using process.env for node scripts, import.meta.env for browser
+  const firebaseConfig = {
+    apiKey: typeof process !== 'undefined' ? process.env.VITE_FIREBASE_API_KEY : import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: typeof process !== 'undefined' ? process.env.VITE_FIREBASE_AUTH_DOMAIN : import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    databaseURL: typeof process !== 'undefined' ? process.env.VITE_FIREBASE_DATABASE_URL : import.meta.env.VITE_FIREBASE_DATABASE_URL,
+    projectId: typeof process !== 'undefined' ? process.env.VITE_FIREBASE_PROJECT_ID : import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: typeof process !== 'undefined' ? process.env.VITE_FIREBASE_STORAGE_BUCKET : import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: typeof process !== 'undefined' ? process.env.VITE_FIREBASE_MESSAGING_SENDER_ID : import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: typeof process !== 'undefined' ? process.env.VITE_FIREBASE_APP_ID : import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: typeof process !== 'undefined' ? process.env.VITE_FIREBASE_MEASUREMENT_ID : import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  };
+  
   app = initializeApp(firebaseConfig);
   console.log("Firebase initialized successfully");
 } catch (error) {
@@ -91,6 +91,8 @@ export interface Question {
   correctAnswer: string;
   options: string[];
   correctAnswerIndex: number;
+  category?: string;
+  imageUrl?: string;
 }
 
 export interface Answer {

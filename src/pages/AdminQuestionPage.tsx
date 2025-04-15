@@ -8,7 +8,7 @@ import {
   setGameStatus,
   processQuestionResults,
   updateGameData,
-  Question,
+  Question as FirebaseQuestion,
   Game,
   getDb
 } from '../lib/firebase';
@@ -20,12 +20,18 @@ import { onValue, ref, getDatabase, Database } from 'firebase/database';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
 import { Timer } from '../components/Timer';
 
+// Extend the Question interface to include the category field
+interface Question extends FirebaseQuestion {
+  category?: string;
+  imageUrl?: string;
+}
+
 // Define colors for answer options based on Tailwind config
 const answerColors = [
   'bg-highlight/80 border-highlight', // A - highlight (yellowish)
   'bg-secondary/80 border-secondary',  // B - secondary (orange)
   'bg-accent/80 border-accent',       // C - accent (light beige)
-  'bg-special/80 border-special'      // D - special (purple) instead of primary
+  'bg-special/80 border-special'      // D - special/purple
 ];
 
 const AdminQuestionPage = () => {
@@ -230,74 +236,98 @@ const AdminQuestionPage = () => {
        </div>
       
       {/* Question Area - Centered and Enlarged */}
-      <div className="flex-grow flex items-center justify-center pt-32 md:pt-40 pb-16 md:pb-20">
+      <div className="flex-grow flex items-center justify-center pt-16 md:pt-20 pb-16 md:pb-20">
         <motion.div
-          className="w-full max-w-5xl mx-auto bg-accent/10 backdrop-blur-lg p-8 md:p-12 rounded-xl border border-accent/20 shadow-2xl z-30"
+          className={`w-full max-w-5xl mx-auto bg-accent/10 backdrop-blur-lg p-8 md:p-12 rounded-xl border border-accent/20 shadow-2xl z-30 ${currentQuestion?.category === "Ko živi ovde?" ? "flex flex-col items-center" : ""}`}
           key={currentQuestion?.id || 'loading'}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <motion.div 
-            className="text-center mb-4 md:mb-6"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
-          >
-            <h2 className="text-2xl md:text-3xl text-accent font-bold font-serif">
-              Pitanje {(game?.currentQuestionIndex ?? 0) + 1}
-            </h2>
-          </motion.div>
-          
-          <motion.div
-            className="text-center mb-8 md:mb-12"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-          >
-            <h1 className="text-3xl md:text-5xl text-white font-bold font-serif leading-tight">
-              {currentQuestion?.text || 'Učitavanje pitanja...'}
-            </h1>
-          </motion.div>
-          
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-          >
-            {currentQuestion?.options.map((option, index) => (
-              <div
-                key={index}
-                className={`border-2 text-white p-5 md:p-6 rounded-lg text-lg md:text-xl shadow-md flex items-center ${answerColors[index % answerColors.length]}`}
-              >
-                <span className="font-bold mr-3 text-2xl opacity-80">
-                  {String.fromCharCode(65 + index)}.
-                </span>
-                <span className="flex-1">{option}</span>
+          {/* Display content based on question category */}
+          {currentQuestion?.category === "Ko živi ovde?" && currentQuestion?.imageUrl ? (
+            <>
+              {/* Title for Ko živi ovde category */}
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-6 font-basteleur">
+                {currentQuestion?.text || 'Učitavanje pitanja...'}
+              </h2>
+              
+              {/* Image for Ko živi ovde category */}
+              <div className="mb-8 flex justify-center">
+                <img 
+                  src={currentQuestion.imageUrl} 
+                  alt="Question image" 
+                  className="max-w-full w-auto max-h-[260px] rounded-xl shadow-lg border-4 border-accent/30 object-contain mx-auto"
+                  onError={(e) => {
+                    console.error("Failed to load question image:", currentQuestion.imageUrl);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
               </div>
-            ))}
-          </motion.div>
+            </>
+          ) : (
+            /* Title for all other categories */
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-12 font-basteleur">
+              {currentQuestion?.text || 'Učitavanje pitanja...'}
+            </h2>
+          )}
           
-          {/* Timer Area: Numerical Timer + Progress Bar */}
-          <motion.div 
-            className="mt-10 w-full flex flex-col items-center" // Use flex-col to stack timer and bar
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-             {/* Numerical Timer */}
-             <Timer duration={30} color="secondary" size="lg" /> 
-             
-             {/* Large Progress Bar */}
-             <div className="mt-4 w-full max-w-2xl bg-white/20 rounded-full h-5 overflow-hidden"> 
-               <motion.div
-                 className="h-full bg-secondary rounded-full"
-                 initial={{ width: "100%" }}
-                 animate={{ width: "0%" }}
-                 transition={{ 
-                   duration: 30, // Match timer duration
-                   ease: "linear"
-                 }}
-               />
-             </div>
-          </motion.div>
+          {/* Is this a true/false question? */}
+          {currentQuestion && currentQuestion.options && currentQuestion.options.length === 2 && 
+           currentQuestion.options[0] === 'Tačno' && currentQuestion.options[1] === 'Netačno' ? (
+            /* True/False format - 2 buttons stacked */
+            <div className="grid grid-cols-1 gap-8 max-w-3xl mx-auto">
+              {/* True option */}
+              <div className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[0]}`}>
+                <p className="text-3xl md:text-4xl text-white">Tačno</p>
+              </div>
+              
+              {/* False option */}
+              <div className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[3]}`}>
+                <p className="text-3xl md:text-4xl text-white">Netačno</p>
+              </div>
+            </div>
+          ) : (
+            /* Regular 4-option format */
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 ${currentQuestion?.category === "Ko živi ovde?" ? "w-full max-w-4xl" : ""}`}>
+              {currentQuestion?.options?.map((option, index) => (
+                <div 
+                  key={index}
+                  className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[index]}`}
+                >
+                  <span className="inline-block w-10 h-10 rounded-full bg-accent/20 text-white mb-2">
+                    {String.fromCharCode(65 + index)}
+                  </span>
+                  <p>{option}</p>
+                </div>
+              ))}
+              {/* Add empty divs if less than 4 options to maintain grid */}
+              {currentQuestion?.options && currentQuestion.options.length < 4 && currentQuestion.options.length > 2 && 
+                Array.from({ length: 4 - (currentQuestion.options.length || 0) }).map((_, i) => (
+                  <div key={`empty-${i}`} className="hidden md:block"></div>
+                ))
+              }
+            </div>
+          )}
         </motion.div>
       </div>
+      
+      {/* Current Question/Total indicator */}
+      {game && currentQuestion && (
+        <motion.div 
+          className="absolute bottom-6 transform  text-white/50 font-medium z-30 left-1/2"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          Pitanje {game.currentQuestionIndex + 1} od {game.questionOrder.length}
+          {currentQuestion.category && (
+            <span className="ml-4 px-3 py-1 bg-accent/20 rounded-full text-sm">
+              {currentQuestion.category as string}
+            </span>
+          )}
+        </motion.div>
+      )}
       
       {/* Bottom Left: Game Code & Status */}
       <motion.div
