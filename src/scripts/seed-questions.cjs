@@ -319,13 +319,6 @@ const testQuestions = [
     imageUrl: '/assets/questions/Super_spijunke.jpg'
   },
   {
-    id: 'q40',
-    text: 'Pogodite crtani',
-    correctAnswer: 'Super spijunke',
-    category: 'Pogodite crtani',
-    imageUrl: '/assets/questions/Super_spijunke.jpg'
-  },
-  {
     id: 'q41',
     text: 'Pogodite fonisovca',
     correctAnswer: 'Danica Zivkovic',
@@ -380,6 +373,120 @@ const testQuestions = [
     correctAnswer: 'Zeljana Kosanin',
     category: 'Pogodite fonisovca',
     imageUrl: '/assets/questions/Zeljana_Kosanin.jpg'
+  },
+  // Pogodi Pesmu na osnovu Emoji-a
+  {
+    id: 'q49',
+    text: 'Pogodi Pesmu na osnovu Emoji-a',
+    correctAnswer: 'Rodjena sa vukovima',
+    category: 'Pogodi Pesmu na osnovu Emoji-a',
+    imageUrl: '/assets/questions/Rodjena sa vukovima.PNG'
+  },
+  {
+    id: 'q50',
+    text: 'Pogodi Pesmu na osnovu Emoji-a',
+    correctAnswer: 'Poker u dvoje',
+    category: 'Pogodi Pesmu na osnovu Emoji-a',
+    imageUrl: '/assets/questions/Poker u dvoje.jpg'
+  },
+  {
+    id: 'q51',
+    text: 'Pogodi Pesmu na osnovu Emoji-a',
+    correctAnswer: 'Poker face',
+    category: 'Pogodi Pesmu na osnovu Emoji-a',
+    imageUrl: '/assets/questions/Poker face.jpg'
+  },
+  {
+    id: 'q52',
+    text: 'Pogodi Pesmu na osnovu Emoji-a',
+    correctAnswer: 'Maskarada',
+    category: 'Pogodi Pesmu na osnovu Emoji-a',
+    imageUrl: '/assets/questions/Maskarada.jpg'
+  },
+  {
+    id: 'q53',
+    text: 'Pogodi Pesmu na osnovu Emoji-a',
+    correctAnswer: 'Ledena',
+    category: 'Pogodi Pesmu na osnovu Emoji-a',
+    imageUrl: '/assets/questions/Ledena.PNG'
+  },
+  {
+    id: 'q54',
+    text: 'Pogodi Pesmu na osnovu Emoji-a',
+    correctAnswer: 'Kisa je padala a ja sam plakao za njom',
+    category: 'Pogodi Pesmu na osnovu Emoji-a',
+    imageUrl: '/assets/questions/Kisa je padala a ja sam plakao za njom.jpg'
+  },
+  {
+    id: 'q55',
+    text: 'Pogodi Pesmu na osnovu Emoji-a',
+    correctAnswer: 'Harem',
+    category: 'Pogodi Pesmu na osnovu Emoji-a',
+    imageUrl: '/assets/questions/Harem.jpg'
+  },
+  {
+    id: 'q56',
+    text: 'Pogodi Pesmu na osnovu Emoji-a',
+    correctAnswer: 'Daj joj moje haljine',
+    category: 'Pogodi Pesmu na osnovu Emoji-a',
+    imageUrl: '/assets/questions/Daj joj moje haljine.PNG'
+  },
+  // FON FON FONIS category
+  {
+    id: 'q57',
+    text: 'Kako ide ceo naziv FONIS-a?',
+    options: ['Fakultetska organizacija novih informacionih sistema', 'Forum organizacionih nauka i informacionih sistema', 'Udruženje studenata informatike Fakulteta organizacionih nauka', 'Fakultetska organizacija za napredne IT sisteme'],
+    correctAnswerIndex: 2, // c) - (zero indexed)
+    category: 'FON FON FONIS'
+  },
+  {
+    id: 'q58',
+    text: 'Kada je osnovano udruženje FONIS, studentska IT organizacija na FON-u?',
+    options: ['2000. godine', '2004. godine', '2008. godine', '2011. godine'],
+    correctAnswerIndex: 0, // a) - (zero indexed)
+    category: 'FON FON FONIS'
+  },
+  {
+    id: 'q59',
+    text: 'Koja je tačna adresa Fakulteta organizacionih nauka (FON)?',
+    options: ['Vojvode Stepe 134', 'Jove Ilića 154', 'Vojvode Stepe 154', 'Jove Ilića 134'],
+    correctAnswerIndex: 1, // b) - (zero indexed)
+    category: 'FON FON FONIS'
+  },
+  {
+    id: 'q60',
+    text: 'Koliko sati dnevno treba da se uči ekonomija da bi se dobila desetka, po rečima Dragane Kragulj?',
+    options: ['20', '40', '25', '15'],
+    correctAnswerIndex: 1, // 40 (assuming based on position)
+    category: 'FON FON FONIS'
+  },
+  {
+    id: 'q61',
+    text: 'Koji od sledećih alata ne postoji i ne može da koristi student FON-a?',
+    options: ['Google Chrome Extension Puskice.fon', 'FON GPT – digitalni AI asistent', 'FONflix – platforma za strimovanje predavanja', 'FON Office 365 – pristup Microsoft alatima'],
+    correctAnswerIndex: 2, // c) - (zero indexed)
+    category: 'FON FON FONIS'
+  },
+  {
+    id: 'q62',
+    text: 'Kada je osnovan Fakultet organizacionih nauka (FON)?',
+    options: ['1964. godine', '1969. godine', '1974. godine', '1980. godine'],
+    correctAnswerIndex: 1, // b) - (zero indexed)
+    category: 'FON FON FONIS'
+  },
+  {
+    id: 'q63',
+    text: 'Koja od sledećih žurki nije u organizaciji studenata FON-a?',
+    options: ['FONight', 'FONcy', 'FONove', 'FONergy'],
+    correctAnswerIndex: 3, // d) - (zero indexed)
+    category: 'FON FON FONIS'
+  },
+  {
+    id: 'q64',
+    text: 'Koji je bio prvi osnovani smer na FON-u?',
+    options: ['Proizvodno-kibernetski', 'Industrijsko inženjerstvo', 'Proizvodni menadžment', 'Uslužni menadžment'],
+    correctAnswerIndex: 0, // a) - (zero indexed)
+    category: 'FON FON FONIS'
   }
 ];
 

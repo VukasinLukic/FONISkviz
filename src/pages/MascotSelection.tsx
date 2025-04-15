@@ -4,7 +4,7 @@ import MainButton from '../components/MainButton';
 import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
 import { motion, useAnimation, PanInfo } from 'framer-motion';
-import { updateTeam, getDb } from '../lib/firebase';
+import { updateTeam, getDb, getTeamsForGame } from '../lib/firebase';
 import { Database } from 'firebase/database';
 import { getMascotImageUrl } from '../lib/utils';
 
@@ -17,6 +17,7 @@ const MascotSelection: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [takenMascots, setTakenMascots] = useState<number[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const [dbInstance, setDbInstance] = useState<Database | null>(null);
@@ -39,14 +40,30 @@ const MascotSelection: React.FC = () => {
     }
   }, [teamData.teamId, teamData.teamName, navigate, isPlayerRoute]);
 
-  // Fetch DB instance
+  // Fetch DB instance and already taken mascots
   useEffect(() => {
-    const fetchDb = async () => {
+    const fetchDbAndTakenMascots = async () => {
       const db = await getDb();
       setDbInstance(db);
+      
+      // Fetch teams for the current game to see which mascots are taken
+      if (teamData.gameCode) {
+        try {
+          const teams = await getTeamsForGame(teamData.gameCode);
+          const takenMascotIds = teams
+            .filter(team => team.id !== teamData.teamId && team.mascotId) // Exclude current team
+            .map(team => team.mascotId);
+          
+          console.log('Taken mascots:', takenMascotIds);
+          setTakenMascots(takenMascotIds);
+        } catch (error) {
+          console.error('Error fetching teams:', error);
+        }
+      }
     };
-    fetchDb();
-  }, []);
+    
+    fetchDbAndTakenMascots();
+  }, [teamData.gameCode, teamData.teamId]);
 
   const handleNextMascot = () => {
     if (currentMascot < MAX_MASCOT_ID) {
@@ -105,6 +122,14 @@ const MascotSelection: React.FC = () => {
         if (!dbInstance) throw new Error("DB not initialized");
         setErrorMessage(null);
         setSuccessMessage(null);
+        
+        // Check if this mascot is already taken
+        if (takenMascots.includes(currentMascot)) {
+          setErrorMessage("Ova maskota je već izabrana od strane drugog tima. Izaberite drugu.");
+          setIsLoading(false);
+          return;
+        }
+        
         console.log(`Updating mascot to ${currentMascot}`);
         
         await updateTeam(teamData.teamId, { mascotId: currentMascot });
@@ -141,6 +166,9 @@ const MascotSelection: React.FC = () => {
     }
   }, [currentMascot, imageError]);
 
+  // Check if current mascot is already taken
+  const isMascotTaken = takenMascots.includes(currentMascot);
+
   return (
     <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex flex-col">
       <AnimatedBackground density="low" />
@@ -170,11 +198,22 @@ const MascotSelection: React.FC = () => {
         <div className="w-full flex flex-col items-center justify-center mt-1 mb-4">
           {/* Avatar pregled - povećan i kreativniji */}
           <motion.div 
-            className="relative bg-accent/20 w-80 h-80 rounded-3xl flex items-center justify-center p-4 border-[3px] border-accent/40 backdrop-blur-sm shadow-xl mb-4"
+            className={`relative bg-accent/20 w-80 h-80 rounded-3xl flex items-center justify-center p-4 border-[3px] ${
+              isMascotTaken ? 'border-red-500/60' : 'border-accent/40'
+            } backdrop-blur-sm shadow-xl mb-4`}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
+            {/* Overlay for taken mascots */}
+            {isMascotTaken && (
+              <div className="absolute inset-0 bg-red-500/20 rounded-3xl flex items-center justify-center z-20">
+                <div className="bg-red-500/70 text-white font-bold px-4 py-2 rounded-full text-sm backdrop-blur-sm">
+                  Već zauzeto
+                </div>
+              </div>
+            )}
+            
             {/* Kontejner za maskotu sa animacijom i drag funkcionalnostima */}
             <motion.div
               className="w-full h-full flex items-center justify-center p-4 z-10"
@@ -189,7 +228,9 @@ const MascotSelection: React.FC = () => {
                 <img
                   src={getMascotImageUrl(currentMascot)}
                   alt={`Maskota ${currentMascot}`}
-                  className="w-full h-full object-contain scale-125 transform-gpu"
+                  className={`w-full h-full object-contain scale-125 transform-gpu ${
+                    isMascotTaken ? 'opacity-50' : ''
+                  }`}
                   style={{ 
                     filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
                     maxWidth: '80%',
@@ -283,15 +324,17 @@ const MascotSelection: React.FC = () => {
         {/* Veliko dugme za izbor postavljeno na dnu */}
         <motion.button
           onClick={handleSubmit}
-          disabled={isLoading}
-          className="bg-secondary text-white font-bold py-4 px-10 rounded-xl shadow-lg hover:bg-secondary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg w-3/4 mt-4"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.98 }}
+          disabled={isLoading || isMascotTaken}
+          className={`bg-secondary text-white font-bold py-4 px-10 rounded-xl shadow-lg ${
+            isMascotTaken ? 'bg-gray-500 cursor-not-allowed' : 'hover:bg-secondary/90'
+          } transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg w-3/4 mt-4`}
+          whileHover={{ scale: isMascotTaken ? 1 : 1.05 }}
+          whileTap={{ scale: isMascotTaken ? 1 : 0.98 }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          {isLoading ? 'učitavanje...' : 'izaberi ovu maskotu'}
+          {isLoading ? 'učitavanje...' : isMascotTaken ? 'maskota je zauzeta' : 'izaberi ovu maskotu'}
         </motion.button>
       </div>
     </div>

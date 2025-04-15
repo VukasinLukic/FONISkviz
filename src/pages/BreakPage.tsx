@@ -7,14 +7,16 @@ import AnimatedBackground from '../components/AnimatedBackground';
 import { Game, GameStatus, updateGameData } from '../lib/firebase'; // Adjust path if necessary
 import { Button } from '../components/ui/button';
 
-// Update category names - now using four categories
+// Update category names - now using all categories
 const CATEGORY_NAMES = [
   "Ko zna Zna?", 
   "Istina ili Laž",
   "Ko živi ovde?",
   "Koji film/serija je u pitanju?",
   "Pogodite crtani",
-  "Pogodite fonisovca"
+  "Pogodite fonisovca",
+  "Pogodi Pesmu na osnovu Emoji-a",
+  "FON FON FONIS"
 ];
 const QUESTIONS_PER_CATEGORY = 8;
 
@@ -98,38 +100,115 @@ const BreakPage: React.FC = () => {
   console.log(`[BreakPage] Rendering component. nextCategoryName: ${nextCategoryName}, isContinuing: ${isContinuing}, gameLoading: ${gameLoading}, displayError: ${displayError}`);
 
   return (
-    <div className="min-h-screen bg-primary text-accent relative overflow-hidden flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-primary text-white relative overflow-hidden flex flex-col items-center justify-between p-6">
       <AnimatedBackground />
+      
+      {/* Logo (top-left) */}
       <motion.div 
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 text-center p-6 bg-secondary/10 backdrop-blur-md rounded-2xl shadow-xl max-w-2xl w-full mx-4"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="absolute top-6 left-6 z-20"
       >
-        <Logo className="medium mx-auto mb-6 w-32 h-32 md:w-40 md:h-40" />
-        <h1 className="text-3xl md:text-4xl font-bold mb-2 font-serif text-accent/90">
-          Sledeća Kategorija:
-        </h1>
-        <h2 className="text-4xl md:text-5xl font-bold mb-8 font-basteleur text-white">
-           {gameLoading ? "Učitavanje..." : nextCategoryName}
-        </h2>
-        
-        {displayError && (
-          <div className="bg-red-500/20 border border-red-500/50 text-red-100 p-3 rounded-lg mb-4 max-w-md mx-auto">
-            <p>{displayError}</p>
-          </div>
-        )}
-
-        <Button 
-          onClick={handleContinueQuiz} // Directly call the handler
-          className="bg-accent hover:bg-accent/90 text-primary font-bold py-3 px-10 text-xl rounded-full transition-all duration-300 shadow-lg transform hover:scale-105"
-          disabled={isContinuing || gameLoading || !gameData} 
+        <Logo className="w-48 h-48 md:w-64 md:h-64 mb-15" />
+      </motion.div>
+      
+      {/* Speech bubble and Mascot in center */}
+      <div className="flex flex-col items-center justify-center flex-grow z-30">
+        {/* Speech bubble */}
+        <motion.div 
+          className="relative mb-8"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.6 }}
         >
-          {isContinuing ? 'Nastavljam...' : 'Nastavi Kviz'}
+          <div className="bg-accent rounded-3xl px-10 py-8 shadow-xl border-4 border-accent">
+            <div className="text-center">
+              <div className="font-bold text-secondary text-3xl tracking-tight font-serif">
+                Kvizaši Fonisa spremite se .... sledeća kategorija<br/>kviza je:
+              </div>
+              <div className="font-bold text-6xl text-special mt-4">
+                {gameLoading ? "..." : nextCategoryName}
+              </div>
+            </div>
+          </div>
+          {/* Speech bubble pointers - multiple small circles */}
+          <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-white rounded-full border-4 border-[#5A1B09]"></div>
+          <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 ml-4 w-4 h-4 bg-white rounded-full border-2 border-[#5A1B09]"></div>
+          <div className="mr-5 absolute -bottom-14 left-1/2 transform -translate-x-1/2 ml-8 w-3 h-3 bg-white rounded-full border-2 border-[#5A1B09]"></div>
+        </motion.div>
+        
+        {/* Mascot */}
+        <motion.div
+          animate={{ 
+            y: [0, -15, 0],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            repeatType: "reverse"
+          }}
+          className="relative"
+        >
+          <img 
+            src="/assets/maskota original 1.svg" 
+            alt="Mascot" 
+             className="w-64 h-64 md:w-80 md:h-80 ml-10"
+          />
+          {/* Eyes that blink */}
+          <motion.div
+            animate={{ opacity: [1, 0, 1] }}
+            transition={{ 
+              duration: 0.2,
+              times: [0, 0.1, 0.2],
+              repeat: Infinity,
+              repeatDelay: 3
+            }}
+            className="absolute top-1/3 left-1/2 transform -translate-x-1/2 w-full flex justify-center gap-6 pointer-events-none"
+          >
+            
+            
+          </motion.div>
+        </motion.div>
+      </div>
+      
+      {/* Button at bottom */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.9 }}
+        className="z-20 mb-6 mt-8"
+      >
+        <Button 
+          onClick={handleContinueQuiz}
+          className="bg-accent hover:bg-accent/90 text-primary font-bold py-6 px-16 text-2xl rounded-full transition-all duration-300 shadow-xl hover:shadow-accent/20 transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+          disabled={isContinuing || gameLoading || !gameData}
+        >
+          {isContinuing ? (
+            <div className="flex items-center gap-3">
+              <span className="h-3 w-3 bg-primary rounded-full animate-bounce"></span>
+              <span className="h-3 w-3 bg-primary rounded-full animate-bounce delay-150"></span>
+              <span className="h-3 w-3 bg-primary rounded-full animate-bounce delay-300"></span>
+              <span className="ml-2">Nastavljam</span>
+            </div>
+          ) : (
+            'Nastavi Kviz'
+          )}
         </Button>
       </motion.div>
+      
+      {/* Error message if needed */}
+      {displayError && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-500/20 border border-red-500/50 text-red-100 p-4 rounded-xl max-w-md mx-auto absolute bottom-24 left-1/2 transform -translate-x-1/2 z-30"
+        >
+          <p>{displayError}</p>
+        </motion.div>
+      )}
     </div>
   );
 };
 
-export default BreakPage; 
+export default BreakPage;

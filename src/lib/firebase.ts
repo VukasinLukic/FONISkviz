@@ -575,7 +575,7 @@ export const processQuestionResults = async (gameCode: string, questionId: strin
     // --- First Pass: Identify fastest correct answer (Only for non-text input categories) ---
     fastestCorrectTeamId = null; // Reset before pass
     minTimestamp = Infinity;
-    if (question.category !== "Pogodite crtani" && question.category !== "Pogodite fonisovca") {
+    if (question.category !== "Pogodite crtani" && question.category !== "Pogodite fonisovca" && question.category !== "Pogodi Pesmu na osnovu Emoji-a") {
         for (const team of activeTeams) {
           const teamId = team.id;
           const submittedAnswer = submittedAnswersData[teamId] as Answer | undefined;
@@ -608,15 +608,16 @@ export const processQuestionResults = async (gameCode: string, questionId: strin
 
       if (submittedAnswer) {
         // Check if it's one of the special text input categories
-        if (question.category === "Pogodite crtani" || question.category === "Pogodite fonisovca") {
+        const isTextCategory = question.category === "Pogodite crtani" || 
+                              question.category === "Pogodite fonisovca" ||
+                              question.category === "Pogodi Pesmu na osnovu Emoji-a";
+                              
+        if (isTextCategory) {
           selectedAnswerText = submittedAnswer.selectedAnswer || ""; // Store the typed text
           answerIndex = -1; // Index is not applicable
           
-          // Normalize both the submitted answer and the correct answer
-          const normalizedSubmitted = selectedAnswerText.trim().toLowerCase().replace(/_/g, ' ');
-          const normalizedCorrect = (question.correctAnswer || "").trim().toLowerCase().replace(/_/g, ' ');
-          
-          isCorrect = normalizedSubmitted === normalizedCorrect && normalizedSubmitted !== "";
+          // Use the smarter answer comparison
+          isCorrect = areAnswersSimilar(selectedAnswerText, question.correctAnswer || "") && selectedAnswerText.trim() !== "";
           pointsAwarded = isCorrect ? 100 : 0; // No speed bonus for this type
           
         } else if (typeof submittedAnswer.answerIndex === 'number' && submittedAnswer.answerIndex !== -1) {
@@ -741,3 +742,81 @@ export const setGameStatus = async (gameCode: string, status: GameStatus): Promi
 
 // Export database instance for direct use
 export { getDb }; 
+
+/**
+ * Calculate the Levenshtein distance between two strings
+ * This measures how many single-character edits are needed to change one string to another
+ */
+function levenshteinDistance(str1: string, str2: string): number {
+  const m = str1.length;
+  const n = str2.length;
+  
+  // Create a matrix of size (m+1) x (n+1)
+  const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+  
+  // Fill the first row and column
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  
+  // Fill the rest of the matrix
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (str1[i - 1] === str2[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1];
+      } else {
+        dp[i][j] = 1 + Math.min(
+          dp[i - 1][j],     // deletion
+          dp[i][j - 1],     // insertion
+          dp[i - 1][j - 1]  // substitution
+        );
+      }
+    }
+  }
+  
+  return dp[m][n];
+}
+
+/**
+ * Check if two answer strings are similar enough to be considered the same
+ * This handles case sensitivity, extra spaces, and minor typos
+ */
+function areAnswersSimilar(submitted: string, correct: string): boolean {
+  if (!submitted || !correct) return false;
+  
+  // Normalize both strings
+  const normalize = (str: string) => {
+    return str
+      .trim()                          // Remove leading/trailing spaces
+      .toLowerCase()                   // Convert to lowercase
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove diacritical marks (accents)
+      .replace(/\s+/g, ' ')            // Replace multiple spaces with a single space
+      .replace(/_/g, ' ')              // Replace underscores with spaces
+      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ''); // Remove punctuation
+  };
+  
+  const normalizedSubmitted = normalize(submitted);
+  const normalizedCorrect = normalize(correct);
+  
+  // If normalized strings match exactly, they're similar
+  if (normalizedSubmitted === normalizedCorrect) {
+    return true;
+  }
+  
+  // For very short answers, require exact match after normalization
+  if (normalizedCorrect.length <= 3) {
+    return normalizedSubmitted === normalizedCorrect;
+  }
+  
+  // For longer answers, allow some edit distance based on the length
+  const distance = levenshteinDistance(normalizedSubmitted, normalizedCorrect);
+  
+  // The threshold is proportional to the length of the correct answer
+  // For longer answers we allow more mistakes
+  const threshold = Math.max(1, Math.floor(normalizedCorrect.length / 5));
+  
+  return distance <= threshold;
+}
+
+export async function initFirebase() {
+  // ... existing code ...
+} 

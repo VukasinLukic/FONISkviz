@@ -635,13 +635,13 @@ const AdminWinnersPage = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
                             <div className="text-lg font-bold text-accent">{team.totalScore}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white/80">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white/80 text-center">
                             {team.totalQuestions}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white/80">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white/80 text-center">
                             {team.correctAnswers}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">

@@ -224,7 +224,9 @@ const PlayerQuestionPage = () => {
         return <div className="flex-grow flex items-center justify-center"><p className="text-accent/70 italic">Učitavanje pitanja...</p></div>;
     }
 
-    const isTextCategory = currentQuestion.category === "Pogodite crtani" || currentQuestion.category === "Pogodite fonisovca";
+    const isTextCategory = currentQuestion.category === "Pogodite crtani" 
+                         || currentQuestion.category === "Pogodite fonisovca"
+                         || currentQuestion.category === "Pogodi Pesmu na osnovu Emoji-a";
 
     if (isTextCategory) {
       // Render Input field for text categories
@@ -238,7 +240,9 @@ const PlayerQuestionPage = () => {
           >
             <Input 
               type="text"
-              placeholder={`Unesite ime ${currentQuestion.category === "Pogodite crtani" ? 'crtanog filma' : 'fonisovca'}`}
+              placeholder={`Unesite ${currentQuestion.category === "Pogodite crtani" ? 'ime crtanog filma' : 
+                              currentQuestion.category === "Pogodite fonisovca" ? 'ime fonisovca' : 
+                              'ime pesme'}`}
               value={typedAnswer}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   console.log('[Input onChange] New value:', e.target.value);
@@ -395,7 +399,11 @@ const PlayerQuestionPage = () => {
       </motion.div>
       
       {/* Display image for categories that use it */}
-      {(currentQuestion?.category === "Ko živi ovde?" || currentQuestion?.category === "Koji film/serija je u pitanju?" || currentQuestion?.category === "Pogodite crtani" || currentQuestion?.category === "Pogodite fonisovca") && currentQuestion?.imageUrl && (
+      {(currentQuestion?.category === "Ko živi ovde?" || 
+        currentQuestion?.category === "Koji film/serija je u pitanju?" || 
+        currentQuestion?.category === "Pogodite crtani" || 
+        currentQuestion?.category === "Pogodite fonisovca" ||
+        currentQuestion?.category === "Pogodi Pesmu na osnovu Emoji-a") && currentQuestion?.imageUrl && (
         <motion.div 
           className="flex justify-center z-10 mb-4 px-4"
           initial={{ opacity: 0, scale: 0.9 }}

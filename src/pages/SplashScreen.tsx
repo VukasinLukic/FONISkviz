@@ -93,9 +93,26 @@ const SplashScreen = () => {
       })
       .map(q => q.id);
 
-          
-
+      // Filter, sort, and map questions for "Pogodi Pesmu na osnovu Emoji-a"
+      const pogodiPesmuQuestions = allQuestions
+      .filter(q => q.category === "Pogodi Pesmu na osnovu Emoji-a")
+      .sort((a, b) => {
+        const aNum = parseInt(a.id.substring(1));
+        const bNum = parseInt(b.id.substring(1));
+        return aNum - bNum;
+      })
+      .map(q => q.id);
       
+      // Filter, sort, and map questions for "FON FON FONIS"
+      const fonFonFonisQuestions = allQuestions
+      .filter(q => q.category === "FON FON FONIS")
+      .sort((a, b) => {
+        const aNum = parseInt(a.id.substring(1));
+        const bNum = parseInt(b.id.substring(1));
+        return aNum - bNum;
+      })
+      .map(q => q.id);
+          
       // Verify the sorted question order
       console.log('Ko zna Zna? questions order:', koZnaZnaQuestions);
       console.log('Istina ili Laž questions order:', istinaLazQuestions);
@@ -103,9 +120,20 @@ const SplashScreen = () => {
       console.log('Koji film/serija je u pitanju? questions order:', kojiFilmSerijaQuestions);
       console.log('Pogodite crtani questions order:', pogoditeCrtaniQuestions);
       console.log('Pogodite Fonisovca questions order:', pogoditeFonisovcaQuestions);
+      console.log('Pogodi Pesmu na osnovu Emoji-a questions order:', pogodiPesmuQuestions);
+      console.log('FON FON FONIS questions order:', fonFonFonisQuestions);
 
       // Combine categories in the correct order
-      const questionOrder = [...koZnaZnaQuestions, ...istinaLazQuestions, ...koZiviOvdeQuestions, ...kojiFilmSerijaQuestions, ...pogoditeCrtaniQuestions, ...pogoditeFonisovcaQuestions];
+      const questionOrder = [
+        ...koZnaZnaQuestions, 
+        ...istinaLazQuestions, 
+        ...koZiviOvdeQuestions, 
+        ...kojiFilmSerijaQuestions, 
+        ...pogoditeCrtaniQuestions, 
+        ...pogoditeFonisovcaQuestions, 
+        ...pogodiPesmuQuestions,
+        ...fonFonFonisQuestions
+      ];
       console.log('Final question order:', questionOrder);
 
       if (questionOrder.length === 0) {
@@ -149,7 +177,7 @@ const SplashScreen = () => {
       
       {/* Logo */}
       <motion.div 
-        className="flex items-center justify-center mb-12 z-20"
+        className="flex items-center justify-center z-20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7 }}
@@ -164,11 +192,13 @@ const SplashScreen = () => {
           onAnimationComplete={() => {
             setLogoAnimationComplete(true);
           }}
+          onClick={handleCreateGame}
+          className={`cursor-pointer transform transition-transform hover:scale-105 ${isCreating ? 'pointer-events-none' : ''}`}
         >
           <img
             src="/assets/logo.svg"
             alt="FONIS Quiz Logo"
-            className="w-64 h-64 md:w-72 md:h-72 object-contain"
+            className="w-80 h-80 md:w-96 md:h-96 object-contain"
             onError={(e) => {
               // If image fails to load, show a fallback
               const target = e.currentTarget;
@@ -177,8 +207,8 @@ const SplashScreen = () => {
               // Create a fallback container
               const container = document.createElement('div');
               container.style.backgroundColor = '#D35322';
-              container.style.width = '280px';
-              container.style.height = '280px';
+              container.style.width = '350px';
+              container.style.height = '350px';
               container.style.display = 'flex';
               container.style.alignItems = 'center';
               container.style.justifyContent = 'center';
@@ -189,7 +219,7 @@ const SplashScreen = () => {
               const text = document.createElement('div');
               text.innerText = 'FONIS QUIZ';
               text.style.color = 'white';
-              text.style.fontSize = '36px';
+              text.style.fontSize = '48px';
               text.style.fontWeight = 'bold';
               text.style.fontFamily = 'Mainstay, serif';
               
@@ -200,30 +230,32 @@ const SplashScreen = () => {
         </motion.div>
       </motion.div>
       
-      {/* Admin Controls */}
-      {logoAnimationComplete && (
+      {/* Error message */}
+      {logoAnimationComplete && error && (
         <motion.div
-          className="flex flex-col gap-4 w-full max-w-md px-4 z-20"
+          className="flex flex-col gap-4 w-full max-w-md px-4 z-20 mt-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          {error && (
-            <motion.div
-              className="bg-red-500/20 border border-red-500/50 text-red-100 p-3 rounded-md mb-4 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              {error}
-            </motion.div>
-          )}
-          <MainButton
-            onClick={handleCreateGame}
-            disabled={isCreating}
-            className="bg-secondary hover:bg-secondary/90 text-white py-4 text-lg"
+          <motion.div
+            className="bg-red-500/20 border border-red-500/50 text-red-100 p-3 rounded-md text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
           >
-            {isCreating ? 'Creating Game...' : 'Kreiraj novu igru'}
-          </MainButton>
+            {error}
+          </motion.div>
+        </motion.div>
+      )}
+      
+      {/* Loading indicator when creating game */}
+      {isCreating && (
+        <motion.div 
+          className="mt-6 text-white text-xl z-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          Kreiram igru...
         </motion.div>
       )}
     </motion.div>

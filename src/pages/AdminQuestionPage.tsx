@@ -245,7 +245,11 @@ const AdminQuestionPage = () => {
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
           {/* Display content based on question category */}
-          {(currentQuestion?.category === "Ko živi ovde?" || currentQuestion?.category === "Koji film/serija je u pitanju?" || currentQuestion?.category === "Pogodite crtani" || currentQuestion?.category === "Pogodite fonisovca") && currentQuestion?.imageUrl ? (
+          {(currentQuestion?.category === "Ko živi ovde?" || 
+            currentQuestion?.category === "Koji film/serija je u pitanju?" || 
+            currentQuestion?.category === "Pogodite crtani" || 
+            currentQuestion?.category === "Pogodite fonisovca" ||
+            currentQuestion?.category === "Pogodi Pesmu na osnovu Emoji-a") && currentQuestion?.imageUrl ? (
             <>
               {/* Title for image-based categories */}
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-6 font-basteleur">
@@ -317,8 +321,8 @@ const AdminQuestionPage = () => {
       
       {/* Current Question/Total indicator */}
       {game && currentQuestion && (
-        <motion.div 
-          className="absolute bottom-6 transform text-white/50 font-medium z-30 left-1/2"
+        <motion.div
+          className="absolute bottom-6 right-16 transform text-white"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
