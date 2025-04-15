@@ -206,6 +206,71 @@ const testQuestions: Question[] = [
     correctAnswerIndex: 0, // Ted Mosby
     category: 'Ko živi ovde?',
     imageUrl: '/assets/questions/Ted_How_I_met_your_mother.jpg'
+  },
+  // Pitanja za kategoriju "Koji film/serija je u pitanju?"
+  {
+    id: 'q25',
+    text: 'Koji film/serija je u pitanju?',
+    options: ['Ćari', 'Buffy the Vampire Slayer', 'Sabrina the Teenage Witch', 'Witches of East End'],
+    correctAnswerIndex: 0, // Ćari (Charmed)
+    category: 'Koji film/serija je u pitanju?',
+    imageUrl: '/assets/questions/Cari.jpg'
+  },
+  {
+    id: 'q26',
+    text: 'Koji film/serija je u pitanju?',
+    options: ['Harry Potter i odaja tajni', 'Fantastične zveri i gde ih naći', 'Harry Potter i kamen mudrosti', 'Harry Potter i zatočenik Azkabana'],
+    correctAnswerIndex: 0, // Harry Potter i odaja tajni
+    category: 'Koji film/serija je u pitanju?',
+    imageUrl: '/assets/questions/Harry_Potter_2.jpg'
+  },
+  {
+    id: 'q27',
+    text: 'Koji film/serija je u pitanju?',
+    options: ['Lajanje na zvezde', 'Munje!', 'Sedam i po', 'Mala noćna muzika'],
+    correctAnswerIndex: 0, // Lajanje na zvezde
+    category: 'Koji film/serija je u pitanju?',
+    imageUrl: '/assets/questions/Lajanje_na_zvezde.jpg'
+  },
+  {
+    id: 'q28',
+    text: 'Koji film/serija je u pitanju?',
+    options: ['Ljubav, navika, panika', 'Porodično blago', 'Lisice', 'Mješoviti brak'],
+    correctAnswerIndex: 0, // Ljubav, navika, panika
+    category: 'Koji film/serija je u pitanju?',
+    imageUrl: '/assets/questions/Ljubav_navika_panika.jpg'
+  },
+  {
+    id: 'q29',
+    text: 'Koji film/serija je u pitanju?',
+    options: ['Mi nismo anđeli', 'Munje!', 'Mrtav ladan', 'Sedam i po'],
+    correctAnswerIndex: 0, // Mi nismo anđeli
+    category: 'Koji film/serija je u pitanju?',
+    imageUrl: '/assets/questions/Mi_nismo_andjeli.jpg'
+  },
+  {
+    id: 'q30',
+    text: 'Koji film/serija je u pitanju?',
+    options: ['Otvorena vrata', 'Porodično blago', 'Stižu dolari', 'Kursadžije'],
+    correctAnswerIndex: 0, // Otvorena vrata
+    category: 'Koji film/serija je u pitanju?',
+    imageUrl: '/assets/questions/Otvorena_vrata.jpg'
+  },
+  {
+    id: 'q31',
+    text: 'Koji film/serija je u pitanju?',
+    options: ['Pretty Little Liars', 'Gossip Girl', 'Riverdale', 'The Vampire Diaries'],
+    correctAnswerIndex: 0, // Pretty Little Liars
+    category: 'Koji film/serija je u pitanju?',
+    imageUrl: '/assets/questions/Pretty_little_liars.jpg'
+  },
+  {
+    id: 'q32',
+    text: 'Koji film/serija je u pitanju?',
+    options: ['White Chicks', 'Norbit', 'Big Momma\'s House', 'The Hot Chick'],
+    correctAnswerIndex: 0, // White Chicks
+    category: 'Koji film/serija je u pitanju?',
+    imageUrl: '/assets/questions/White_chicks.jpg'
   }
 ];
 

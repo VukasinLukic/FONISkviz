@@ -7,11 +7,12 @@ import AnimatedBackground from '../components/AnimatedBackground';
 import { Game, GameStatus, updateGameData } from '../lib/firebase'; // Adjust path if necessary
 import { Button } from '../components/ui/button';
 
-// Update category names - now using three categories
+// Update category names - now using four categories
 const CATEGORY_NAMES = [
   "Ko zna Zna?", 
   "Istina ili Laž",
-  "Ko živi ovde?"
+  "Ko živi ovde?",
+  "Koji film/serija je u pitanju?"
 ];
 const QUESTIONS_PER_CATEGORY = 8;
 

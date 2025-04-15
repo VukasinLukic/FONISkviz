@@ -61,13 +61,24 @@ const SplashScreen = () => {
         })
         .map(q => q.id);
       
+      const kojiFilmSerijaQuestions = allQuestions
+        .filter(q => q.category === "Koji film/serija je u pitanju?")
+        .sort((a, b) => {
+          // Extract the numeric part from the ID (e.g., 'q25' -> 25)
+          const aNum = parseInt(a.id.substring(1));
+          const bNum = parseInt(b.id.substring(1));
+          return aNum - bNum; // Numeric sort to ensure proper order
+        })
+        .map(q => q.id);
+      
       // Verify the sorted question order
       console.log('Ko zna Zna? questions order:', koZnaZnaQuestions);
       console.log('Istina ili Laž questions order:', istinaLazQuestions);
       console.log('Ko živi ovde? questions order:', koZiviOvdeQuestions);
+      console.log('Koji film/serija je u pitanju? questions order:', kojiFilmSerijaQuestions);
       
       // Combine categories in the correct order
-      const questionOrder = [...koZnaZnaQuestions, ...istinaLazQuestions, ...koZiviOvdeQuestions];
+      const questionOrder = [...koZnaZnaQuestions, ...istinaLazQuestions, ...koZiviOvdeQuestions, ...kojiFilmSerijaQuestions];
       console.log('Final question order:', questionOrder);
 
       if (questionOrder.length === 0) {

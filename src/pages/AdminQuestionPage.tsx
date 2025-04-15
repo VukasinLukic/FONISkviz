@@ -245,14 +245,14 @@ const AdminQuestionPage = () => {
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
           {/* Display content based on question category */}
-          {currentQuestion?.category === "Ko živi ovde?" && currentQuestion?.imageUrl ? (
+          {(currentQuestion?.category === "Ko živi ovde?" || currentQuestion?.category === "Koji film/serija je u pitanju?") && currentQuestion?.imageUrl ? (
             <>
-              {/* Title for Ko živi ovde category */}
+              {/* Title for image-based categories */}
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-6 font-basteleur">
                 {currentQuestion?.text || 'Učitavanje pitanja...'}
               </h2>
               
-              {/* Image for Ko živi ovde category */}
+              {/* Image for image-based categories */}
               <div className="mb-8 flex justify-center">
                 <img 
                   src={currentQuestion.imageUrl} 
@@ -315,7 +315,7 @@ const AdminQuestionPage = () => {
       {/* Current Question/Total indicator */}
       {game && currentQuestion && (
         <motion.div 
-          className="absolute bottom-6 transform  text-white/50 font-medium z-30 left-1/2"
+          className="absolute bottom-6 transform text-white/50 font-medium z-30 left-1/2"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
