@@ -13,6 +13,7 @@ import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
 import { Timer } from '../components/Timer';
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/button";
+import ImagePopup from '../components/ui/ImagePopup';
 
 // Define colors for answer options based on Tailwind config
 const answerColors = [
@@ -38,6 +39,7 @@ const PlayerQuestionPage = () => {
   const [isTimeUp, setIsTimeUp] = useState(false); // Added state for time up
   const [typedAnswer, setTypedAnswer] = useState("");
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
+  const [isImagePopupOpen, setIsImagePopupOpen] = useState(false);
 
   // Get team data from localStorage
   const teamId = localStorage.getItem('teamId');
@@ -232,7 +234,7 @@ const PlayerQuestionPage = () => {
       // Render Input field for text categories
       return (
         <motion.div 
-            className="flex-grow flex flex-col items-center justify-center gap-4 p-6 max-w-md mx-auto w-full z-10"
+            className="flex-grow flex flex-col items-center justify-center gap-6 p-6 max-w-md mx-auto w-full z-10"
             key={`input-${currentQuestion.id}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -249,7 +251,7 @@ const PlayerQuestionPage = () => {
                   setTypedAnswer(e.target.value);
               }}
               disabled={submitting || answerSubmitted || isTimeUp}
-              className="bg-accent/10 border-accent/30 text-white text-center text-xl placeholder:text-accent/50 rounded-lg p-4 w-full disabled:opacity-70"
+              className="bg-accent/10 border-accent/30 text-white text-center text-xl placeholder:text-accent/50 rounded-lg p-6 w-full h-16 disabled:opacity-70 shadow-md focus:ring-2 focus:ring-accent/60 focus:border-accent/60"
             />
             <Button
               onClick={() => { 
@@ -257,7 +259,7 @@ const PlayerQuestionPage = () => {
                   handleSubmitTypedAnswer(); 
               }}
               disabled={submitting || answerSubmitted || isTimeUp || !typedAnswer.trim()}
-              className="bg-secondary hover:bg-secondary/90 text-white font-bold py-3 px-10 text-lg rounded-full transition-all duration-300 shadow-lg w-full disabled:opacity-50"
+              className="bg-secondary hover:bg-secondary/90 text-white font-bold py-4 px-10 text-xl rounded-full transition-all duration-300 shadow-lg w-full disabled:opacity-50 h-16"
             >
               {submitting || answerSubmitted ? 'Odgovor poslat' : 'Pošalji odgovor'}
             </Button>
@@ -413,7 +415,8 @@ const PlayerQuestionPage = () => {
           <img 
             src={currentQuestion.imageUrl} 
             alt="Question image" 
-            className="w-auto max-h-[180px] rounded-xl shadow-lg border-4 border-accent/30 object-contain mx-auto"
+            className="w-auto max-h-[180px] rounded-xl shadow-lg border-4 border-accent/30 object-contain mx-auto cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => setIsImagePopupOpen(true)}
             onError={(e) => {
               console.error("Failed to load question image:", currentQuestion.imageUrl);
               e.currentTarget.style.display = 'none';
@@ -449,6 +452,16 @@ const PlayerQuestionPage = () => {
            >
              {error}
            </motion.div>
+      )}
+      
+      {/* Image Popup */}
+      {currentQuestion?.imageUrl && (
+        <ImagePopup
+          imageUrl={currentQuestion.imageUrl}
+          isOpen={isImagePopupOpen}
+          onClose={() => setIsImagePopupOpen(false)}
+          alt={`Question image for: ${currentQuestion.text}`}
+        />
       )}
     </div>
   );

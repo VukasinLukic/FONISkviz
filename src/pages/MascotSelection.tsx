@@ -170,23 +170,23 @@ const MascotSelection: React.FC = () => {
   const isMascotTaken = takenMascots.includes(currentMascot);
 
   return (
-    <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-primary p-2 sm:p-4 relative overflow-hidden flex flex-col">
       <AnimatedBackground density="low" />
       
-      {/* Centered logo at top */}
-      <div className="w-full flex justify-center mt-2 mb-2">
+      {/* Centered logo at top - smaller on mobile */}
+      <div className="w-full flex justify-center mt-1 sm:mt-2 mb-0 sm:mb-2">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Logo size="large" className="w-28 h-28" />
+          <Logo size="large" className="w-36 h-36 sm:w-28 sm:h-28" />
         </motion.div>
       </div>
       
       <div className="flex-grow flex flex-col items-center justify-center max-w-xl mx-auto z-20 relative">
         <motion.h1 
-          className="text-2xl md:text-3xl font-bold text-accent mb-1 text-center font-serif"
+          className="text-2xl sm:text-2xl md:text-3xl font-bold text-accent mb-1 text-center font-serif px-2"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -195,12 +195,12 @@ const MascotSelection: React.FC = () => {
         </motion.h1>
         
         {/* Glavni deo - pregled maskote */}
-        <div className="w-full flex flex-col items-center justify-center mt-1 mb-4">
-          {/* Avatar pregled - povećan i kreativniji */}
+        <div className="w-full flex flex-col items-center justify-center mt-1 mb-2 sm:mb-4">
+          {/* Avatar pregled - responsive size */}
           <motion.div 
-            className={`relative bg-accent/20 w-80 h-80 rounded-3xl flex items-center justify-center p-4 border-[3px] ${
+            className={`relative bg-accent/20 w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 rounded-3xl flex items-center justify-center p-2 sm:p-4 border-[3px] ${
               isMascotTaken ? 'border-red-500/60' : 'border-accent/40'
-            } backdrop-blur-sm shadow-xl mb-4`}
+            } backdrop-blur-sm shadow-xl mb-2 sm:mb-4`}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
@@ -216,7 +216,7 @@ const MascotSelection: React.FC = () => {
             
             {/* Kontejner za maskotu sa animacijom i drag funkcionalnostima */}
             <motion.div
-              className="w-full h-full flex items-center justify-center p-4 z-10"
+              className="w-full h-full flex items-center justify-center p-2 sm:p-4 z-10"
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
               onDragEnd={handleDragEnd}
@@ -242,56 +242,52 @@ const MascotSelection: React.FC = () => {
             </motion.div>
           </motion.div>
           
-          {/* Indikator trenutne maskote - sada postavljen niže */}
-          <div className="flex justify-center mb-4">
-            <div className="bg-accent/20 px-5 py-1.5 rounded-full backdrop-blur-sm border border-accent/30 shadow-md">
-              <span className="text-accent font-medium text-lg">{currentMascot} / {MAX_MASCOT_ID}</span>
+          {/* Indikator trenutne maskote - responsivni fontovi */}
+          <div className="flex justify-center mb-2 sm:mb-4">
+            <div className="bg-accent/20 px-4 sm:px-5 py-1 sm:py-1.5 rounded-full backdrop-blur-sm border border-accent/30 shadow-md">
+              <span className="text-accent font-medium text-base sm:text-lg">{currentMascot} / {MAX_MASCOT_ID}</span>
             </div>
           </div>
           
-          {/* Kontrole za navigaciju - sada ispod kvadrata i veće */}
-          <div className="flex items-center justify-center w-full mt-2 gap-8">
+          {/* Kontrole za navigaciju - responsive size and spacing */}
+          <div className="flex items-center justify-center w-full mt-1 sm:mt-2 gap-4 sm:gap-8">
             {currentMascot > 1 ? (
               <motion.button
                 onClick={handlePrevMascot}
-                className="bg-accent/20 hover:bg-accent/40 w-16 h-16 rounded-full flex items-center justify-center transition-colors border-2 border-accent/30 shadow-md"
+                className="bg-accent/20 hover:bg-accent/40 w-16 h-16 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-colors border-2 border-accent/30 shadow-md"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                </svg>
+                <p className="text-xl text-accent">{"<"}</p>
               </motion.button>
             ) : (
-              <div className="w-16"></div> // Placeholder za poravnanje kada nema prethodnog dugmeta
+              <div className="w-12 sm:w-14 md:w-16"></div> // Placeholder za poravnanje kada nema prethodnog dugmeta
             )}
             
             {currentMascot < MAX_MASCOT_ID ? (
               <motion.button
                 onClick={handleNextMascot}
-                className="bg-accent/20 hover:bg-accent/40 w-16 h-16 rounded-full flex items-center justify-center transition-colors border-2 border-accent/30 shadow-md"
+                className="bg-accent/20 hover:bg-accent/40 w-16 h-16 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-colors border-2 border-accent/30 shadow-md"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
+                <p className="text-xl text-accent">{">"}</p>
               </motion.button>
             ) : (
-              <div className="w-16"></div> // Placeholder za poravnanje kada nema sledećeg dugmeta
+              <div className="w-16 sm:w-14 md:w-16"></div> // Placeholder za poravnanje kada nema sledećeg dugmeta
             )}
           </div>
         </div>
         
         {/* Pomoćni tekst za swipe */}
         <motion.p
-          className="text-accent/70 text-sm mb-3"
+          className="text-accent/70 text-m sm:text-m mb-2 sm:mb-3 px-2 text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
@@ -302,7 +298,7 @@ const MascotSelection: React.FC = () => {
         {/* Error message */}
         {errorMessage && (
           <motion.div 
-            className="bg-red-500/20 border border-red-500/50 text-red-100 px-4 py-3 rounded-md mb-4 text-center w-full"
+            className="bg-red-500/20 border border-red-500/50 text-red-100 px-3 sm:px-4 py-2 sm:py-3 rounded-md mb-3 sm:mb-4 text-center w-full text-sm sm:text-base"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -313,7 +309,7 @@ const MascotSelection: React.FC = () => {
         {/* Success message */}
         {successMessage && (
           <motion.div 
-            className="bg-green-500/20 border border-green-500/50 text-green-100 px-4 py-3 rounded-md mb-4 text-center w-full"
+            className="bg-green-500/20 border border-green-500/50 text-green-100 px-3 sm:px-4 py-2 sm:py-3 rounded-md mb-3 sm:mb-4 text-center w-full text-sm sm:text-base"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -321,13 +317,13 @@ const MascotSelection: React.FC = () => {
           </motion.div>
         )}
         
-        {/* Veliko dugme za izbor postavljeno na dnu */}
+        {/* Veliko dugme za izbor postavljeno na dnu - responsive width */}
         <motion.button
           onClick={handleSubmit}
           disabled={isLoading || isMascotTaken}
-          className={`bg-secondary text-white font-bold py-4 px-10 rounded-xl shadow-lg ${
+          className={`bg-secondary text-white font-bold py-3 sm:py-4 px-6 sm:px-10 rounded-xl shadow-lg ${
             isMascotTaken ? 'bg-gray-500 cursor-not-allowed' : 'hover:bg-secondary/90'
-          } transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg w-3/4 mt-4`}
+          } transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xl sm:text-lg w-[85%] sm:w-3/4 mt-2 sm:mt-4`}
           whileHover={{ scale: isMascotTaken ? 1 : 1.05 }}
           whileTap={{ scale: isMascotTaken ? 1 : 0.98 }}
           initial={{ opacity: 0, y: 20 }}

@@ -369,7 +369,7 @@ const AdminAnswerRevealPage = () => {
               </p>
               <div className="border-t-2 border-accent/30 pt-5 mt-5">
                 <p className="text-lg md:text-xl text-accent/80 mb-2">Tačan odgovor je:</p>
-                <p className="text-3xl md:text-4xl font-bold text-green-400 tracking-wide">
+                <p className="text-3xl md:text-4xl font-bold text-highlight tracking-wide">
                   {derivedCorrectAnswerText} 
                 </p>
               </div>
@@ -388,7 +388,7 @@ const AdminAnswerRevealPage = () => {
                         ${answer.isCorrect === null 
                           ? 'bg-gray-500/30 border border-gray-400/40' // Gray for unanswered (isCorrect is null)
                           : answer.isCorrect 
-                            ? 'bg-green-500/30 border border-green-400/40' // Green for correct
+                            ? 'bg-green-700/30 border border-highlight/40' // Green for correct
                             : 'bg-red-500/30 border border-red-400/40' // Red for incorrect
                         }`}
                       initial={{ opacity: 0, x: -20 }}
@@ -397,13 +397,13 @@ const AdminAnswerRevealPage = () => {
                     >
                       <div className="flex-1 mr-4 min-w-0">
                         <span className="font-bold text-accent text-lg block truncate mb-1" title={answer.teamName}>{answer.teamName}</span>
-                        <span className={`text-sm ${answer.isCorrect === null ? 'text-accent/60 italic' : 'text-accent/80'}`}>
+                        <span className={`text-m ${answer.isCorrect === null ? 'text-accent/60 italic' : 'text-accent/80'}`}>
                           Odgovor: {answer.selectedAnswer} {/* Will show "Nije odgovoreno" if null */}
                         </span>
                       </div>
                       {/* Only show points if they answered */}
                       {answer.isCorrect !== null && (
-                        <span className={`font-bold text-xl whitespace-nowrap ${answer.isCorrect ? 'text-green-300' : 'text-accent/90'}`}>
+                        <span className={`font-bold text-xl whitespace-nowrap ${answer.isCorrect ? 'text-highlight' : 'text-accent/90'}`}>
                           +{answer.pointsAwarded ?? 0} pts
                         </span>
                       )}

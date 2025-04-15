@@ -78,30 +78,38 @@ const PlayerWaitingAnswerPage = () => {
   }
   
   return (
-    <div className="min-h-screen bg-primary p-4 relative overflow-hidden flex flex-col items-center">
+    <div className="min-h-screen bg-primary p-2 sm:p-4 relative overflow-hidden flex flex-col items-center">
       <AnimatedBackground density="low" />
       
       {/* Centered Larger Logo at top */}
-      <div className="w-full flex justify-center pt-10 pb-4 z-40">
+      <div className="w-full flex justify-center pt-2 sm:pt-10 pb-0 sm:pb-4 z-40">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="ml-6"
+          className="responsive-logo"
         >
-          <Logo size="large" className="w-64 h-64" />
+          <Logo size="large" className="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64" />
         </motion.div>
       </div>
       
-     
+      {/* Team Name Display */}
+      <motion.div
+        className="text-accent text-xl sm:text-2xl font-bold font-basteleur mb-2 sm:mb-4 z-40 bg-accent/10 px-4 sm:px-6 py-1 sm:py-2 rounded-lg"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        Tim: {teamName}
+      </motion.div>
       
       {/* Waiting Message - No animation */}
-      <div className="flex flex-col items-center justify-center flex-grow">
-        <div className="text-center z-30 mb-8">
-          <h1 className="text-4xl text-accent font-bold mb-4 font-serif">
+      <div className="flex flex-col items-center justify-center flex-grow max-h-[60vh]">
+        <div className="text-center z-30 mb-2 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl text-accent font-bold mb-2 sm:mb-4 font-basteleur">
             Čekanje rezultata...
           </h1>
-          <p className="text-accent/70 mb-12 text-xl">
+          <p className="text-accent/70 mb-4 sm:mb-12 text-base sm:text-xl">
             Sačekajte da se otkrije tačan odgovor!
           </p>
         </div>
@@ -109,7 +117,7 @@ const PlayerWaitingAnswerPage = () => {
         {/* Team Mascot Animation */}
         {mascotId > 0 && !imageError ? (
           <motion.div
-            className="w-56 h-56 md:w-72 md:h-72 flex items-center justify-center p-6 bg-accent/10 rounded-full shadow-inner"
+            className="w-36 h-36 sm:w-56 sm:h-56 md:w-72 md:h-72 flex items-center justify-center p-4 sm:p-6 bg-accent/10 rounded-full shadow-inner responsive-mascot"
             animate={{
               scale: [1, 1.05, 1],
               y: [0, -10, 0]
@@ -128,7 +136,7 @@ const PlayerWaitingAnswerPage = () => {
           </motion.div>
         ) : (
           <motion.div
-            className="w-40 h-40 bg-accent/30 rounded-full flex items-center justify-center"
+            className="w-28 h-28 sm:w-40 sm:h-40 bg-accent/30 rounded-full flex items-center justify-center responsive-mascot"
             animate={{
               scale: [1, 1.1, 1],
               rotate: [0, 5, 0, -5, 0]
@@ -139,21 +147,10 @@ const PlayerWaitingAnswerPage = () => {
               repeatType: "reverse"
             }}
           >
-            <span className="text-accent text-4xl">?</span>
+            <span className="text-accent text-3xl sm:text-4xl">?</span>
           </motion.div>
         )}
       </div>
-      
-      {/* Game Code Display at bottom */}
-      {/* Team Name Display below logo */}
-      <motion.div
-        className="text-accent text-2xl font-bold font-serif mb-8 z-40 bg-accent/10 px-6 py-2 rounded-lg"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        Tim: {teamName}
-      </motion.div>
       
       {/* Debug Info - Hidden in production */}
       {process.env.NODE_ENV === 'development' && (

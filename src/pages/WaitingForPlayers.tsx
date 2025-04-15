@@ -79,30 +79,30 @@ const WaitingForPlayers: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-primary p-4 flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-primary p-4 responsive-padding flex flex-col items-center justify-center relative overflow-hidden">
       <AnimatedBackground density="medium" />
       
       {/* Centered header container */}
-      <div className="w-full flex justify-center items-center z-40 absolute top-6 left-0 right-0 pt-6">
+      <div className="w-full flex justify-center items-center z-40 absolute top-2 sm:top-6 left-0 right-0 pt-2 sm:pt-6">
         {/* Centered logo with proper padding */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="ml-6" // Dodajte marginu levo
+          className="responsive-logo"
         >
-          <Logo size="large" className="w-64 h-64 md:w-64 md:h-64" />
+          <Logo size="large" className="w-40 h-40 sm:w-64 sm:h-64" />
         </motion.div>
       </div>
       
       <motion.div 
-        className="z-20 flex flex-col items-center text-center"
+        className="z-20 flex flex-col items-center text-center mt-32 sm:mt-0"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
         <motion.h1 
-          className="text-4xl md:text-5xl font-bold text-accent mb-6 font-serif"
+          className="text-5xl sm:text-4xl md:text-5xl font-bold text-accent mb-4 sm:mb-6 font-basteleur"
           initial={{ y: -20 }}
           animate={{ y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
@@ -118,7 +118,7 @@ const WaitingForPlayers: React.FC = () => {
         >
           {/* Pulse effect behind mascot */}
           <motion.div
-            className="absolute inset-0 bg-special  rounded-full"
+            className="absolute inset-0 bg-special rounded-full"
             animate={{
               scale: [1.1, 1.2, 1.1],
               opacity: [0.5, 0.2, 0.5]
@@ -137,7 +137,7 @@ const WaitingForPlayers: React.FC = () => {
           
           {teamData.mascotId > 0 && !imageError ? (
             <motion.div
-              className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center"
+              className="w-52 h-52 sm:w-48 sm:h-48 md:w-64 md:h-64 flex items-center justify-center responsive-mascot"
               animate={{
                 y: [0, -10, 0],
                 rotate: [0, 2, 0, -2, 0]
@@ -156,7 +156,7 @@ const WaitingForPlayers: React.FC = () => {
             </motion.div>
           ) : (
             <motion.div 
-              className="w-48 h-48 md:w-64 md:h-64 bg-accent rounded-full flex items-center justify-center"
+              className="w-36 h-36 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-accent rounded-full flex items-center justify-center responsive-mascot"
               animate={{
                 y: [0, -10, 0]
               }}
@@ -166,22 +166,22 @@ const WaitingForPlayers: React.FC = () => {
                 repeatType: "reverse"
               }}
             >
-              <p className="text-primary text-4xl font-serif">?</p>
+              <p className="text-primary text-4xl font-basteleur">?</p>
             </motion.div>
           )}
         </motion.div>
         
         <motion.div 
-          className="mt-8 text-center"
+          className="mt-4 sm:mt-8 text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <p className="text-accent text-xl font-caviar">
-            Čekamo da igra počne...
+          <p className="text-accent text-2xl font-caviar">
+            čekamo da igra počne...
           </p>
-          <p className="text-accent/70 text-sm mt-2">
-            Domaćin će započeti kviz uskoro
+          <p className="text-accent/70 text-lg mt-2">
+            domaćin će započeti kviz uskoro
           </p>
           
           {/* Tiebreaking Rules Component - REMOVED */}
