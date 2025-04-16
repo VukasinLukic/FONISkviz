@@ -91,7 +91,7 @@ const WaitingForPlayers: React.FC = () => {
           transition={{ duration: 0.5 }}
           className="responsive-logo"
         >
-          <Logo size="large" className="w-40 h-40 sm:w-64 sm:h-64 ml-12" />
+          <Logo size="large" className="w-40 h-40 sm:w-64 sm:h-64 ml-7" />
         </motion.div>
       </div>
       

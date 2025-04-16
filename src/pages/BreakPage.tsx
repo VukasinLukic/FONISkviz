@@ -9,14 +9,14 @@ import { Button } from '../components/ui/button';
 
 // Update category names - now using all categories
 const CATEGORY_NAMES = [
-  "Ko zna Zna?", 
-  "Istina ili Laž",
+  "Ko zna zna!", 
+  "Istina ili laž",
   "Ko živi ovde?",
   "Koji film/serija je u pitanju?",
-  "Pogodite crtani",
-  "Pogodite fonisovca",
-  "Pogodi Pesmu na osnovu Emoji-a",
-  "FON FON FONIS"
+  "Pogodite crtani!",
+  "Pogodite fonisovca!",
+  "Pogodi pesmu na osnovu emoji-a!",
+  "FON FON FONIS!!!"
 ];
 const QUESTIONS_PER_CATEGORY = 8;
 
@@ -124,8 +124,8 @@ const BreakPage: React.FC = () => {
         >
           <div className="bg-accent rounded-3xl px-10 py-8 shadow-xl border-4 border-accent">
             <div className="text-center">
-              <div className="font-bold text-secondary text-3xl tracking-tight">
-                Kvizaši Fonisa spremite se .... sledeća kategorija<br/>kviza je:
+              <div className="font-bold text-secondary text-4xl tracking-tight">
+                kvizaši FONIS-a spremite se....<br/>sledeća kategorija kviza je:
               </div>
               <div className="font-bold text-6xl text-special mt-4 font-serif">
                 {gameLoading ? "..." : nextCategoryName}
@@ -189,10 +189,10 @@ const BreakPage: React.FC = () => {
               <span className="h-3 w-3 bg-primary rounded-full animate-bounce"></span>
               <span className="h-3 w-3 bg-primary rounded-full animate-bounce delay-150"></span>
               <span className="h-3 w-3 bg-primary rounded-full animate-bounce delay-300"></span>
-              <span className="ml-2">Nastavljam</span>
+              <span className="ml-2">nastavljam</span>
             </div>
           ) : (
-            'Nastavi Kviz'
+            'nastavi kviz'
           )}
         </Button>
       </motion.div>

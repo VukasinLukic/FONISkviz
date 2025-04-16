@@ -145,14 +145,16 @@ const PlayerAnswerResultPage = () => {
       </div>
       
       {/* Team Name Display */}
-      <motion.div
-        className="text-accent text-xl sm:text-2xl font-bold font-basteleur mb-2 sm:mb-4 z-40 bg-accent/10 px-4 sm:px-6 py-1 sm:py-2 rounded-lg"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        Tim: {teamName}
-      </motion.div>
+      <motion.h1 
+          className="text-5xl sm:text-4xl md:text-5xl mt-16 font-bold text-accent mb-4 sm:mb-6 font-basteleur"
+          initial={{ y: -20 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          {teamName}
+        </motion.h1>
+
+        
 
       {/* Result Display */}
       <div className="flex flex-col items-center justify-center flex-grow max-w-xl w-full px-2 sm:px-0">
@@ -189,10 +191,10 @@ const PlayerAnswerResultPage = () => {
             
             <h1 className="text-2xl sm:text-4xl font-bold mb-4 sm:mb-6 font-basteleur text-accent">
               {displayResult.answerIndex === -1 
-                ? 'Niste odgovorili' 
+                ? 'niste odgovorili' 
                 : displayResult.isCorrect 
-                  ? 'Tačan odgovor!' 
-                  : 'Netačan odgovor'}
+                  ? 'tačan odgovor!' 
+                  : 'netačan odgovor'}
             </h1>
             
             {/* Always show both answers for clarity */}
@@ -201,7 +203,7 @@ const PlayerAnswerResultPage = () => {
               {displayResult.answerIndex !== -1 && (
                 <div className={`p-3 sm:p-5 rounded-lg border-2 ${displayResult.isCorrect ? 'bg-green-700/20 border-highlight/40' : 'bg-red-500/20 border-red-500/40'}`}>
                   <p className={`text-base sm:text-lg mb-1 ${displayResult.isCorrect ? 'text-highlight' : 'text-red-200'}`}>
-                    Vaš odgovor:
+                    vaš odgovor:
                   </p>
                   <p className="font-bold text-xl sm:text-2xl text-white">
                     {displayResult.selectedAnswer}

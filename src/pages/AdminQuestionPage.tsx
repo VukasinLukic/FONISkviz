@@ -254,9 +254,14 @@ const AdminQuestionPage = () => {
             currentQuestion?.category === "Pogodi pesmu na osnovu emoji-a") && currentQuestion?.imageUrl ? (
             <>
               {/* Title for image-based categories */}
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-6 ">
-                {currentQuestion?.text || 'Učitavanje pitanja...'}
-              </h2>
+              <motion.h1 
+                className="text-accent text-4xl md:text-5xl font-bold mb-6 md:mb-8 font-basteleur text-center max-w-6xl"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                {currentQuestion?.text}
+              </motion.h1>
               
               {/* Image for image-based categories */}
               <div className="mb-8 flex justify-center">
@@ -274,9 +279,14 @@ const AdminQuestionPage = () => {
             </>
           ) : (
             /* Title for all other categories */
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-12">
-              {currentQuestion?.text || 'Učitavanje pitanja...'}
-            </h2>
+            <motion.h1 
+              className="text-accent text-4xl md:text-5xl font-bold mb-6 md:mb-8 font-basteleur text-center max-w-6xl"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {currentQuestion?.text}
+            </motion.h1>
           )}
           
           {/* Conditionally render options based on category */}
@@ -307,7 +317,7 @@ const AdminQuestionPage = () => {
                      <span className="inline-block w-10 h-10 rounded-full pt-1 bg-accent/20 text-white mb-4">
                        {String.fromCharCode(65 + index)}
                      </span>
-                     <p className="text-accent text-5xl">{option}</p>
+                     <p className="text-white text-5xl">{option}</p>
                    </div>
                  ))}
                  {/* Add empty divs if less than 4 options to maintain grid */}
@@ -386,7 +396,7 @@ const AdminQuestionPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
         >
-          Pitanje {game.currentQuestionIndex + 1} od {game.questionOrder.length}
+          pitanje {game.currentQuestionIndex + 1} od {game.questionOrder.length}
           {currentQuestion.category && (
             <span className="ml-4 px-3 py-1 bg-accent/20 rounded-full text-sm">
               {currentQuestion.category as string}

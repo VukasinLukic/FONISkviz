@@ -94,30 +94,30 @@ const PlayerWaitingAnswerPage = () => {
       </div>
       
       {/* Team Name Display */}
-      <motion.div
-        className="text-accent text-xl sm:text-2xl font-bold font-basteleur mb-2 sm:mb-4 z-40 bg-accent/10 px-4 sm:px-6 py-1 sm:py-2 rounded-lg"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        Tim: {teamName}
-      </motion.div>
+      <motion.h1 
+          className="text-5xl sm:text-4xl md:text-5xl mt-16 font-bold text-accent mb-4 sm:mb-6 font-basteleur"
+          initial={{ y: -20 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          {teamName}
+        </motion.h1>
       
       {/* Waiting Message - No animation */}
       <div className="flex flex-col items-center justify-center flex-grow max-h-[60vh]">
         <div className="text-center z-30 mb-2 sm:mb-8">
           <h1 className="text-2xl sm:text-4xl text-accent font-bold mb-2 sm:mb-4 font-basteleur">
-            Čekanje rezultata...
+            čekanje rezultata...
           </h1>
           <p className="text-accent/70 mb-4 sm:mb-12 text-base sm:text-xl">
-            Sačekajte da se otkrije tačan odgovor!
+            sačekajte da svi timovi odgovore!
           </p>
         </div>
         
         {/* Team Mascot Animation */}
         {mascotId > 0 && !imageError ? (
           <motion.div
-            className="w-36 h-36 sm:w-56 sm:h-56 md:w-72 md:h-72 flex items-center justify-center p-4 sm:p-6 bg-accent/10 rounded-full shadow-inner responsive-mascot"
+            className="w-52 h-52 sm:w-56 sm:h-56 md:w-72 md:h-72 flex items-center justify-center p-4 sm:p-6 bg-accent/10 rounded-full shadow-inner responsive-mascot"
             animate={{
               scale: [1, 1.05, 1],
               y: [0, -10, 0]

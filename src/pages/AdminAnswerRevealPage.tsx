@@ -121,7 +121,7 @@ const AdminAnswerRevealPage = () => {
                 return {
                     teamId: team.id,
                     teamName: team.name || `Team ${team.id.substring(0, 4)}`,
-                    selectedAnswer: "Nije odgovoreno", // Display text for unanswered
+                    selectedAnswer: "nije odgovoreno", // Display text for unanswered
                     isCorrect: null,
                     pointsAwarded: 0, // Award 0 points explicitly here for sorting/display
                     answerIndex: -1
@@ -362,13 +362,13 @@ const AdminAnswerRevealPage = () => {
             {/* --- Question & Answer Info --- */}
             <div className="bg-secondary/20 p-8 rounded-xl backdrop-blur-md mb-8 text-center shadow-lg">
               <h2 className="text-2xl md:text-3xl font-bold text-accent mb-4 font-serif">
-                Pitanje {game.currentQuestionIndex + 1}:
+                pitanje {game.currentQuestionIndex + 1}:
               </h2>
               <p className="text-xl md:text-2xl lg:text-3xl text-accent/95 mb-6 font-serif leading-relaxed">
                 {currentQuestion.text}
               </p>
               <div className="border-t-2 border-accent/30 pt-5 mt-5">
-                <p className="text-lg md:text-3xl text-accent/80 mb-2">Tačan odgovor je:</p>
+                <p className="text-lg md:text-3xl text-accent/80 mb-2">tačan odgovor je:</p>
                 <p className="text-3xl md:text-5xl font-bold text-highlight tracking-wide">
                   {derivedCorrectAnswerText} 
                 </p>
@@ -379,7 +379,7 @@ const AdminAnswerRevealPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               {/* Section 1: Individual Team Answers for this Question */}
               <div className="space-y-4 bg-primary/40 backdrop-blur-sm p-5 rounded-lg shadow-md">
-                <h3 className="text-xl md:text-3xl font-semibold text-accent mb-4 border-b border-accent/20 pb-3">Odgovori Timova:</h3>
+                <h3 className="text-xl md:text-3xl font-semibold text-accent mb-4 border-b border-accent/20 pb-3">odgovori timova:</h3>
                 {teamAnswers.length > 0 ? (
                   teamAnswers.length > 4 ? (
                     // Multi-column layout for more than 4 teams
@@ -432,7 +432,7 @@ const AdminAnswerRevealPage = () => {
                         <div className="flex-1 mr-4 min-w-0">
                           <span className="font-bold text-accent text-lg block truncate mb-1" title={answer.teamName}>{answer.teamName}</span>
                           <span className={`text-m ${answer.isCorrect === null ? 'text-accent/60 italic' : 'text-accent/80'}`}>
-                            Odgovor: {answer.selectedAnswer} {/* Will show "Nije odgovoreno" if null */}
+                            odgovor: {answer.selectedAnswer} {/* Will show "Nije odgovoreno" if null */}
                           </span>
                         </div>
                         {/* Only show points if they answered */}
@@ -451,7 +451,7 @@ const AdminAnswerRevealPage = () => {
 
               {/* Section 2: Overall Leaderboard */}
               <div className="space-y-4 bg-primary/40 backdrop-blur-sm p-5 rounded-lg shadow-md">
-                <h3 className="text-xl md:text-3xl font-semibold text-accent mb-4 border-b border-accent/20 pb-3">Trenutna Rang Lista:</h3>
+                <h3 className="text-xl md:text-3xl font-semibold text-accent mb-4 border-b border-accent/20 pb-3">trenutna rang lista:</h3>
                 {rankedTeams.length > 0 ? (
                   rankedTeams.length > 4 ? (
                     // Multi-column layout for more than 4 teams
@@ -475,9 +475,9 @@ const AdminAnswerRevealPage = () => {
                             className="w-8 h-8 mr-3 flex-shrink-0 rounded-full object-cover border-2 border-accent/30"
                           />
                           <div className="flex-1 min-w-0 mr-2">
-                            <span className="font-bold text-accent text-xl text-base block truncate">{team.name}</span>
+                            <span className="font-bold text-accent text-xl block truncate">{team.name}</span>
                           </div>
-                          <div className="text-lg text-xl font-bold text-accent whitespace-nowrap">
+                          <div className="text-xl font-bold text-accent whitespace-nowrap">
                             {team.points}
                           </div>
                         </motion.div>
