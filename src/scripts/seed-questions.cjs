@@ -21,246 +21,268 @@ console.log('Firebase initialized successfully.');
 
 // Test pitanja za kviz
 const testQuestions = [
+  // Geography questions
   {
-    id: 'q1',
-    text: 'Sa kojom od sledećih boginja Zevs nije spavao:',
-    options: ['Hera', 'Demetra', 'Afrodita', 'Metida'],
-    correctAnswerIndex: 2, // Afrodita
-    category: 'Ko zna Zna?'
+    id: "q1",
+    text: "Koja država ima najviše susednih država u Africi?",
+    options: ["Egipat", "Sudan", "Demokratska Republika Kongo", "Čad"],
+    correctAnswer: "Demokratska Republika Kongo",
+    correctAnswerIndex: 2,
+    category: "Ko zna Zna?"
   },
   {
-    id: 'q2',
-    text: 'Kako glasi ime i prezime pevačice koja izvodi pesmu "Kralj ponoći"?',
-    options: ['Lepava Lukić', 'Nada Polić', 'Fahreta Živojinović', 'Snežana Babić'],
-    correctAnswerIndex: 1, // Nada Polić
-    category: 'Ko zna Zna?'
+    id: "q2",
+    text: "Koji je najmanje naseljen kontinent (ne računajući Antarktik)?",
+    options: ["Australija", "Evropa", "Južna Amerika", "Azija"],
+    correctAnswer: "Australija",
+    correctAnswerIndex: 0,
+    category: "Ko zna Zna?"
   },
   {
-    id: 'q3',
-    text: 'Kroz koju državu protiče reka Amu Darja?',
-    options: ['Avganistan', 'Indiju', 'Siriju', 'Gruziju'],
-    correctAnswerIndex: 0, // Avganistan
-    category: 'Ko zna Zna?'
+    id: "q3",
+    text: "U kojem okeanu se nalazi najdublja tačka Zemlje – Marijanski rov?",
+    options: ["Atlantski", "Tihi", "Indijski", "Južni"],
+    correctAnswer: "Tihi",
+    correctAnswerIndex: 1,
+    category: "Ko zna Zna?"
   },
   {
-    id: 'q4',
-    text: 'Koji fiktivni lik se odriče svoje duše u potrazi za neograničenim znanjem?',
-    options: ['Ahil', 'Dorijan Grej', 'Faust', 'Doktor Džekil'],
-    correctAnswerIndex: 2, // Faust
-    category: 'Ko zna Zna?'
+    id: "q4",
+    text: "Koji grad se smatra najsevernijim glavnim gradom sveta?",
+    options: ["Oslo", "Rejkjavik", "Helsinki", "Nuuk"],
+    correctAnswer: "Rejkjavik",
+    correctAnswerIndex: 1,
+    category: "Ko zna Zna?"
   },
   {
-    id: 'q5',
-    text: 'Koliko približno iznosi verovatnoća da, nakon tri sina, isti roditelji kao četvrto dete dobiju ćerku?',
-    options: ['12.5%', '75%', '80%', '50%'],
-    correctAnswerIndex: 3, // 50%
-    category: 'Ko zna Zna?'
+    id: "q5",
+    text: "Koja država ima najvišu prosečnu nadmorsku visinu?",
+    options: ["Nepal", "Butan", "Bolivija", "Švajcarska"],
+    correctAnswer: "Bolivija",
+    correctAnswerIndex: 2,
+    category: "Ko zna Zna?"
   },
   {
-    id: 'q6',
-    text: 'Koja od sledećih država se prostire kroz najviše vremenskih zona?',
-    options: ['UK', 'SAD', 'Rusija', 'Francuska'],
-    correctAnswerIndex: 3, // Francuska
-    category: 'Ko zna Zna?'
+    id: "q6",
+    text: "Koja reka čini prirodnu granicu između SAD i Meksika?",
+    options: ["Kolorado", "Misisipi", "Rio Grande", "Yukon"],
+    correctAnswer: "Rio Grande",
+    correctAnswerIndex: 2,
+    category: "Ko zna Zna?"
   },
   {
-    id: 'q7',
-    text: 'Iz kog jezika potiče reč parazit?',
-    options: ['engleskog', 'grčkog', 'latinskog', 'arapskog'],
-    correctAnswerIndex: 1, // grčkog
-    category: 'Ko zna Zna?'
+    id: "q7",
+    text: "Koja je najsušnija nenaseljena pustinja na svetu?",
+    options: ["Atakama", "Sahara", "Gobi", "Kalahari"],
+    correctAnswer: "Atakama",
+    correctAnswerIndex: 0,
+    category: "Ko zna Zna?"
   },
   {
-    id: 'q8',
-    text: 'Koji je najtrofejniji klub u istoriji Lige šampiona?',
-    options: ['Barselona', 'Borusija', 'Real Madrid', 'Arsenal'],
-    correctAnswerIndex: 2, // Real Madrid
-    category: 'Ko zna Zna?'
+    id: "q8",
+    text: "Koja planina nije deo planinskog lanca Himalaja?",
+    options: ["K2", "Annapurna", "Kangchenjunga", "Ararat"],
+    correctAnswer: "Ararat",
+    correctAnswerIndex: 3,
+    category: "Ko zna Zna?"
+  },
+  
+  // Movie questions
+  {
+    id: "q9",
+    text: "Koji reditelj je najviše puta osvojio Oskara za režiju?",
+    options: ["Martin Scorsese", "Steven Spielberg", "John Ford", "Billy Wilder"],
+    correctAnswer: "John Ford",
+    correctAnswerIndex: 2,
+    category: "Koji film/serija je u pitanju?"
   },
   {
-    id: 'q9',
-    text: 'Prosečan čovek može da zadrži pažnju duže od zlatne ribice.',
-    options: ['Tačno', 'Netačno'],
-    correctAnswerIndex: 1, // Netačno
-    category: 'Istina ili Laž'
+    id: "q10",
+    text: "U kojem filmu se pojavljuje izmišljeni jezik \"Na'vi\"?",
+    options: ["Interstellar", "Avatar", "Dune", "Ender's Game"],
+    correctAnswer: "Avatar",
+    correctAnswerIndex: 1,
+    category: "Koji film/serija je u pitanju?"
   },
   {
-    id: 'q10',
-    text: 'Možeš ubediti svoj mozak da si pijan tako što se ponašaš kao da si pio — čak i bez alkohola.',
-    options: ['Tačno', 'Netačno'],
-    correctAnswerIndex: 0, // Tačno
-    category: 'Istina ili Laž'
+    id: "q11",
+    text: "Koji film je najduži (po trajanju) dobitnik Oskara za najbolji film?",
+    options: ["Lawrence of Arabia", "Gone with the Wind", "The Godfather Part II", "Titanic"],
+    correctAnswer: "Gone with the Wind",
+    correctAnswerIndex: 1,
+    category: "Koji film/serija je u pitanju?"
   },
   {
-    id: 'q11',
-    text: 'Ljudi bolje prepoznaju laži dok žvaću žvaku.',
-    options: ['Tačno', 'Netačno'],
-    correctAnswerIndex: 1, // Netačno
-    category: 'Istina ili Laž'
+    id: "q12",
+    text: "Ko je tumačio lik Hannibala Lectera u filmu \"Manhunter\" iz 1986?",
+    options: ["Anthony Hopkins", "Brian Cox", "Mads Mikkelsen", "Richard Harris"],
+    correctAnswer: "Brian Cox",
+    correctAnswerIndex: 1,
+    category: "Koji film/serija je u pitanju?"
   },
   {
-    id: 'q12',
-    text: 'Veća je verovatnoća da ćeš se složiti s nekim ako piješ neki topli napitak dok pričate.',
-    options: ['Tačno', 'Netačno'],
-    correctAnswerIndex: 0, // Tačno
-    category: 'Istina ili Laž'
+    id: "q13",
+    text: "Koji film je imao radni naziv \"Blue Harvest\" tokom produkcije?",
+    options: ["Alien", "Empire Strikes Back", "Return of the Jedi", "Raiders of the Lost Ark"],
+    correctAnswer: "Return of the Jedi",
+    correctAnswerIndex: 2,
+    category: "Koji film/serija je u pitanju?"
   },
   {
-    id: 'q13',
-    text: 'Muzika može uticati na to kako doživljavamo ukus hrane.',
-    options: ['Tačno', 'Netačno'],
-    correctAnswerIndex: 0, // Tačno
-    category: 'Istina ili Laž'
+    id: "q14",
+    text: "Koji glumac NIJE bio u filmu \"The Thin Red Line\"?",
+    options: ["Sean Penn", "John Travolta", "George Clooney", "Tom Hanks"],
+    correctAnswer: "Tom Hanks",
+    correctAnswerIndex: 3,
+    category: "Koji film/serija je u pitanju?"
   },
   {
-    id: 'q14',
-    text: 'Neki ljudi razmišljaju bolje u toaletu.',
-    options: ['Tačno', 'Netačno'],
-    correctAnswerIndex: 0, // Tačno
-    category: 'Istina ili Laž'
+    id: "q15",
+    text: "Koji film je osvojio Zlatnu palmu u Kanu 2019. godine?",
+    options: ["Joker", "Parasite", "1917", "Roma"],
+    correctAnswer: "Parasite",
+    correctAnswerIndex: 1,
+    category: "Koji film/serija je u pitanju?"
   },
   {
-    id: 'q15',
-    text: 'Mozak se "resetuje" svaki put kad kinemo.',
-    options: ['Tačno', 'Netačno'],
-    correctAnswerIndex: 1, // Netačno
-    category: 'Istina ili Laž'
+    id: "q16",
+    text: "U kom filmu postoji lik po imenu Keyser Söze?",
+    options: ["Heat", "The Usual Suspects", "Memento", "American Psycho"],
+    correctAnswer: "The Usual Suspects",
+    correctAnswerIndex: 1,
+    category: "Koji film/serija je u pitanju?"
+  },
+  
+  // Gaming questions
+  {
+    id: "q17",
+    text: "Koja igrica je prva koristila sistem proceduralno generisanog sveta?",
+    options: ["Minecraft", "Rogue", "Elite", "Diablo"],
+    correctAnswer: "Elite",
+    correctAnswerIndex: 2,
+    category: "Ko živi ovde?"
   },
   {
-    id: 'q16',
-    text: 'Kad pričamo sami sa sobom, postajemo pametniji.',
-    options: ['Tačno', 'Netačno'],
-    correctAnswerIndex: 0, // Tačno
-    category: 'Istina ili Laž'
+    id: "q18",
+    text: "U kojoj igri se pojavljuje lik po imenu Arthas Menethil?",
+    options: ["Diablo", "World of Warcraft", "The Elder Scrolls", "Dark Souls"],
+    correctAnswer: "World of Warcraft",
+    correctAnswerIndex: 1,
+    category: "Ko živi ovde?"
   },
   {
-    id: 'q17',
-    text: 'Ko živi ovde?',
-    options: ['Rachel Green', 'Carrie Bradshaw', 'Mindy Lahiri', 'Jess Day'],
-    correctAnswerIndex: 1, // Carrie Bradshaw is now at index 1
-    category: 'Ko živi ovde?',
-    imageUrl: '/assets/questions/Carrie_sex_i_grad.jpg'
+    id: "q19",
+    text: "Koja kompanija je razvila igru \"Hollow Knight\"?",
+    options: ["Supergiant Games", "Team Cherry", "Devolver Digital", "Motion Twin"],
+    correctAnswer: "Team Cherry",
+    correctAnswerIndex: 1,
+    category: "Ko živi ovde?"
   },
   {
-    id: 'q18',
-    text: 'Ko živi ovde?',
-    options: ['Chandler Bing', 'Jake Peralta', 'Charlie Harper', 'Barney Stinson'],
-    correctAnswerIndex: 2, // Charlie Harper is now at index 2
-    category: 'Ko živi ovde?',
-    imageUrl: '/assets/questions/Charlie_Dva_ipo_muskarca.jpg'
+    id: "q20",
+    text: "Koji FPS serijal je započeo kao mod za Half-Life?",
+    options: ["Call of Duty", "Counter-Strike", "Battlefield", "Doom"],
+    correctAnswer: "Counter-Strike",
+    correctAnswerIndex: 1,
+    category: "Ko živi ovde?"
   },
   {
-    id: 'q19',
-    text: 'Ko živi ovde?',
-    options: ['Alex Russo', 'Lizzie McGuire', 'Hannah Montana', 'Raven Baxter'],
-    correctAnswerIndex: 2, // Hannah Montana is now at index 2
-    category: 'Ko živi ovde?',
-    imageUrl: '/assets/questions/Hannah_Montana.jpg'
+    id: "q21",
+    text: "Koji RPG je poznat po sistemu \"V.A.T.S.\"?",
+    options: ["Cyberpunk 2077", "Fallout", "Dragon Age", "The Witcher"],
+    correctAnswer: "Fallout",
+    correctAnswerIndex: 1,
+    category: "Ko živi ovde?"
   },
   {
-    id: 'q20',
-    text: 'Ko živi ovde?',
-    options: ['Harry Potter', 'Lucy Pevensie', 'Percy Jackson', 'Frodo Baggins'],
-    correctAnswerIndex: 3, // Frodo Baggins is now at index 3
-    category: 'Ko živi ovde?',
-    imageUrl: '/assets/questions/Hobit_Gospodar_prstenova.jpg'
+    id: "q22",
+    text: "U kojoj igri se prvi put pojavio Mario?",
+    options: ["Mario Bros", "Donkey Kong", "Super Mario World", "Super Mario 64"],
+    correctAnswer: "Donkey Kong",
+    correctAnswerIndex: 1,
+    category: "Ko živi ovde?"
   },
   {
-    id: 'q21',
-    text: 'Ko živi ovde?',
-    options: ['Tami Taylor', 'Lorelai Gilmore', 'Rebecca Pearson', 'Sarah Braverman'],
-    correctAnswerIndex: 1, // Lorelai Gilmore is now at index 1
-    category: 'Ko živi ovde?',
-    imageUrl: '/assets/questions/Lorelai_Gilmore_girls.jpg'
+    id: "q23",
+    text: "Koja je najprodavanija konzolna igra svih vremena?",
+    options: ["Grand Theft Auto V", "Wii Sports", "Red Dead Redemption 2", "The Last of Us"],
+    correctAnswer: "Wii Sports",
+    correctAnswerIndex: 1,
+    category: "Ko živi ovde?"
   },
   {
-    id: 'q22',
-    text: 'Ko živi ovde?',
-    options: ['Beetlejuice', 'Casper the Friendly Ghost', 'The Addams Family', 'Ghostbusters'],
-    correctAnswerIndex: 2, // The Addams Family is now at index 2
-    category: 'Ko živi ovde?',
-    imageUrl: '/assets/questions/Porodica_Adams.jpg'
+    id: "q24",
+    text: "Koja igra se odigrava u izmišljenom gradu Rapture?",
+    options: ["Prey", "System Shock", "Bioshock", "Half-Life 2"],
+    correctAnswer: "Bioshock",
+    correctAnswerIndex: 2,
+    category: "Ko živi ovde?"
+  },
+  
+  // IT questions
+  {
+    id: "q25",
+    text: "Koji programerski jezik je poznat po tzv. \"white space-sensitive\" sintaksi?",
+    options: ["Java", "Python", "C++", "Ruby"],
+    correctAnswer: "Python",
+    correctAnswerIndex: 1,
+    category: "Pogodite crtani"
   },
   {
-    id: 'q23',
-    text: 'Ko živi ovde?',
-    options: ['Marissa Cooper', 'Elena Gilbert', 'Serena van der Woodsen', 'Aria Montgomery'],
-    correctAnswerIndex: 2, // Serena van der Woodsen is now at index 2
-    category: 'Ko živi ovde?',
-    imageUrl: '/assets/questions/Serena_Gossip_girl.jpg'
+    id: "q26",
+    text: "Koja je maksimalna vrednost za 32-bitni bezpredznakovni integer?",
+    options: ["2^31 - 1", "2^32 - 1", "2^32", "2^64 - 1"],
+    correctAnswer: "2^32 - 1",
+    correctAnswerIndex: 1,
+    category: "Pogodite crtani"
   },
   {
-    id: 'q24',
-    text: 'Ko živi ovde?',
-    options: ['Ross Geller', 'Ted Mosby', 'Jim Halpert', 'Nick Miller'],
-    correctAnswerIndex: 1, // Ted Mosby is now at index 1
-    category: 'Ko živi ovde?',
-    imageUrl: '/assets/questions/Ted_How_I_met_your_mother.jpg'
-  },
-  // Pitanja za kategoriju "Koji film/serija je u pitanju?"
-  {
-    id: 'q25',
-    text: 'Koji film/serija je u pitanju?',
-    options: ['Sabrina the Teenage Witch', 'Buffy the Vampire Slayer', 'Charmed', 'Witches of East End'],
-    correctAnswerIndex: 2, // Ćari is now at index 2
-    category: 'Koji film/serija je u pitanju?',
-    imageUrl: '/assets/questions/Cari.jpg'
+    id: "q27",
+    text: "Koji operativni sistem koristi \"XNU\" kao kernel?",
+    options: ["Linux", "Windows", "macOS", "Android"],
+    correctAnswer: "macOS",
+    correctAnswerIndex: 2,
+    category: "Pogodite crtani"
   },
   {
-    id: 'q26',
-    text: 'Koji film/serija je u pitanju?',
-    options: ['Harry Potter i kamen mudrosti', 'Harry Potter i odaja tajni', 'Fantastične zveri i gde ih naći', 'Harry Potter i zatočenik Azkabana'],
-    correctAnswerIndex: 1, // Harry Potter i odaja tajni is now at index 1
-    category: 'Koji film/serija je u pitanju?',
-    imageUrl: '/assets/questions/Harry_Potter_2.jpg'
+    id: "q28",
+    text: "Šta predstavlja skraćenica RAID u kontekstu skladištenja podataka?",
+    options: ["Random Access Indexed Data", "Redundant Array of Independent Disks", "Rapid Application and Integration Deployment", "Real-time Access Interface Design"],
+    correctAnswer: "Redundant Array of Independent Disks",
+    correctAnswerIndex: 1,
+    category: "Pogodite crtani"
   },
   {
-    id: 'q27',
-    text: 'Koji film/serija je u pitanju?',
-    options: ['Mala noćna muzika', 'Munje!', 'Sedam i po', 'Lajanje na zvezde'],
-    correctAnswerIndex: 3, // Lajanje na zvezde is now at index 3
-    category: 'Koji film/serija je u pitanju?',
-    imageUrl: '/assets/questions/Lajanje_na_zvezde.jpg'
+    id: "q29",
+    text: "Koja mrežna adresa se koristi za broadcast u IPv4?",
+    options: ["192.168.1.1", "127.0.0.1", "255.255.255.255", "0.0.0.0"],
+    correctAnswer: "255.255.255.255",
+    correctAnswerIndex: 2,
+    category: "Pogodite crtani"
   },
   {
-    id: 'q28',
-    text: 'Koji film/serija je u pitanju?',
-    options: ['Porodično blago', 'Ljubav, navika, panika', 'Mješoviti brak', 'Lisice'],
-    correctAnswerIndex: 1, // Ljubav, navika, panika is now at index 1
-    category: 'Koji film/serija je u pitanju?',
-    imageUrl: '/assets/questions/Ljubav_navika_panika.jpg'
+    id: "q30",
+    text: "Koja je osnovna razlika između TCP i UDP protokola?",
+    options: ["TCP je brži", "UDP je pouzdaniji", "TCP ima potvrdu prijema, UDP ne", "UDP koristi više portova"],
+    correctAnswer: "TCP ima potvrdu prijema, UDP ne",
+    correctAnswerIndex: 2,
+    category: "Pogodite crtani"
   },
   {
-    id: 'q29',
-    text: 'Koji film/serija je u pitanju?',
-    options: ['Munje!', 'Mrtav ladan', 'Mi nismo anđeli', 'Sedam i po'],
-    correctAnswerIndex: 2, // Mi nismo anđeli is now at index 2
-    category: 'Koji film/serija je u pitanju?',
-    imageUrl: '/assets/questions/Mi_nismo_andjeli.jpg'
+    id: "q31",
+    text: "Ko je tvorac GNU projekta?",
+    options: ["Linus Torvalds", "Steve Wozniak", "Richard Stallman", "Dennis Ritchie"],
+    correctAnswer: "Richard Stallman",
+    correctAnswerIndex: 2,
+    category: "Pogodite crtani"
   },
   {
-    id: 'q30',
-    text: 'Koji film/serija je u pitanju?',
-    options: ['Stižu dolari', 'Kursadžije', 'Porodično blago', 'Otvorena vrata'],
-    correctAnswerIndex: 3, // Otvorena vrata is now at index 3
-    category: 'Koji film/serija je u pitanju?',
-    imageUrl: '/assets/questions/Otvorena_vrata.jpg'
-  },
-  {
-    id: 'q31',
-    text: 'Koji film/serija je u pitanju?',
-    options: ['Riverdale', 'Pretty Little Liars', 'The Vampire Diaries', 'Gossip Girl'],
-    correctAnswerIndex: 1, // Pretty Little Liars is now at index 1
-    category: 'Koji film/serija je u pitanju?',
-    imageUrl: '/assets/questions/Pretty_little_liars.jpg'
-  },
-  {
-    id: 'q32',
-    text: 'Koji film/serija je u pitanju?',
-    options: ['Big Momma\'s House', 'Norbit', 'White Chicks', 'The Hot Chick'],
-    correctAnswerIndex: 2, // White Chicks is now at index 2
-    category: 'Koji film/serija je u pitanju?',
-    imageUrl: '/assets/questions/White_chicks.jpg'
+    id: "q32",
+    text: "Koji je najčešće korišćen port za HTTP protokol?",
+    options: ["21", "22", "80", "443"],
+    correctAnswer: "80",
+    correctAnswerIndex: 2,
+    category: "Pogodite crtani"
   },
   {
     id: 'q33',
