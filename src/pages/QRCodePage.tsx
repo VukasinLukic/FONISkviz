@@ -236,7 +236,7 @@ const QRCodePage: React.FC<QRCodePageProps> = () => {
                 Skenirajte QR kod ili unesite Kod Igre
               </p>
               <p className="text-center text-accent mb-1 opacity-90 text-sm">
-                na <span className="font-bold">foniskviz.site</span> da biste se pridružili
+                na stranici: <span className="font-bold">fonis-kviz.vercel.app</span> da biste se pridružili.
               </p>
             </motion.div>
             

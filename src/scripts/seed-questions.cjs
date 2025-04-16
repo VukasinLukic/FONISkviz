@@ -201,7 +201,7 @@ const testQuestions = [
   {
     id: 'q25',
     text: 'Koji film/serija je u pitanju?',
-    options: ['Sabrina the Teenage Witch', 'Buffy the Vampire Slayer', 'Ćari', 'Witches of East End'],
+    options: ['Sabrina the Teenage Witch', 'Buffy the Vampire Slayer', 'Charmed', 'Witches of East End'],
     correctAnswerIndex: 2, // Ćari is now at index 2
     category: 'Koji film/serija je u pitanju?',
     imageUrl: '/assets/questions/Cari.jpg'
@@ -455,9 +455,9 @@ const testQuestions = [
   },
   {
     id: 'q60',
-    text: 'Koliko sati dnevno treba da se uči ekonomija da bi se dobila desetka, po rečima Dragane Kragulj?',
+    text: 'Koliko sati nedeljno treba da se uči ekonomija da bi se dobila desetka, po rečima Dragane Kragulj?',
     options: ['20', '40', '25', '15'],
-    correctAnswerIndex: 1, // 40 (assuming based on position)
+    correctAnswerIndex: 2, // 25 (assuming based on position)
     category: 'FON FON FONIS'
   },
   {
@@ -476,7 +476,7 @@ const testQuestions = [
   },
   {
     id: 'q63',
-    text: 'Koja od sledećih žurki nije u organizaciji studenata FON-a?',
+    text: 'Koja od sledećih žurki koju organiziju FON-ovci, zapravo ne postoji?',
     options: ['FONight', 'FONcy', 'FONove', 'FONergy'],
     correctAnswerIndex: 3, // d) - (zero indexed)
     category: 'FON FON FONIS'

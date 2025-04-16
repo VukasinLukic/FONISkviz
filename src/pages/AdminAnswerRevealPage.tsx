@@ -368,8 +368,8 @@ const AdminAnswerRevealPage = () => {
                 {currentQuestion.text}
               </p>
               <div className="border-t-2 border-accent/30 pt-5 mt-5">
-                <p className="text-lg md:text-xl text-accent/80 mb-2">Tačan odgovor je:</p>
-                <p className="text-3xl md:text-4xl font-bold text-highlight tracking-wide">
+                <p className="text-lg md:text-3xl text-accent/80 mb-2">Tačan odgovor je:</p>
+                <p className="text-3xl md:text-5xl font-bold text-highlight tracking-wide">
                   {derivedCorrectAnswerText} 
                 </p>
               </div>
@@ -379,36 +379,71 @@ const AdminAnswerRevealPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               {/* Section 1: Individual Team Answers for this Question */}
               <div className="space-y-4 bg-primary/40 backdrop-blur-sm p-5 rounded-lg shadow-md">
-                <h3 className="text-xl md:text-2xl font-semibold text-accent mb-4 border-b border-accent/20 pb-3">Odgovori Timova:</h3>
+                <h3 className="text-xl md:text-3xl font-semibold text-accent mb-4 border-b border-accent/20 pb-3">Odgovori Timova:</h3>
                 {teamAnswers.length > 0 ? (
-                  teamAnswers.map((answer, index) => (
-                    <motion.div
-                      key={answer.teamId}
-                      className={`p-4 rounded-lg flex justify-between items-center transition-colors duration-300 
-                        ${answer.isCorrect === null 
-                          ? 'bg-gray-500/30 border border-gray-400/40' // Gray for unanswered (isCorrect is null)
-                          : answer.isCorrect 
-                            ? 'bg-green-700/30 border border-highlight/40' // Green for correct
-                            : 'bg-red-500/30 border border-red-400/40' // Red for incorrect
-                        }`}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <div className="flex-1 mr-4 min-w-0">
-                        <span className="font-bold text-accent text-lg block truncate mb-1" title={answer.teamName}>{answer.teamName}</span>
-                        <span className={`text-m ${answer.isCorrect === null ? 'text-accent/60 italic' : 'text-accent/80'}`}>
-                          Odgovor: {answer.selectedAnswer} {/* Will show "Nije odgovoreno" if null */}
-                        </span>
-                      </div>
-                      {/* Only show points if they answered */}
-                      {answer.isCorrect !== null && (
-                        <span className={`font-bold text-xl whitespace-nowrap ${answer.isCorrect ? 'text-highlight' : 'text-accent/90'}`}>
-                          +{answer.pointsAwarded ?? 0} pts
-                        </span>
-                      )}
-                    </motion.div>
-                  ))
+                  teamAnswers.length > 4 ? (
+                    // Multi-column layout for more than 4 teams
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ">
+                      {teamAnswers.map((answer, index) => (
+                        <motion.div
+                          key={answer.teamId}
+                          className={`p-3 rounded-lg flex justify-between items-center transition-colors duration-300 
+                            ${answer.isCorrect === null 
+                              ? 'bg-gray-500/30 border border-gray-400/40' // Gray for unanswered (isCorrect is null)
+                              : answer.isCorrect 
+                                ? 'bg-green-700/30 border border-highlight/40' // Green for correct
+                                : 'bg-red-500/30 border border-red-400/40' // Red for incorrect
+                            }`}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <div className="flex-1 mr-2 min-w-0">
+                            <span className="font-bold text-accent text-base block truncate mb-1" title={answer.teamName}>{answer.teamName}</span>
+                            <span className={`text-sm ${answer.isCorrect === null ? 'text-accent/60 italic' : 'text-accent/80'}`}>
+                              {answer.selectedAnswer} {/* Will show "Nije odgovoreno" if null */}
+                            </span>
+                          </div>
+                          {/* Only show points if they answered */}
+                          {answer.isCorrect !== null && (
+                            <span className={`font-bold text-base text-2xl  whitespace-nowrap ${answer.isCorrect ? 'text-highlight' : 'text-accent/90'}`}>
+                              +{answer.pointsAwarded ?? 0}
+                            </span>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  ) : (
+                    // Single column layout for 4 or fewer teams
+                    teamAnswers.map((answer, index) => (
+                      <motion.div
+                        key={answer.teamId}
+                        className={`p-4 rounded-lg flex justify-between items-center transition-colors duration-300 
+                          ${answer.isCorrect === null 
+                            ? 'bg-gray-500/30 border border-gray-400/40' // Gray for unanswered (isCorrect is null)
+                            : answer.isCorrect 
+                              ? 'bg-green-700/30 border border-highlight/40' // Green for correct
+                              : 'bg-red-500/30 border border-red-400/40' // Red for incorrect
+                          }`}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <div className="flex-1 mr-4 min-w-0">
+                          <span className="font-bold text-accent text-lg block truncate mb-1" title={answer.teamName}>{answer.teamName}</span>
+                          <span className={`text-m ${answer.isCorrect === null ? 'text-accent/60 italic' : 'text-accent/80'}`}>
+                            Odgovor: {answer.selectedAnswer} {/* Will show "Nije odgovoreno" if null */}
+                          </span>
+                        </div>
+                        {/* Only show points if they answered */}
+                        {answer.isCorrect !== null && (
+                          <span className={`font-bold text-xl whitespace-nowrap ${answer.isCorrect ? 'text-highlight' : 'text-accent/90'}`}>
+                            +{answer.pointsAwarded ?? 0} pts
+                          </span>
+                        )}
+                      </motion.div>
+                    ))
+                  )
                 ) : (
                   <p className="text-accent/60 italic text-center py-5">Nema aktivnih timova.</p>
                 )}
@@ -416,34 +451,67 @@ const AdminAnswerRevealPage = () => {
 
               {/* Section 2: Overall Leaderboard */}
               <div className="space-y-4 bg-primary/40 backdrop-blur-sm p-5 rounded-lg shadow-md">
-                <h3 className="text-xl md:text-2xl font-semibold text-accent mb-4 border-b border-accent/20 pb-3">Trenutna Rang Lista:</h3>
+                <h3 className="text-xl md:text-3xl font-semibold text-accent mb-4 border-b border-accent/20 pb-3">Trenutna Rang Lista:</h3>
                 {rankedTeams.length > 0 ? (
-                  rankedTeams.map((team, index) => (
-                    <motion.div
-                      key={team.id}
-                      className={`p-4 rounded-lg flex items-center 
-                        bg-secondary/20 border 
-                        ${index === 0 ? 'border-yellow-400/70 shadow-md shadow-yellow-500/20' : 
-                          index === 1 ? 'border-gray-400/70' : 
-                          index === 2 ? 'border-amber-600/70' : 'border-secondary/30'}` 
-                      }
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <img 
-                        src={getMascotImageUrl(team.mascotId)}
-                        alt={`${team.name} mascot`} 
-                        className="w-10 h-10 mr-4 flex-shrink-0 rounded-full object-cover border-2 border-accent/30"
-                      />
-                      <div className="flex-1 min-w-0 mr-3">
-                        <span className="font-bold text-accent text-lg block truncate">{team.name}</span>
-                      </div>
-                      <div className="text-2xl font-bold text-accent whitespace-nowrap">
-                        {team.points} pts
-                      </div>
-                    </motion.div>
-                  ))
+                  rankedTeams.length > 4 ? (
+                    // Multi-column layout for more than 4 teams
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {rankedTeams.map((team, index) => (
+                        <motion.div
+                          key={team.id}
+                          className={`p-3 rounded-lg flex items-center 
+                            bg-secondary/20 border 
+                            ${index === 0 ? 'border-yellow-400/70 shadow-md shadow-yellow-500/20' : 
+                              index === 1 ? 'border-gray-400/70' : 
+                              index === 2 ? 'border-amber-600/70' : 'border-secondary/30'}` 
+                          }
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <img 
+                            src={getMascotImageUrl(team.mascotId)}
+                            alt={`${team.name} mascot`} 
+                            className="w-8 h-8 mr-3 flex-shrink-0 rounded-full object-cover border-2 border-accent/30"
+                          />
+                          <div className="flex-1 min-w-0 mr-2">
+                            <span className="font-bold text-accent text-xl text-base block truncate">{team.name}</span>
+                          </div>
+                          <div className="text-lg text-xl font-bold text-accent whitespace-nowrap">
+                            {team.points}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  ) : (
+                    // Single column layout for 4 or fewer teams
+                    rankedTeams.map((team, index) => (
+                      <motion.div
+                        key={team.id}
+                        className={`p-4 rounded-lg flex items-center 
+                          bg-secondary/20 border 
+                          ${index === 0 ? 'border-yellow-400/70 shadow-md shadow-yellow-500/20' : 
+                            index === 1 ? 'border-gray-400/70' : 
+                            index === 2 ? 'border-amber-600/70' : 'border-secondary/30'}` 
+                        }
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <img 
+                          src={getMascotImageUrl(team.mascotId)}
+                          alt={`${team.name} mascot`} 
+                          className="w-10 h-10 mr-4 flex-shrink-0 rounded-full object-cover border-2 border-accent/30"
+                        />
+                        <div className="flex-1 min-w-0 mr-3">
+                          <span className="font-bold text-accent text-lg block truncate">{team.name}</span>
+                        </div>
+                        <div className="text-2xl font-bold text-accent whitespace-nowrap">
+                          {team.points} pts
+                        </div>
+                      </motion.div>
+                    ))
+                  )
                 ) : (
                    <p className="text-accent/60 italic text-center py-5">Nema timova za prikaz.</p>
                 )}

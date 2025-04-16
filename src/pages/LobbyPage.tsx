@@ -169,7 +169,7 @@ const LobbyPage = () => {
         transition={{ duration: 0.5, delay: 0.1 }}
       >
         {/* Increased font sizes */}
-        <p className="text-lg md:text-xl text-accent/90 mb-2">Posetite <span className="font-bold text-white">foniskviz.site</span></p>
+        <p className="text-lg md:text-xl text-accent/90 mb-2">Posetite <span className="font-bold text-white">fonis-kviz.vercel.app</span></p>
         <p className="text-2xl md:text-3xl text-accent mb-3">Kod igre:</p>
         {/* Increased font size and adjusted padding */}
         <div className="text-6xl md:text-8xl font-bold text-white tracking-widest font-caviar mb-4 bg-secondary py-2 px-4 rounded inline-block shadow-md">
