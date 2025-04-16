@@ -175,26 +175,7 @@ const PlayerFinishedPage = () => {
       <AnimatedBackground density="low" />
       
       {/* Logo at top center - BIGGER */}
-      <div className="w-full flex justify-center pt-2 sm:pt-6 pb-0 sm:pb-3">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="responsive-logo"
-        >
-          <Logo size="large" className="w-28 h-28 sm:w-44 sm:h-44 md:w-52 md:h-52 mb-0 sm:mb-4" />
-        </motion.div>
-      </div>
-      
-      {/* Team Name Display - For smaller screens */}
-      <motion.div
-        className="text-accent text-xl sm:text-2xl font-bold font-basteleur mb-1 sm:mb-4 z-40 bg-accent/10 px-4 sm:px-6 py-1 sm:py-2 rounded-lg"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        Tim: {teamName}
-      </motion.div>
+
       
       {/* Main Content Area */}
       <div className="flex flex-col items-center justify-center w-full flex-grow max-w-xl px-2 sm:px-0">

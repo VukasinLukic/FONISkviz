@@ -174,7 +174,7 @@ const MascotSelection: React.FC = () => {
       <AnimatedBackground density="low" />
       
       {/* Centered logo at top - smaller on mobile */}
-      <div className="w-full flex justify-center mt-1 sm:mt-2 mb-0 sm:mb-2">
+      {/* <div className="w-full flex justify-center mt-1 sm:mt-2 mb-0 sm:mb-2">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -182,7 +182,7 @@ const MascotSelection: React.FC = () => {
         >
           <Logo size="large" className="w-36 h-36 sm:w-28 sm:h-28 ml-8" />
         </motion.div>
-      </div>
+      </div> */}
       
       <div className="flex-grow flex flex-col items-center justify-center max-w-xl mx-auto z-20 relative">
         <motion.h1 
