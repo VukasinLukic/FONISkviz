@@ -251,10 +251,10 @@ const AdminQuestionPage = () => {
             currentQuestion?.category === "Koji film/serija je u pitanju?" || 
             currentQuestion?.category === "Pogodite crtani" || 
             currentQuestion?.category === "Pogodite fonisovca" ||
-            currentQuestion?.category === "Pogodi Pesmu na osnovu Emoji-a") && currentQuestion?.imageUrl ? (
+            currentQuestion?.category === "Pogodi pesmu na osnovu emoji-a") && currentQuestion?.imageUrl ? (
             <>
               {/* Title for image-based categories */}
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-6 font-basteleur">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-6 ">
                 {currentQuestion?.text || 'Učitavanje pitanja...'}
               </h2>
               
@@ -274,7 +274,7 @@ const AdminQuestionPage = () => {
             </>
           ) : (
             /* Title for all other categories */
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-12 font-basteleur">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center mb-12">
               {currentQuestion?.text || 'Učitavanje pitanja...'}
             </h2>
           )}
@@ -288,12 +288,12 @@ const AdminQuestionPage = () => {
               <div className="grid grid-cols-1 gap-8 max-w-3xl mx-auto">
                 {/* True option */}
                 <div className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[0]}`}>
-                  <p className="text-3xl md:text-4xl text-white">Tačno</p>
+                  <p className="text-6xl md:text-6xl text-white">Tačno</p>
                 </div>
                 
                 {/* False option */}
                 <div className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[3]}`}>
-                  <p className="text-3xl md:text-4xl text-white">Netačno</p>
+                  <p className="text-6xl md:text-6xl text-white">Netačno</p>
                 </div>
               </div>
              ) : (
@@ -304,10 +304,10 @@ const AdminQuestionPage = () => {
                      key={index}
                      className={`p-6 md:p-8 rounded-2xl border-4 text-center text-2xl md:text-3xl font-bold ${answerColors[index]}`}
                    >
-                     <span className="inline-block w-10 h-10 rounded-full bg-accent/20 text-white mb-2">
+                     <span className="inline-block w-10 h-10 rounded-full pt-1 bg-accent/20 text-white mb-4">
                        {String.fromCharCode(65 + index)}
                      </span>
-                     <p className="text-white">{option}</p>
+                     <p className="text-accent text-5xl">{option}</p>
                    </div>
                  ))}
                  {/* Add empty divs if less than 4 options to maintain grid */}
@@ -325,7 +325,7 @@ const AdminQuestionPage = () => {
       {/* Current Question/Total indicator */}
       {game && currentQuestion && (
         <motion.div
-          className="absolute bottom-6 right-16 transform text-white"
+          className="absolute bottom-6 right-16 transform text-accent"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}

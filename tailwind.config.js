@@ -17,9 +17,12 @@ module.exports = {
         tertiarybrown: "#a0756b",
       },
       fontFamily: {
-        'serif': ['Merriweather', 'serif'],
-        'caviar': ['Caviar Dreams', 'sans-serif']
+        'title': ['Bevan', 'cursive'],
+        'body': ['Josefin Sans', 'sans-serif'],
+        'serif': ['Bevan', 'cursive'],
+        'caviar': ['Josefin Sans', 'sans-serif']
       },
+
       animation: {
         timer: 'timer 30s linear forwards'
       },

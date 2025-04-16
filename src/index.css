@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,9 +5,10 @@
 /* Removed @font-face rules for Caviar Dreams - handled by FontLoader.tsx */
 
 :root {
-  font-family: 'Caviar Dreams', system-ui, sans-serif;
+  font-family: 'Josefin Sans', system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  font-size: 16px;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
@@ -34,19 +33,37 @@ body {
   margin: 0;
   min-height: 100vh;
   width: 100%;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 1.125rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Bevan', cursive;
+  line-height: 1.1;
 }
 
 h1 {
   font-size: 3.2em;
-  line-height: 1.1;
-  font-family: 'Merriweather', serif;
+}
+
+h2 {
+  font-size: 2.6em;
+}
+
+h3 {
+  font-size: 2em;
+}
+
+p {
+  font-size: 1.125rem;
+  line-height: 1.6;
 }
 
 button {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
-  font-size: 1em;
+  font-size: 1.1em;
   font-weight: 500;
   font-family: inherit;
   background-color: #1a1a1a;
@@ -76,7 +93,7 @@ button:focus-visible {
 
 @media (max-width: 768px) {
   html, body {
-    font-size: 14px;
+    font-size: 16px;
   }
   
   body {
@@ -85,12 +102,25 @@ button:focus-visible {
 }
 
 /* Custom utility classes */
+.font-title {
+  font-family: 'Bevan', cursive;
+}
+
+.font-body {
+  font-family: 'Josefin Sans', sans-serif;
+}
+
+/* Legacy font classes for backward compatibility */
 .font-caviar {
-  font-family: 'Caviar Dreams', sans-serif;
+  font-family: 'Josefin Sans', sans-serif;
 }
 
 .font-serif {
-  font-family: 'Merriweather', serif;
+  font-family: 'Bevan', cursive;
+}
+
+.font-basteleur {
+  font-family: 'Bevan', cursive;
 }
 
 /* Fix for mobile viewport and background */

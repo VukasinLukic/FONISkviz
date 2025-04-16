@@ -124,10 +124,10 @@ const BreakPage: React.FC = () => {
         >
           <div className="bg-accent rounded-3xl px-10 py-8 shadow-xl border-4 border-accent">
             <div className="text-center">
-              <div className="font-bold text-secondary text-3xl tracking-tight font-serif">
+              <div className="font-bold text-secondary text-3xl tracking-tight">
                 Kvizaši Fonisa spremite se .... sledeća kategorija<br/>kviza je:
               </div>
-              <div className="font-bold text-6xl text-special mt-4">
+              <div className="font-bold text-6xl text-special mt-4 font-serif">
                 {gameLoading ? "..." : nextCategoryName}
               </div>
             </div>

@@ -6,8 +6,6 @@ const FontLoader = {
     
     // Set the CSS content with absolute paths
     style.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
-      
       @font-face {
         font-family: 'Caviar Dreams';
         src: url('${window.location.origin}/fonts/CaviarDreams.woff2') format('woff2'),
