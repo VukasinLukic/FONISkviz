@@ -251,7 +251,7 @@ const AdminQuestionPage = () => {
             currentQuestion?.category === "Koji film/serija je u pitanju?" || 
             currentQuestion?.category === "Pogodite crtani" || 
             currentQuestion?.category === "Pogodite fonisovca" ||
-            currentQuestion?.category === "Pogodi pesmu na osnovu emoji-a") && currentQuestion?.imageUrl ? (
+            currentQuestion?.category === "Pogodi Pesmu na osnovu Emoji-a") && currentQuestion?.imageUrl ? (
             <>
               {/* Title for image-based categories */}
               <motion.h1 

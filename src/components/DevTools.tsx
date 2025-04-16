@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ref, set, remove, get, query, orderByChild, equalTo, onValue, DataSnapshot, Database } from 'firebase/database';
-import { getDb } from '../lib/firebase';
+import { ref, set, remove, get, query, orderByChild, equalTo, onValue, DataSnapshot, Database, update } from 'firebase/database';
+import { getDb, updateTeamScore, calculateRanks, TeamScore } from '../lib/firebase';
 import { useNavigate } from 'react-router-dom';
 
 interface DevToolsProps {
@@ -23,6 +23,8 @@ export default function DevTools({ gameCode }: DevToolsProps) {
   const [loading, setLoading] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [dbInstance, setDbInstance] = useState<Database | null>(null);
+  const [teamScores, setTeamScores] = useState<Record<string, TeamScore>>({});
+  const [scoreAmount, setScoreAmount] = useState<number>(10);
 
   // Fetch DB instance
   useEffect(() => {
@@ -52,6 +54,23 @@ export default function DevTools({ gameCode }: DevToolsProps) {
         setTeams(teamsData);
       } else {
         setTeams([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [gameCode, isOpen, dbInstance]);
+
+  // Fetch team scores
+  useEffect(() => {
+    if (!isOpen || !dbInstance) return;
+
+    const scoresRef = ref(dbInstance, `scores/${gameCode}`);
+    
+    const unsubscribe = onValue(scoresRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setTeamScores(snapshot.val());
+      } else {
+        setTeamScores({});
       }
     });
 
@@ -166,11 +185,31 @@ export default function DevTools({ gameCode }: DevToolsProps) {
     }
   };
 
+  // Modify team score
+  const handleModifyTeamScore = async (teamId: string, change: number) => {
+    try {
+      if (!dbInstance) throw new Error("DB not initialized");
+      
+      const teamScore = teamScores[teamId] || { totalScore: 0 };
+      const newScore = {
+        ...teamScore,
+        totalScore: Math.max(0, teamScore.totalScore + change)
+      };
+      
+      await updateTeamScore(gameCode, teamId, newScore);
+      await calculateRanks(gameCode);
+      
+    } catch (error) {
+      console.error('Error updating team score:', error);
+      alert('Failed to update team score');
+    }
+  };
+
   if (!isOpen) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 bg-secondary text-white p-2 rounded-full shadow-lg z-50 hover:bg-secondary/90"
+        className="fixed bottom-4 right-4 bg-accent text-white p-2 rounded-full shadow-lg z-50 hover:bg-accent/90 "
       >
         🛠️
       </button>
@@ -238,6 +277,62 @@ export default function DevTools({ gameCode }: DevToolsProps) {
             >
               End Game
             </button>
+          </div>
+        </div>
+
+        {/* Score Management */}
+        <div className="space-y-2">
+          <h4 className="font-semibold text-sm text-secondary">Score Management</h4>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-600">Points to add/subtract:</span>
+            <select 
+              value={scoreAmount}
+              onChange={(e) => setScoreAmount(parseInt(e.target.value))}
+              className="border border-gray-300 rounded p-1 text-sm"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            {teams.map(team => {
+              const score = teamScores[team.id] || { totalScore: 0, rank: '-' };
+              // Extract the rank value correctly, handling both object and primitive cases
+              const rankValue = typeof score.rank === 'object' && score.rank !== null 
+                ? (score.rank as {rank: number | string}).rank 
+                : score.rank;
+              
+              return (
+                <div key={team.id} className="bg-gray-50 p-2 rounded">
+                  <div className="flex justify-between items-center mb-1">
+                    <div>
+                      <span className="font-medium">{team.name}</span>
+                      <div className="text-xs text-gray-500">
+                        <span>Score: <strong>{score.totalScore}</strong></span>
+                        <span className="ml-2">Rank: <strong>{rankValue}</strong></span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleModifyTeamScore(team.id, scoreAmount)}
+                        className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                      >
+                        +{scoreAmount}
+                      </button>
+                      <button
+                        onClick={() => handleModifyTeamScore(team.id, -scoreAmount)}
+                        className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                      >
+                        -{scoreAmount}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

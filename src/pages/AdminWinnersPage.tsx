@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Game, Team, getAllScoresForGame, getTeamsForGame, TeamScore as FirebaseTeamScore, getAllAnswersForGame, getGameData } from '../lib/firebase';
+import { Game, Team, getAllScoresForGame, getTeamsForGame, TeamScore as FirebaseTeamScore, getAllAnswersForGame, getGameData, updateTeamScore, calculateRanks } from '../lib/firebase';
 import Logo from '../components/Logo';
 import AnimatedBackground from '../components/AnimatedBackground';
 import { useGameRealtimeState } from '../hooks/useGameRealtimeState';
@@ -34,6 +34,9 @@ const AdminWinnersPage = () => {
   const [statsView, setStatsView] = useState<'podium' | 'table'>('podium');
   const [winningTeam, setWinningTeam] = useState<RankedTeam | null>(null);
   const [expandedTable, setExpandedTable] = useState(false);
+  const [showScoreAdjustment, setShowScoreAdjustment] = useState(false);
+  const [scoreAmount, setScoreAmount] = useState<number>(10);
+  const [updatedTeamId, setUpdatedTeamId] = useState<string | null>(null);
 
   // Get game code from localStorage
   const gameCode = localStorage.getItem('gameCode');
@@ -185,6 +188,97 @@ const AdminWinnersPage = () => {
   // Top 3 teams and remaining teams
   const topThreeTeams = !loading && !displayError ? rankedTeams.filter(team => team.rank <= 3) : [];
   const remainingTeams = !loading && !displayError ? rankedTeams.filter(team => team.rank > 3) : [];
+
+  // Add a function to handle modifying team scores
+  const handleModifyTeamScore = async (teamId: string, change: number) => {
+    try {
+      // Find the current score
+      const team = rankedTeams.find(t => t.id === teamId);
+      if (!team) return;
+      
+      const newScore = Math.max(0, team.totalScore + change);
+      
+      // Update the score in the database
+      await updateTeamScore(gameCode!, teamId, { 
+        totalScore: newScore,
+        rank: team.rank // Keep existing rank for now
+      });
+      
+      // Recalculate ranks
+      await calculateRanks(gameCode!);
+      
+      // Show success indicator for this team
+      setUpdatedTeamId(teamId);
+      setTimeout(() => setUpdatedTeamId(null), 1500);
+      
+      // Refresh all data to get updated ranks
+      const fetchFreshData = async () => {
+        try {
+          const [allScores, allTeamsDetails, allGameAnswers, gameDataSnapshot] = await Promise.all([
+            getAllScoresForGame(gameCode!),
+            getTeamsForGame(gameCode!),
+            getAllAnswersForGame(gameCode!),
+            getGameData(gameCode!)
+          ]);
+          
+          if (!gameDataSnapshot) {
+            throw new Error("Ne mogu se dohvatiti podaci igre za ukupan broj pitanja.");
+          }
+          
+          const totalQuestions = gameDataSnapshot.questionOrder?.length || 0;
+          
+          // Filter active teams and combine with scores
+          const activeTeamsWithScores = allTeamsDetails
+            .filter(team => team.isActive !== false)
+            .map(team => {
+              // Calculate correct answers for this team
+              let correctAnswers = 0;
+              if (allGameAnswers) {
+                Object.values(allGameAnswers).forEach((questionAnswers) => {
+                  const teamAnswer = questionAnswers[team.id];
+                  if (teamAnswer && teamAnswer.isCorrect === true) {
+                    correctAnswers++;
+                  }
+                });
+              }
+              
+              return {
+                ...team,
+                totalScore: allScores[team.id]?.totalScore || 0,
+                correctAnswers,
+                totalQuestions
+              };
+            })
+            .sort((a, b) => b.totalScore - a.totalScore);
+            
+          // Assign ranks
+          const freshRankedTeams: RankedTeam[] = activeTeamsWithScores.map((team, index, arr) => {
+            let rank = 1;
+            const currentScore = team.totalScore;
+            // Calculate rank based on position in the sorted array (handling ties)
+            rank = arr.filter(t => t.totalScore > currentScore).length + 1;
+            // Calculate accuracy
+            const accuracy = team.totalQuestions > 0 ? 
+              Math.round((team.correctAnswers / team.totalQuestions) * 100) 
+              : 0;
+            
+            return { ...team, rank, accuracy };
+          });
+          
+          setRankedTeams(freshRankedTeams);
+          
+        } catch (err: any) {
+          console.error("Error fetching updated data:", err);
+        }
+      };
+      
+      fetchFreshData();
+      
+    } catch (error: any) {
+      console.error("Error updating team score:", error);
+      setError(`Greška pri ažuriranju poena: ${error.message}`);
+    }
+  };
 
   if (displayError) {
     return (
@@ -804,6 +898,96 @@ const AdminWinnersPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {/* Add Score Adjustment Button */}
+      <button
+        onClick={() => setShowScoreAdjustment(!showScoreAdjustment)}
+        className="fixed bottom-4 right-4 bg-accent text-primary p-3 rounded-full shadow-lg z-40 hover:bg-accent/90 transition-all"
+        aria-label="Manage Scores"
+      >
+        {showScoreAdjustment ? (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        )}
+      </button>
+      
+      {/* Score Adjustment Component */}
+      {showScoreAdjustment && (
+        <div className="fixed bottom-20 right-4 bg-white p-4 rounded-lg shadow-xl z-40 w-80 max-h-[80vh] overflow-y-auto border-2 border-accent/30">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-secondary">Upravljanje poenima</h3>
+            <button
+              onClick={() => setShowScoreAdjustment(false)}
+              className="text-secondary hover:text-secondary/80"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm text-gray-600">Broj poena:</span>
+              <select 
+                value={scoreAmount}
+                onChange={(e) => setScoreAmount(parseInt(e.target.value))}
+                className="border border-gray-300 rounded p-1 text-sm"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              {rankedTeams.map(team => (
+                <div key={team.id} className={`bg-gray-50 p-2 rounded transition-colors ${updatedTeamId === team.id ? 'bg-green-100' : ''}`}>
+                  <div className="flex justify-between items-center mb-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center font-bold text-xs text-accent">
+                        {team.rank}
+                      </div>
+                      <span className="font-medium">{team.name}</span>
+                    </div>
+                    <div className="text-sm font-semibold">{team.totalScore} poena</div>
+                  </div>
+                  <div className="flex gap-1 justify-end">
+                    <button
+                      onClick={() => handleModifyTeamScore(team.id, scoreAmount)}
+                      className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                    >
+                      +{scoreAmount}
+                    </button>
+                    <button
+                      onClick={() => handleModifyTeamScore(team.id, -scoreAmount)}
+                      className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                    >
+                      -{scoreAmount}
+                    </button>
+                    {updatedTeamId === team.id && (
+                      <span className="text-xs text-green-600 px-2 py-1">Ažurirano!</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="border-t border-gray-200 pt-2 mt-4">
+              <p className="text-xs text-gray-500 italic">
+                Napomena: Izmene poena će biti trajno sačuvane u bazi podataka.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

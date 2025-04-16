@@ -710,7 +710,8 @@ export const calculateRanks = async (gameCode: string): Promise<void> => {
     
     // Assign ranks
     const updatePromises = sortedTeamIds.map((teamId, index) => {
-      return update(ref(db, `${scoresPath}/${teamId}/rank`), {
+      // Fix: Update the rank property directly instead of creating a nested object
+      return update(ref(db, `${scoresPath}/${teamId}`), {
         rank: index + 1 // Ranks start from 1
       });
     });

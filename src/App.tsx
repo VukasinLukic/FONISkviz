@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import './index.css';
 import DevTools from './components/DevTools';
 import FontLoader from './components/FontLoader';
@@ -72,6 +72,8 @@ const App = () => {
   const [firebaseError, setFirebaseError] = useState<any>(null);
   const [app, setApp] = useState<FirebaseApp | null>(null);
   const [database, setDatabase] = useState<Database | null>(null);
+  const location = useLocation();
+  const isPlayerRoute = location.pathname.startsWith('/player');
 
   useEffect(() => {
     // Proveri da li je Firebase inicijalizovan by trying to get the DB instance
@@ -177,7 +179,7 @@ const App = () => {
         </div>
       )}
       {/* Render DevTools directly if needed, passing gameCode */}
-      {process.env.NODE_ENV === 'development' && localStorage.getItem('isAdmin') === 'true' && (
+      {process.env.NODE_ENV === 'development' && localStorage.getItem('isAdmin') === 'true' && !isPlayerRoute && (
         <DevTools gameCode={localStorage.getItem('gameCode') || 'default'} />
       )}
     </div>
