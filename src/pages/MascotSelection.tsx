@@ -180,7 +180,7 @@ const MascotSelection: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Logo size="large" className="w-36 h-36 sm:w-28 sm:h-28" />
+          <Logo size="large" className="w-36 h-36 sm:w-28 sm:h-28 ml-8" />
         </motion.div>
       </div>
       

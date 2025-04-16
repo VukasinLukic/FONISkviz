@@ -50,7 +50,7 @@ const AdminQuestionPage = () => {
 
   // Use the real-time hook
   const { gameData: game, error: gameError, loading: gameLoading } = useGameRealtimeState(gameCode);
-
+  
   // Set initial game status ONLY ONCE when component mounts (if needed)
   useEffect(() => {
     const setInitialStatus = async () => {
@@ -319,6 +319,62 @@ const AdminQuestionPage = () => {
                </div>
              )
           )}
+          
+          {/* Timer Component with Progress Bar */}
+          <motion.div
+            className="w-full mt-8 flex flex-col items-center justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            {/* Custom Timer with Progress Bar */}
+            <div className="w-full max-w-4xl flex flex-col items-center">
+              {/* Progress Bar - CSS animacija sa keyframe */}
+              <div className="w-full bg-white/10 h-16 rounded-xl overflow-hidden mb-3 shadow-inner relative border border-white/20">
+                {game?.status === 'question_display' && (
+                  <motion.div 
+                    key={`timer-${currentQuestion?.id || 'default'}`}
+                    className="h-full bg-gradient-to-r from-secondary via-secondary to-secondary/80 origin-left"
+                    initial={{ scaleX: 1, x: 0 }}
+                    animate={{ scaleX: 0, x: 0 }}
+                    transition={{ 
+                      duration: 30,
+                      ease: "linear",
+                      repeat: 0
+                    }}
+                  />
+                )}
+                {/* Pulsiranje svetlucavog efekta */}
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  animate={{ 
+                    opacity: [0.2, 0.5, 0.2],
+                    x: ['-100%', '100%', '-100%']
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                />
+                {/* Oznake za vreme */}
+                <div className="absolute inset-0 flex justify-between items-center px-4 pointer-events-none">
+                  <div className="h-6 w-px bg-white/30"></div>
+                  <div className="h-6 w-px bg-white/30"></div>
+                  <div className="h-6 w-px bg-white/30"></div>
+                </div>
+              </div>
+              
+              {/* Timer Display */}
+              <Timer 
+                duration={30} 
+                color="secondary" 
+                size="md"
+                timerEnd={game?.timerEnd ? game.timerEnd : undefined}
+                onComplete={() => console.log("Timer completed on admin side")}
+              />
+            </div>
+          </motion.div>
         </motion.div>
       </div>
       

@@ -33,6 +33,7 @@ const AdminWinnersPage = () => {
   const confettiRef = useRef<HTMLDivElement>(null);
   const [statsView, setStatsView] = useState<'podium' | 'table'>('podium');
   const [winningTeam, setWinningTeam] = useState<RankedTeam | null>(null);
+  const [expandedTable, setExpandedTable] = useState(false);
 
   // Get game code from localStorage
   const gameCode = localStorage.getItem('gameCode');
@@ -234,7 +235,7 @@ const AdminWinnersPage = () => {
       </motion.div>
       
       {/* Main Content */}
-      <div className="max-w-6xl w-full mx-auto pt-28 pb-24 flex flex-col items-center flex-grow">
+      <div className="max-w-6xl w-full mx-auto pt-20 pb-24 flex flex-col items-center flex-grow">
         <motion.h1
           className="text-5xl md:text-5xl font-bold text-accent text-center mb-4 font-serif"
           initial={{ opacity: 0, y: -20 }}
@@ -256,12 +257,12 @@ const AdminWinnersPage = () => {
         )}
         
         {/* View toggle buttons */}
-        <div className="flex gap-2 mb-8">
+        <div className="flex gap-4 mb-10">
           <button
             onClick={() => setStatsView('podium')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            className={`px-6 py-3 rounded-lg text-lg font-medium transition-all ${
               statsView === 'podium' 
-                ? 'bg-accent text-white' 
+                ? 'bg-accent text-primary' 
                 : 'bg-accent/20 text-accent hover:bg-accent/30'
             }`}
           >
@@ -269,9 +270,9 @@ const AdminWinnersPage = () => {
           </button>
           <button
             onClick={() => setStatsView('table')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            className={`px-6 py-3 rounded-lg text-lg font-medium transition-all ${
               statsView === 'table' 
-                ? 'bg-accent text-white' 
+                ? 'bg-accent text-primary' 
                 : 'bg-accent/20 text-accent hover:bg-accent/30'
             }`}
           >
@@ -300,7 +301,7 @@ const AdminWinnersPage = () => {
             ) : statsView === 'podium' ? (
               <motion.div 
                 key="podium"
-                className="w-full bg-white/5 backdrop-blur-sm p-8 rounded-3xl shadow-xl border border-accent/20"
+                className="w-full bg-white/5 backdrop-blur-sm p-5 rounded-3xl shadow-xl border border-accent/20"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
@@ -308,7 +309,7 @@ const AdminWinnersPage = () => {
               >
                 {/* Podium Section */}
                 <div className="flex flex-col items-center mb-12">
-                  <h2 className="text-3xl font-bold text-accent mb-8 font-serif text-center">Pobednički Podijum</h2>
+                  <h2 className="text-5xl font-bold text-accent mb-8 font-serif text-center">Pobednički Podijum</h2>
                   
                   {/* Animated stars */}
                   <div className="absolute inset-0 z-10 pointer-events-none overflow-visible">
@@ -340,7 +341,7 @@ const AdminWinnersPage = () => {
                   </div>
                   
                   {/* Top 3 Podium with improved animation - make it larger */}
-                  <div className="flex justify-center items-end gap-4 md:gap-16 lg:gap-20 w-full max-w-5xl mx-auto mb-8 mt-12 px-2">
+                  <div className="flex justify-center items-end gap-5 md:gap-20 lg:gap-28 w-full max-w-7xl mx-auto mb-14 mt-20 px-2">
                     {/* Second Place */}
                     {topThreeTeams.find(team => team.rank === 2) && (
                       <motion.div 
@@ -349,9 +350,9 @@ const AdminWinnersPage = () => {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.8, delay: 0.3 }}
                       >
-                        <div className="relative mb-2">
+                        <div className="relative mb-4">
                           <motion.div 
-                            className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-200 border-4 border-gray-300 overflow-hidden"
+                            className="w-28 h-28 md:w-40 md:h-40 rounded-full bg-gray-200 border-4 border-gray-300 overflow-hidden"
                             whileHover={{ scale: 1.1, borderColor: '#a0a0a0' }}
                           >
                             <img 
@@ -361,7 +362,7 @@ const AdminWinnersPage = () => {
                             />
                           </motion.div>
                           <motion.div 
-                            className="absolute bottom-0 right-0 w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center border-2 border-white text-lg font-bold"
+                            className="absolute bottom-0 right-0 w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center border-2 border-white text-2xl font-bold"
                             initial={{ scale: 0, rotate: -45 }}
                             animate={{ scale: 1, rotate: 0 }}
                             transition={{ delay: 1.3, type: 'spring' }}
@@ -370,18 +371,18 @@ const AdminWinnersPage = () => {
                           </motion.div>
                         </div>
                         <motion.div 
-                          className="bg-gradient-to-b from-gray-100 to-gray-300 h-32 w-24 md:w-32 rounded-t-lg flex items-center justify-center shadow-md"
+                          className="bg-gradient-to-b from-gray-100 to-gray-300 h-48 w-40 md:w-52 rounded-t-lg flex items-center justify-center shadow-lg"
                           initial={{ height: 0 }}
-                          animate={{ height: 128 }}
+                          animate={{ height: 192 }}
                           transition={{ duration: 0.5, delay: 0.5 }}
                         >
                           <div className="text-center px-2">
-                            <p className="font-bold text-lg text-gray-800 truncate max-w-[80px] md:max-w-[100px]">
+                            <p className="font-bold text-2xl text-gray-800 truncate max-w-[120px] md:max-w-[160px]">
                               {topThreeTeams.find(team => team.rank === 2)?.name}
                             </p>
                             <div className="flex items-center justify-center gap-1 text-gray-700 font-semibold">
-                              <span className="text-xl">{topThreeTeams.find(team => team.rank === 2)?.totalScore}</span>
-                              <span className="text-xs">pts</span>
+                              <span className="text-3xl">{topThreeTeams.find(team => team.rank === 2)?.totalScore}</span>
+                              <span className="text-sm">pts</span>
                             </div>
                           
                           </div>
@@ -392,14 +393,14 @@ const AdminWinnersPage = () => {
                     {/* First Place - Taller */}
                     {topThreeTeams.find(team => team.rank === 1) && (
                       <motion.div 
-                        className="flex flex-col items-center -mb-6"
+                        className="flex flex-col items-center -mb-8"
                         initial={{ y: 100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.8, delay: 0.1 }}
                       >
-                        <div className="relative mb-2">
+                        <div className="relative mb-4">
                           <motion.div 
-                            className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-yellow-200 to-yellow-400 border-4 border-yellow-400 overflow-hidden shadow-lg"
+                            className="w-44 h-44 md:w-56 md:h-56 rounded-full bg-gradient-to-br from-yellow-200 to-yellow-400 border-4 border-yellow-400 overflow-hidden shadow-lg"
                             animate={{ 
                               boxShadow: ['0 0 10px 2px rgba(251, 191, 36, 0.5)', '0 0 20px 5px rgba(251, 191, 36, 0.8)', '0 0 10px 2px rgba(251, 191, 36, 0.5)']
                             }}
@@ -423,38 +424,29 @@ const AdminWinnersPage = () => {
                           >
                             {/* Trophy SVG ikona uklonjena po zahtevu */}
                           </motion.div>
-                          <motion.div 
-                            className="absolute top-0 left-0 w-full h-full"
-                            animate={{ 
-                              background: ['radial-gradient(circle, rgba(251, 191, 36, 0) 70%, rgba(251, 191, 36, 0.5) 100%)', 
-                                          'radial-gradient(circle, rgba(251, 191, 36, 0) 80%, rgba(251, 191, 36, 0.2) 100%)',
-                                          'radial-gradient(circle, rgba(251, 191, 36, 0) 70%, rgba(251, 191, 36, 0.5) 100%)']
-                            }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                          />
                         </div>
                         <motion.div 
-                          className="bg-gradient-to-b from-yellow-300 to-yellow-400 h-40 w-28 md:w-36 rounded-t-lg flex items-center justify-center shadow-lg"
+                          className="bg-gradient-to-b from-yellow-300 to-yellow-400 h-56 w-48 md:w-64 rounded-t-lg flex items-center justify-center shadow-lg"
                           initial={{ height: 0 }}
-                          animate={{ height: 160 }}
+                          animate={{ height: 224 }}
                           transition={{ duration: 0.5, delay: 0.3 }}
                         >
                           <div className="text-center px-2">
-                            <p className="font-bold text-xl text-yellow-800 truncate max-w-[100px] md:max-w-[120px]">
+                            <p className="font-bold text-6xl text-yellow-800 truncate max-w-[140px] md:max-w-[180px]">
                               {topThreeTeams.find(team => team.rank === 1)?.name}
                             </p>
                             <div className="flex items-center justify-center gap-1 text-yellow-800 font-semibold">
-                              <span className="text-2xl">{topThreeTeams.find(team => team.rank === 1)?.totalScore}</span>
-                              <span className="text-xs">pts</span>
+                              <span className="text-4xl">{topThreeTeams.find(team => team.rank === 1)?.totalScore}</span>
+                              <span className="text-base">pts</span>
                             </div>
                            
                             <motion.div 
-                              className="mt-2 bg-yellow-500/30 rounded px-2 py-0.5 text-xs font-bold text-yellow-900"
+                              className="mt-3 bg-yellow-500/30 rounded px-3 py-1 text-base font-bold text-yellow-900"
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               transition={{ delay: 1.5 }}
                             >
-                              ŠAMPION! 👑
+                              POBEDNIK ! 👑
                             </motion.div>
                           </div>
                         </motion.div>
@@ -469,9 +461,9 @@ const AdminWinnersPage = () => {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.8, delay: 0.5 }}
                       >
-                        <div className="relative mb-2">
+                        <div className="relative mb-4">
                           <motion.div 
-                            className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-amber-200 border-4 border-amber-300 overflow-hidden"
+                            className="w-28 h-28 md:w-40 md:h-40 rounded-full bg-amber-200 border-4 border-amber-300 overflow-hidden"
                             whileHover={{ scale: 1.1, borderColor: '#d97706' }}
                           >
                             <img 
@@ -481,7 +473,7 @@ const AdminWinnersPage = () => {
                             />
                           </motion.div>
                           <motion.div 
-                            className="absolute bottom-0 right-0 w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center border-2 border-white text-lg font-bold"
+                            className="absolute bottom-0 right-0 w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center border-2 border-white text-2xl font-bold"
                             initial={{ scale: 0, rotate: -45 }}
                             animate={{ scale: 1, rotate: 0 }}
                             transition={{ delay: 1.3, type: 'spring' }}
@@ -490,22 +482,18 @@ const AdminWinnersPage = () => {
                           </motion.div>
                         </div>
                         <motion.div 
-                          className="bg-gradient-to-b from-amber-600/70 to-amber-700/70 h-28 w-24 md:w-32 rounded-t-lg flex items-center justify-center shadow-md"
+                          className="bg-gradient-to-b from-amber-600/70 to-amber-700/70 h-48 w-40 md:w-52 rounded-t-lg flex items-center justify-center shadow-lg"
                           initial={{ height: 0 }}
-                          animate={{ height: 112 }}
+                          animate={{ height: 192 }}
                           transition={{ duration: 0.5, delay: 0.7 }}
                         >
                           <div className="text-center px-2">
-                            <p className="font-bold text-lg text-amber-100 truncate max-w-[80px] md:max-w-[100px]">
+                            <p className="font-bold text-2xl text-amber-100 truncate max-w-[120px] md:max-w-[160px]">
                               {topThreeTeams.find(team => team.rank === 3)?.name}
                             </p>
                             <div className="flex items-center justify-center gap-1 text-amber-100 font-semibold">
-                              <span className="text-xl">{topThreeTeams.find(team => team.rank === 3)?.totalScore}</span>
-                              <span className="text-xs">pts</span>
-                            </div>
-                            
-                            <div className="text-[10px] text-amber-200/70 mt-1">
-                              {Math.round(topThreeTeams.find(team => team.rank === 3)?.accuracy || 0)}% tačnosti
+                              <span className="text-3xl">{topThreeTeams.find(team => team.rank === 3)?.totalScore}</span>
+                              <span className="text-sm">pts</span>
                             </div>
                           </div>
                         </motion.div>
@@ -576,100 +564,246 @@ const AdminWinnersPage = () => {
             ) : (
               <motion.div 
                 key="stats"
-                className="w-full bg-white/5 backdrop-blur-sm p-8 rounded-3xl shadow-xl border border-accent/20"
+                className="w-full bg-white/5 backdrop-blur-sm p-8 rounded-3xl shadow-xl border border-accent/20 mb-8"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.4 }}
               >
                 <div className="w-full">
-                  <h2 className="text-3xl font-bold text-accent mb-8 font-serif text-center">Tabela statistike</h2>
-                  <table className="w-full text-left text-accent border-collapse text-lg">
-                    <thead>
-                      <tr className="border-b-2 border-accent/20">
-                        <th className="py-4 px-6 font-serif">#</th>
-                        <th className="py-4 px-6 font-serif">Tim</th>
-                        <th className="py-4 px-6 font-serif text-center">Poeni</th>
-                        <th className="py-4 px-6 font-serif text-center">Pitanja</th>
-                        <th className="py-4 px-6 font-serif text-center">Tačni</th>
-                        <th className="py-4 px-6 font-serif text-center">Tačnost</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white/5 divide-y divide-accent/10">
-                      {rankedTeams.map((team, teamIdx) => (
-                        <motion.tr 
-                          key={team.id}
-                          className={teamIdx % 2 === 0 ? 'bg-transparent' : 'bg-accent/5'}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.05 * teamIdx }}
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium 
-                              ${team.rank === 1 ? 'bg-yellow-400 text-yellow-900' : 
-                                team.rank === 2 ? 'bg-gray-300 text-gray-800' :
-                                team.rank === 3 ? 'bg-amber-300 text-amber-800' :
-                                'bg-accent/20 text-white'}`}
-                            >
-                              {team.rank}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10 relative">
-                                <img 
-                                  className="h-10 w-10 rounded-full border-2 border-accent/20" 
-                                  src={getMascotImageUrl(team.mascotId || 1)} 
-                                  alt="" 
+                  <h2 className="text-5xl font-bold text-accent mb-6 font-serif text-center">Tabela statistike</h2>
+                  
+                  {/* Conditionally render expand button for tables with more than 4 rows */}
+                  {rankedTeams.length > 4 && (
+                    <div className="flex justify-center mb-6">
+                      <button
+                        onClick={() => setExpandedTable(true)}
+                        className="bg-accent/80 hover:bg-accent text-primary px-6 py-2 rounded-full flex items-center gap-2 transition-colors"
+                      >
+                        <span>Proširi tabelu</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M15 3h6v6"></path>
+                          <path d="M9 21H3v-6"></path>
+                          <path d="M21 3l-7 7"></path>
+                          <path d="M3 21l7-7"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Regular table view with max height constraint */}
+                  <div className="w-full">
+                    <table className="w-full text-left text-accent border-collapse text-2xl">
+                      <thead className="sticky top-0 bg-primary/95 backdrop-blur-sm shadow-md z-10">
+                        <tr className="border-b-2 border-accent/20">
+                          <th className="py-6 px-8 font-serif">#</th>
+                          <th className="py-6 px-8 font-serif">Tim</th>
+                          <th className="py-6 px-8 font-serif text-center">Poeni</th>
+                          <th className="py-6 px-8 font-serif text-center">Pitanja</th>
+                          <th className="py-6 px-8 font-serif text-center">Tačni</th>
+                          <th className="py-6 px-8 font-serif text-center">Tačnost</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white/5 divide-y divide-accent/10">
+                        {/* Show only first 4 teams in regular view if more than 4 */}
+                        {(rankedTeams.length > 4 ? rankedTeams.slice(0, 4) : rankedTeams).map((team, teamIdx) => (
+                          <motion.tr 
+                            key={team.id}
+                            className={teamIdx % 2 === 0 ? 'bg-transparent' : 'bg-accent/5'}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.05 * teamIdx }}
+                          >
+                            <td className="px-8 py-6 whitespace-nowrap">
+                              <div className={`flex items-center justify-center w-14 h-14 rounded-full text-2xl font-medium 
+                                ${team.rank === 1 ? 'bg-yellow-400 text-yellow-900' : 
+                                  team.rank === 2 ? 'bg-gray-300 text-gray-800' :
+                                  team.rank === 3 ? 'bg-amber-300 text-amber-800' :
+                                  'bg-accent/20 text-white'}`}
+                              >
+                                {team.rank}
+                              </div>
+                            </td>
+                            <td className="px-8 py-6 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-16 w-16 relative">
+                                  <img 
+                                    className="h-16 w-16 rounded-full border-2 border-accent/20" 
+                                    src={getMascotImageUrl(team.mascotId || 1)} 
+                                    alt="" 
+                                  />
+                                  {team.rank <= 3 && (
+                                    <div className="absolute -top-2 -right-2 w-8 h-8">
+                                      {team.rank === 1 && <span className="text-2xl">🏆</span>}
+                                      {team.rank === 2 && <span className="text-2xl">🥈</span>}
+                                      {team.rank === 3 && <span className="text-2xl">🥉</span>}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="ml-5">
+                                  <div className="text-lg font-medium text-white">{team.name}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-8 py-6 whitespace-nowrap text-center">
+                              <div className="text-2xl font-bold text-accent">{team.totalScore}</div>
+                            </td>
+                            <td className="px-8 py-6 whitespace-nowrap text-lg text-white/80 text-center">
+                              {team.totalQuestions}
+                            </td>
+                            <td className="px-8 py-6 whitespace-nowrap text-lg text-white/80 text-center">
+                              {team.correctAnswers}
+                            </td>
+                            <td className="px-8 py-6 whitespace-nowrap">
+                              <div className="relative w-full bg-special/10 rounded-full h-6 overflow-hidden">
+                                <motion.div 
+                                  className="absolute left-0 top-0 h-full bg-special"
+                                  style={{ width: '0%' }}
+                                  animate={{ width: `${team.accuracy}%` }}
+                                  transition={{ duration: 1, delay: 0.1 * teamIdx }}
                                 />
-                                {team.rank <= 3 && (
-                                  <div className="absolute -top-1 -right-1 w-5 h-5">
-                                    {team.rank === 1 && <span className="text-lg">🏆</span>}
-                                    {team.rank === 2 && <span className="text-lg">🥈</span>}
-                                    {team.rank === 3 && <span className="text-lg">🥉</span>}
-                                  </div>
-                                )}
+                                <div className="absolute inset-0 flex items-center justify-center text-base font-medium text-accent">
+                                  {team.totalQuestions > 0 ? 
+                                    `${team.accuracy}%` 
+                                    : 'N/A'
+                                  }
+                                </div>
                               </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-white">{team.name}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <div className="text-lg font-bold text-accent">{team.totalScore}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white/80 text-center">
-                            {team.totalQuestions}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white/80 text-center">
-                            {team.correctAnswers}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="relative w-full bg-accent/10 rounded-full h-4 overflow-hidden">
-                              <motion.div 
-                                className="absolute left-0 top-0 h-full bg-accent"
-                                style={{ width: '0%' }}
-                                animate={{ width: `${team.accuracy}%` }}
-                                transition={{ duration: 1, delay: 0.1 * teamIdx }}
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                                {team.totalQuestions > 0 ? 
-                                  `${team.accuracy}%` 
-                                  : 'N/A'
-                                }
-                              </div>
-                            </div>
-                          </td>
-                        </motion.tr>
-                      ))}
-                    </tbody>
-                  </table>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    
+                    {/* Show "and X more teams" indicator if table is truncated */}
+                    {rankedTeams.length > 4 && (
+                      <div className="text-center mt-4 text-accent/80 italic">
+                        i još {rankedTeams.length - 4} {rankedTeams.length - 4 === 1 ? 'tim' : 'timova'}...
+                      </div>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         )}
       </div>
+      
+      {/* Expanded Table Modal/Popup */}
+      <AnimatePresence>
+        {expandedTable && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={() => setExpandedTable(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="relative max-w-5xl w-full max-h-[90vh] overflow-auto bg-primary/90 border-4 border-accent/30 rounded-xl shadow-2xl p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close button in top-right corner */}
+              <button 
+                onClick={() => setExpandedTable(false)}
+                className="absolute top-3 right-3 w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white shadow-lg hover:bg-secondary/90 transition-colors z-10"
+                aria-label="Close"
+              >
+                <span className="text-accent text-2xl">✕</span>
+              </button>
+
+              {/* Full table in popup */}
+              <h2 className="text-4xl font-bold text-accent mb-6 font-serif text-center mt-2">Kompletan rang lista</h2>
+              
+              <table className="w-full text-left text-accent border-collapse text-xl">
+                <thead className="sticky top-0 bg-primary/95 backdrop-blur-sm shadow-md z-10">
+                  <tr className="border-b-2 border-accent/20">
+                    <th className="py-4 px-6 font-serif">#</th>
+                    <th className="py-4 px-6 font-serif">Tim</th>
+                    <th className="py-4 px-6 font-serif text-center">Poeni</th>
+                    <th className="py-4 px-6 font-serif text-center">Pitanja</th>
+                    <th className="py-4 px-6 font-serif text-center">Tačni</th>
+                    <th className="py-4 px-6 font-serif text-center">Tačnost</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white/5 divide-y divide-accent/10">
+                  {rankedTeams.map((team, teamIdx) => (
+                    <motion.tr 
+                      key={team.id}
+                      className={teamIdx % 2 === 0 ? 'bg-transparent' : 'bg-accent/5'}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.03 * teamIdx }}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className={`flex items-center justify-center w-12 h-12 rounded-full text-xl font-medium 
+                          ${team.rank === 1 ? 'bg-yellow-400 text-yellow-900' : 
+                            team.rank === 2 ? 'bg-gray-300 text-gray-800' :
+                            team.rank === 3 ? 'bg-amber-300 text-amber-800' :
+                            'bg-accent/20 text-white'}`}
+                        >
+                          {team.rank}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-14 w-14 relative">
+                            <img 
+                              className="h-14 w-14 rounded-full border-2 border-accent/20" 
+                              src={getMascotImageUrl(team.mascotId || 1)} 
+                              alt="" 
+                            />
+                            {team.rank <= 3 && (
+                              <div className="absolute -top-2 -right-2 w-6 h-6">
+                                {team.rank === 1 && <span className="text-xl">🏆</span>}
+                                {team.rank === 2 && <span className="text-xl">🥈</span>}
+                                {team.rank === 3 && <span className="text-xl">🥉</span>}
+                              </div>
+                            )}
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-base font-medium text-white">{team.name}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="text-xl font-bold text-accent">{team.totalScore}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-base text-white/80 text-center">
+                        {team.totalQuestions}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-base text-white/80 text-center">
+                        {team.correctAnswers}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="relative w-full bg-special/10 rounded-full h-5 overflow-hidden">
+                          <motion.div 
+                            className="absolute left-0 top-0 h-full bg-special"
+                            style={{ width: '0%' }}
+                            animate={{ width: `${team.accuracy}%` }}
+                            transition={{ duration: 1, delay: 0.1 * teamIdx }}
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center text-sm font-medium text-accent">
+                            {team.totalQuestions > 0 ? 
+                              `${team.accuracy}%` 
+                              : 'N/A'
+                            }
+                          </div>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
